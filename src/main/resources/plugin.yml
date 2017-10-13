@@ -1,0 +1,176 @@
+name: Postal
+version: 4.01
+description: Postal system manager.
+author: Vodhanel
+main: com.vodhanel.minecraft.va_postal.VA_postal
+depend: [Citizens]
+softdepend: [Vault, dynmap, WorldGuard, Towny]
+commands:
+  postal:
+    description: Administration and general help.
+    usage: /postal <start/stop/admin/chests/talk/quiet/speed>
+  addr:
+    description: Used to address a book you are holding.
+    usage: /addr <town> <address> [player]
+  att:
+    description: Used to address a book you are holding to the attention of a player.
+    usage: /att <player>
+  distr:
+    description: Used to distribute a book you are holding to Postal addresses.
+    usage: /dist <all/owners> [town] [expire_days]
+  go:
+    description: Used to teleport based on parameter count
+    usage: /go [town] [address] (no parameters = Central)
+  package:
+    description: Used to prepare a chest for shipping.
+    usage: /package <town> <address>
+    aliases: [pk]
+  cod:
+    description: Used to add COD to a shipping label.
+    usage: /cod <price>
+  accept:
+    description: Used accept a shipment.
+    usage: /accept <town> <address>
+  refuse:
+    description: Used refuse a shipment.
+    usage: /refuse <town> <address>
+  setowner:
+    description: Used to asign ownersip to a player
+    usage: /setowner <player>
+  tlist:
+    description: Used to list towns with post offices
+    usage: /tlist
+    aliases: [tl]
+  alist:
+    description: Used to list addresses in a town
+    usage: /alist <PostOffice>
+    aliases: [al]
+  plist:
+    description: Used to list players that have been on the server
+    usage: /plist <string match>
+    aliases: [pl]
+  gps:
+    description: Used to set your compass to a post office or address
+    usage: /gps <PostOffice> [address]
+  gpsp:
+    description: Used to set your compass to a post office or address
+    usage: /gpsp <PostOffice> [address]
+  expedite:
+    description: Used to push a route to the front of the schedule queue
+    usage: /expedite <PostOffice> <address>
+    aliases: [ex]
+  setcentral:
+    description: Used to set the central post office
+    usage: /setcentral
+  gotocentral:
+    description: Used to teleport the central post office
+    usage: /gotocentral
+  setlocal:
+    description: Used to set a local post office
+    usage: /setlocal <PostOffice>
+  gotolocal:
+    description: Used to teleport to a local post office
+    usage: /gotolocal <PostOffice>
+  setaddr:
+    description: Used to set or define an address
+    usage: /setaddr <PostOffice> <address>
+  owneraddr:
+    description: Used to associate a player with an address
+    usage: /owneraddr <PostOffice> <address> <player>
+  ownerlocal:
+    description: Used to set the owner of a town post office
+    usage: /ownerlocal <PostOffice> <player>
+  gotoaddr:
+    description: Used to teleport to an address
+    usage: /gotoaddr <PostOffice> <address>
+  setroute:
+    description: Used to define route from local post office to address
+    usage: /setroute <PostOffice> <address>
+  showroute:
+    description: Used to highlite the waypoints from local post office to address
+    usage: /showroute <PostOffice> <address>
+    aliases: [sr]
+  deletelocal:
+    description: Used to delete a local post office.
+    usage: /deletelocal <PostOffice>
+  deleteaddr:
+    description: Used to delete a address.
+    usage: /deleteaddr <PostOffice> <address>
+  openlocal:
+    description: Used to open a post office
+    usage: /openlocal <PostOffice>
+  openaddr:
+    description: Used to open an address.
+    usage: /openaddr <PostOffice> <address>
+  closelocal:
+    description: Used to close a post office.
+    usage: /closelocal <PostOffice>
+  closeaddr:
+    description: Used to close an address.
+    usage: /closeaddr <PostOffice> <address>
+permissions:
+  postal.admin:
+    description: Access to everything - same as op.
+    default: op
+  postal.inspector:
+    description: Access to all mail in mailboxes.
+    default: op
+  postal.accept.bypass:
+    description: Bypass WorlGuard and Towny build perms.
+    default: op
+  postal.addr:
+    default: true
+  postal.att:
+    default: true
+  postal.package:
+    default: true
+  postal.cod:
+    default: true
+  postal.accept:
+    default: true
+  postal.refuse:
+    default: true
+  postal.tlist:
+    default: true
+  postal.alist:
+    default: true
+  postal.plist:
+    default: true
+  postal.gps:
+    default: true
+  postal.expedite:
+    default: op
+  postal.setcentral:
+    default: op
+  postal.gotocentral:
+    default: true
+  postal.setlocal:
+    default: op
+  postal.gotolocal:
+    default: true
+  postal.setaddr:
+    default: op
+  postal.owneraddr:
+    default: op
+  postal.ownerlocal:
+    default: op
+  postal.gotoaddr:
+    default: op
+  postal.setroute:
+    default: op
+  postal.showroute:
+    default: op
+  postal.deletelocal:
+    default: op
+  postal.deleteaddr:
+    default: op
+  postal.openlocal:
+    default: op
+  postal.openaddr:
+    default: op
+  postal.closelocal:
+    default: op
+  postal.closeaddr:
+    default: op
+  postal.distr:
+    default: op

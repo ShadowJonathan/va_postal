@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" build-on-make="true" name="Postal:jar">
+    <output-path>C:/Spigot/plugins</output-path>
+    <root id="archive" name="Postal.jar">
+      <element id="module-output" name="Postal" />
+    </root>
+  </artifact>
+</component>

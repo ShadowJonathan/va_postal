@@ -1,0 +1,10 @@
+<component name="libraryTable">
+  <library name="us.dynmap:DynmapCoreAPI:1.9.4-SNAPSHOT" type="repository">
+    <properties maven-id="us.dynmap:DynmapCoreAPI:1.9.4-SNAPSHOT" />
+    <CLASSES>
+      <root url="jar://$MAVEN_REPOSITORY$/us/dynmap/DynmapCoreAPI/1.9.4-SNAPSHOT/DynmapCoreAPI-1.9.4-SNAPSHOT.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
