@@ -1,18 +1,16 @@
 package com.vodhanel.minecraft.va_postal.commands;
 
 import com.vodhanel.minecraft.va_postal.VA_postal;
-import com.vodhanel.minecraft.va_postal.common.P_Economy;
-import com.vodhanel.minecraft.va_postal.common.P_Towny;
-import com.vodhanel.minecraft.va_postal.common.Util;
-import com.vodhanel.minecraft.va_postal.common.VA_Dispatcher;
-import com.vodhanel.minecraft.va_postal.config.C_Address;
-import com.vodhanel.minecraft.va_postal.config.C_Arrays;
-import com.vodhanel.minecraft.va_postal.config.C_Owner;
-import com.vodhanel.minecraft.va_postal.config.C_Postoffice;
+import com.vodhanel.minecraft.va_postal.common.*;
+import com.vodhanel.minecraft.va_postal.config.*;
+import com.vodhanel.minecraft.va_postal.listeners.RouteEditor;
 import com.vodhanel.minecraft.va_postal.mail.BookManip;
+import com.vodhanel.minecraft.va_postal.mail.ChestManip;
+import org.bukkit.block.Block;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 
 public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
     public static Player player;
@@ -190,7 +188,7 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
             }
             VA_postal.admin_bypass = true;
             VA_postal.admin_bypass_stamp = Util.time_stamp();
-            Util.pinform(player, "Postal admin privilges will be on for five minutes.");
+            Util.pinform(player, "Postal admin privileges will be on for five minutes.");
             return true;
         }
         if ("stop".equals(args[0].toLowerCase().trim())) {
@@ -240,20 +238,6 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
                 slocation = VA_postal.wtr_schest_location_postoffice[i];
                 Util.pinform(player, "   " + town + slocation);
             }
-            return true;
-        }
-
-        if ("accept".equals(args[0].toLowerCase().trim())) {
-            String[] parms = new String[1];
-            accept(false, player, "accept", parms);
-            return true;
-        }
-
-        if ("package".equals(args[0].toLowerCase().trim())) {
-            String[] parms = new String[args.length - 1];
-
-            System.arraycopy(args, 1, parms, 0, parms.length);
-            parcel(false, player, "package", parms);
             return true;
         }
         if ("test".equals(args[0].toLowerCase().trim())) {
@@ -1423,7 +1407,7 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
         }
 
         String stown = "[all]";
-        int iexpiration = com.vodhanel.minecraft.va_postal.config.GetConfig.distr_exp_days();
+        int iexpiration = GetConfig.distr_exp_days();
 
 
         if (args.length > 1) {
@@ -1488,8 +1472,8 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
             return true;
         }
 
-        org.bukkit.inventory.ItemStack stack = player.getItemInHand();
-        if (!com.vodhanel.minecraft.va_postal.mail.BookManip.holding_valid_shipper(player, stack, true)) {
+        ItemStack stack = player.getItemInHand();
+        if (!BookManip.holding_valid_shipper(player, stack, true)) {
             Util.pinform(player, "&7&oYou must have a valid shipping label in your hand.");
             return true;
         }
@@ -1509,11 +1493,10 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
         }
 
         if ((VA_postal.wg_configured) &&
-                (!com.vodhanel.minecraft.va_postal.common.P_WG.ok_to_build_wg(player))) {
+                (!P_WG.ok_to_build_wg(player))) {
             Util.pinform(player, "&7&oYou must have build permission where you place this package.");
             return true;
         }
-
 
         if (is_player_comfirmation_registered(player)) {
             if (Cmd_static.accept_worker(player, stack, price)) {
@@ -1539,29 +1522,29 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
             return true;
         }
 
-        org.bukkit.inventory.ItemStack stack = player.getItemInHand();
-        if (!com.vodhanel.minecraft.va_postal.mail.BookManip.holding_valid_shipper(player, stack, true)) {
+        ItemStack stack = player.getItemOnCursor();
+        if (!BookManip.holding_valid_shipper(player, stack, true)) {
             Util.pinform(player, "&7&oYou must have a valid parcel statement in your hand.");
             return true;
         }
 
-        org.bukkit.block.Block block = com.vodhanel.minecraft.va_postal.mail.ChestManip.parcel_place_chest_refuse(stack);
+        Block block = ChestManip.parcel_place_chest_refuse(stack);
         if (block == null) {
             Util.pinform(player, "&7&oUnable to place parcel at origin.");
             return true;
         }
 
 
-        org.bukkit.inventory.Inventory inventory = com.vodhanel.minecraft.va_postal.mail.BookManip.parcel_fill_chest(block, stack);
+        org.bukkit.inventory.Inventory inventory = BookManip.parcel_fill_chest(block, stack);
         if (inventory == null) {
             Util.pinform(player, "&7&oUnable to complete shipment return.");
             return true;
         }
 
 
-        org.bukkit.inventory.ItemStack stamped = com.vodhanel.minecraft.va_postal.mail.BookManip.stamp_parcel_statement(player, stack, false);
+        org.bukkit.inventory.ItemStack stamped = BookManip.stamp_parcel_statement(player, stack, false);
         player.setItemInHand(null);
-        com.vodhanel.minecraft.va_postal.mail.BookManip.parcel_stmnt_to_chest(inventory, stamped, block, 4);
+        BookManip.parcel_stmnt_to_chest(inventory, stamped, block, 4);
         Util.pinform(player, "&7&oShipment has been returned to sender.");
 
         return true;
@@ -1576,12 +1559,12 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
             Util.pinform(player, "&7&oUsage: &f&r/package <PostOffice> <Address> [player]  &7&oto package a chest in front of you");
             return true;
         }
-        org.bukkit.block.Block block = com.vodhanel.minecraft.va_postal.mail.ChestManip.at_chest(player);
+        org.bukkit.block.Block block = ChestManip.at_chest(player);
         if (block == null) {
             Util.pinform(player, "&7&oStand next to the chest you want to ship.");
             return true;
         }
-        if (!com.vodhanel.minecraft.va_postal.mail.ChestManip.ok_to_use_chest(block, false)) {
+        if (!ChestManip.ok_to_use_chest(block, false)) {
             Util.pinform(player, "&6This chest either has a sign on it, or is too close to a sign.");
             return true;
         }
@@ -1593,7 +1576,7 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
         }
 
         if ((VA_postal.wg_configured) &&
-                (!com.vodhanel.minecraft.va_postal.common.P_WG.ok_to_build_wg(player))) {
+                (!P_WG.ok_to_build_wg(player))) {
             Util.pinform(player, "&7&oYou must have build permission where you package this chest.");
             return true;
         }
@@ -1668,8 +1651,8 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
             return true;
         }
 
-        org.bukkit.inventory.ItemStack stack = player.getItemInHand();
-        if (!com.vodhanel.minecraft.va_postal.mail.BookManip.holding_valid_shipper(player, stack, false)) {
+        ItemStack stack = player.getItemInHand();
+        if (!BookManip.holding_valid_shipper(player, stack, false)) {
             Util.pinform(player, "&7&oYou must have a valid shipping label in your hand.");
             return true;
         }
@@ -2687,7 +2670,7 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
 
     public static boolean showroute_con(boolean console, CommandSender sender, String cmd, String[] args) {
         if ((args.length < 2) || ("?".equals(args[0]))) {
-            Util.con_type("Usage: showroute <PostOffice> <Address>   to highlite waypoints on a route");
+            Util.con_type("Usage: showroute <PostOffice> <Address> to highlight waypoints on a route");
             return true;
         }
         String stown = C_Postoffice.town_complete(args[0]);
@@ -2713,10 +2696,10 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
 
 
         if (is_player_comfirmation_registered(null)) {
-            com.vodhanel.minecraft.va_postal.listeners.RouteEditor.place_route_markers(stown, saddress);
+            RouteEditor.place_route_markers(stown, saddress);
             Util.con_type("Waypoints have been highlighted for:  " + Util.df(stown) + ", " + Util.df(saddress));
 
-            com.vodhanel.minecraft.va_postal.common.VA_Timers.hideroute(stown, saddress);
+            VA_Timers.hideroute(stown, saddress);
             deregister_player_comfirmation(null);
         } else {
             Util.cinform("Ready to highlight waypoints for:  " + Util.df(stown) + ", " + Util.df(saddress));
@@ -2775,7 +2758,6 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
             }
         }
     }
-
 
     public static void register_player_comfirmation(Player player, String scommand) {
         String splayer = null;
@@ -2968,10 +2950,6 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
             }
 
             if (cmd.getName().equalsIgnoreCase("go")) {
-                result = go(false, sender, cmd.getName(), args);
-            }
-
-            if (cmd.getName().equalsIgnoreCase("va_go")) {
                 result = go(false, sender, cmd.getName(), args);
             }
 
