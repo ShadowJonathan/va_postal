@@ -491,7 +491,7 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
             return true;
         }
         if ((args.length == 0) || (args.length == 1)) {
-            String subject = "";
+            String subject;
             if (args.length == 0) {
                 subject = "none";
             } else {
@@ -1216,18 +1216,18 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
             Util.pinform(player, "&7&odefine the route to the post office.");
             return true;
         }
-        org.bukkit.block.Block block = com.vodhanel.minecraft.va_postal.mail.ChestManip.getNearestGenericChest_to_player(player, 2);
+        Block block = ChestManip.getNearestGenericChest_to_player(player, 2);
         if (block == null) {
             Util.pinform(player, "&6Please place a chest first and stand in front of it.");
             return true;
         }
-        if (!com.vodhanel.minecraft.va_postal.mail.ChestManip.ok_to_use_chest(block, true)) {
+        if (!ChestManip.ok_to_use_chest(block, true)) {
             Util.pinform(player, "&6This chest either has a sign on it, or is too close to a sign.");
             Util.pinform(player, "&6To use this chest, the sign must temporarily be removed.");
             return true;
         }
-        String input_addr = "";
-        String stown = "";
+        String input_addr;
+        String stown;
         if (args.length == 1) {
             input_addr = args[0];
             String[] geo_addr = C_Arrays.geo_po_list_sorted(player);
@@ -1262,7 +1262,7 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
             }
         }
 
-        if ((!hasPermission_ext(player, "postal.setroute", stown, "null")) && (VA_postal.using_towny()) && (!P_Towny.is_towny_admin_by_loc(player))) {
+        if ((!hasPermission_ext(player, "postal.setaddr", stown, "null")) && (VA_postal.using_towny()) && (!P_Towny.is_towny_admin_by_loc(player))) {
             Util.pinform(player, "&7&oRequired permission not present.");
             return true;
         }
@@ -2447,7 +2447,7 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
                     String[] parts = g_list[i].split(",");
                     if (parts.length == 5) {
                         String subject = parts[1];
-                        String stown = parts[3];
+                        String stown;
                         String saddr = parts[4];
                         if (!splayer.equalsIgnoreCase(subject)) {
                             boolean is_po = false;

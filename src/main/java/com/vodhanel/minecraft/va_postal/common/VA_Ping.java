@@ -26,9 +26,7 @@ public class VA_Ping {
         }
 
         if (VA_Dispatcher.dispatcher_async) {
-            VA_postal.plugin.getServer().getScheduler().scheduleSyncDelayedTask(VA_postal.plugin, new Runnable() {
-                public void run() {
-                }
+            VA_postal.plugin.getServer().getScheduler().scheduleSyncDelayedTask(VA_postal.plugin, () -> {
             }, 20L);
 
 
@@ -65,7 +63,7 @@ public class VA_Ping {
 
         if ((VA_postal.wtr_npc[id] == null) || (!VA_postal.wtr_npc[id].isSpawned())) {
             if (VA_postal.wdtalk) {
-                Util.cinform("\033[0;33m[WATCHDOG External NPC] " + VA_postal.wtr_poffice[id] + ", " + VA_postal.wtr_address[id] + ", " + VA_postal.wtr_pos[id]);
+                Util.cinform(AnsiColor.YELLOW + "[WATCHDOG External NPC] " + VA_postal.wtr_poffice[id] + ", " + VA_postal.wtr_address[id] + ", " + VA_postal.wtr_pos[id]);
             }
             try {
                 VA_postal.wtr_npc[id].spawn(VA_postal.wtr_waypoint[id]);

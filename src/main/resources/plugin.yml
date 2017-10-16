@@ -52,9 +52,7 @@ commands:
   gps:
     description: Used to set your compass to a post office or address
     usage: /gps <PostOffice> [address]
-  gpsp:
-    description: Used to set your compass to a post office or address
-    usage: /gpsp <PostOffice> [address]
+    aliases: [gpsp]
   expedite:
     description: Used to push a route to the front of the schedule queue
     usage: /expedite <PostOffice> <address>

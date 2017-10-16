@@ -29,20 +29,16 @@ public class VA_Dispatcher {
         }
         dispatcher_running = true;
         if (dispatcher_async) {
-            dispatcher_task = VA_postal.plugin.getServer().getScheduler().runTaskTimerAsynchronously(VA_postal.plugin, new Runnable() {
-                public void run() {
-                    heart_beat();
-                }
-            }, delay, period);
+            dispatcher_task = VA_postal.plugin.getServer()
+                    .getScheduler()
+                    .runTaskTimerAsynchronously(VA_postal.plugin, VA_Dispatcher::heart_beat, delay, period);
 
 
         } else {
 
-            dispatcher_task = VA_postal.plugin.getServer().getScheduler().runTaskTimer(VA_postal.plugin, new Runnable() {
-                public void run() {
-                    heart_beat();
-                }
-            }, delay, period);
+            dispatcher_task = VA_postal.plugin.getServer()
+                    .getScheduler()
+                    .runTaskTimer(VA_postal.plugin, VA_Dispatcher::heart_beat, delay, period);
         }
     }
 
@@ -94,21 +90,19 @@ public class VA_Dispatcher {
             if (!quiet) {
                 Util.cinform(AnsiColor.RED + "[Stopping VA_postal] \033[0;37mDispatcher stopped.");
             }
-            VA_postal.plugin.getServer().getScheduler().scheduleSyncDelayedTask(VA_postal.plugin, new Runnable() {
-                public void run() {
-                    if (VA_Dispatcher.dispatcher_id >= 0) {
-                        VA_Dispatcher.dispatcher_task.cancel();
-                        VA_postal.central_array_name = null;
-                        VA_postal.central_array_location = null;
-                        VA_postal.central_array_time = null;
-                        RouteMngr.npc_delete_all(true);
-                        VA_postal.central_route_pos = 0;
-                        VA_postal.route_watchdog_ping_time = -1L;
-                        VA_postal.route_watchdog_pos = 0;
-                        VA_Arrays.clear_nav_and_goals();
-                    }
-                    VA_Dispatcher.restarting = false;
+            VA_postal.plugin.getServer().getScheduler().scheduleSyncDelayedTask(VA_postal.plugin, () -> {
+                if (VA_Dispatcher.dispatcher_id >= 0) {
+                    VA_Dispatcher.dispatcher_task.cancel();
+                    VA_postal.central_array_name = null;
+                    VA_postal.central_array_location = null;
+                    VA_postal.central_array_time = null;
+                    RouteMngr.npc_delete_all(true);
+                    VA_postal.central_route_pos = 0;
+                    VA_postal.route_watchdog_ping_time = -1L;
+                    VA_postal.route_watchdog_pos = 0;
+                    VA_Arrays.clear_nav_and_goals();
                 }
+                VA_Dispatcher.restarting = false;
             }, restart_cool);
         } else Util.dinform("DISPATCHER ID NOT OVER 0");
     }
@@ -126,7 +120,6 @@ public class VA_Dispatcher {
         C_Dispatcher.reality_check_n_chunk_list();
         if (!VA_postal.needs_configuration) {
             C_Dispatcher.load_central_route_array(town_list);
-            town_list = null;
 
             VA_Timers.load_Static_Chunk_Regions();
 
@@ -144,7 +137,7 @@ public class VA_Dispatcher {
             dispatcher_heartbeat = GetConfig.heartbeat_ticks();
             dispatcher_async = GetConfig.heart_beat_async();
             dispatcher_auto_cal = GetConfig.heart_beat_auto();
-            dispatcher(Long.valueOf(100L), Long.valueOf(dispatcher_heartbeat), true);
+            dispatcher(100L, dispatcher_heartbeat, true);
             if (VA_postal.dynmap_configured) {
                 P_Dynmap.dynmap_start();
             }
@@ -160,11 +153,6 @@ public class VA_Dispatcher {
         }
         cancel_dispatcher(quiet);
         long delay = restart_cool + 20L;
-        VA_postal.plugin.getServer().getScheduler().scheduleSyncDelayedTask(VA_postal.plugin, new Runnable() {
-
-            public void run() {
-                VA_Dispatcher.start_up(quiet);
-            }
-        }, delay);
+        VA_postal.plugin.getServer().getScheduler().scheduleSyncDelayedTask(VA_postal.plugin, () -> VA_Dispatcher.start_up(quiet), delay);
     }
 }

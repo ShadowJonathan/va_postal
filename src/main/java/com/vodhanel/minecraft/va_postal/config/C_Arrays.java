@@ -338,7 +338,7 @@ public class C_Arrays {
             return null;
         }
         Util.calibrate_compass(player);
-        List<String> list = new ArrayList();
+        ArrayList<String> list = new ArrayList<>();
         Location location = player.getLocation();
         if (location == null) {
             return null;
@@ -350,7 +350,7 @@ public class C_Arrays {
                 String[] g_list = geo_list_sorted(others);
                 if ((g_list != null) && (g_list.length > 0)) {
                     String[] parts = g_list[0].split(",");
-                    if ((parts != null) && (parts.length == 4)) {
+                    if (parts.length == 4) {
                         int distance = (int) location.distance(t_location);
                         String formatted_dist = Util.int2fstr_leading_zeros(distance, 5);
                         String t_player = others.getName();
@@ -365,10 +365,8 @@ public class C_Arrays {
         if (list.size() > 0) {
             String[] result = new String[list.size()];
             for (int i = 0; i < list.size(); i++) {
-                result[i] = ((String) list.get(i)).trim();
+                result[i] = list.get(i).trim();
             }
-            list = null;
-
 
             if (result.length > 0) {
                 try {
