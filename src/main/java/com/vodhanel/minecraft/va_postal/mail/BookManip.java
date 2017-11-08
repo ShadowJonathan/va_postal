@@ -218,7 +218,7 @@ public class BookManip {
         int slot = 0;
         if (item_itr != null)
             while (item_itr.hasNext()) {
-                ItemStack ind_item = (ItemStack) item_itr.next();
+                ItemStack ind_item = item_itr.next();
                 if ((ind_item == null) || (ind_item.getTypeId() == 0)) {
                     slot++;
                 } else {
@@ -313,7 +313,7 @@ public class BookManip {
         if (item_itr != null) {
             int index = 0;
             while (item_itr.hasNext()) {
-                ItemStack ind_item = (ItemStack) item_itr.next();
+                ItemStack ind_item = item_itr.next();
                 if ((ind_item != null) && (ind_item.getType() == Material.WRITTEN_BOOK)) {
                     Book book = new Book(ind_item);
                     if (!book.is_valid()) {
@@ -340,7 +340,7 @@ public class BookManip {
         if (item_itr != null) {
             int index = 0;
             while (item_itr.hasNext()) {
-                ItemStack ind_item = (ItemStack) item_itr.next();
+                ItemStack ind_item = item_itr.next();
                 if ((ind_item != null) && (ind_item.getType() == Material.WRITTEN_BOOK)) {
                     Book book = new Book(ind_item);
                     if (!book.is_valid()) {
@@ -359,7 +359,7 @@ public class BookManip {
             if (!done) {
                 item_itr = inventory.iterator(0);
                 while (item_itr.hasNext()) {
-                    ItemStack ind_item = (ItemStack) item_itr.next();
+                    ItemStack ind_item = item_itr.next();
                     if ((ind_item == null) || (ind_item.getTypeId() == 0)) {
                         item_itr.set(stack.clone());
                         done = true;
@@ -501,10 +501,10 @@ public class BookManip {
         if (sowner == null) {
             if (saddr.contains("[Local]")) {
                 if (C_Owner.is_local_po_owner_defined(stown)) {
-                    line_4 = Util.df(C_Owner.get_owner_local_po(stown));
+                    line_4 = Util.df(C_Owner.get_owner_local_po(stown).getDisplayName());
                 }
             } else if (C_Owner.is_address_owner_defined(stown, saddr)) {
-                line_4 = Util.df(C_Owner.get_owner_address(stown, saddr));
+                line_4 = Util.df(C_Owner.get_owner_address(stown, saddr).getDisplayName());
             }
         }
         //Util.dinform("sowner for "+stown+" "+saddr+" was "+sowner);

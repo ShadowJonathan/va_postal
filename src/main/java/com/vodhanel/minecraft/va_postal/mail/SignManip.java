@@ -170,7 +170,7 @@ public class SignManip {
                 for (int x = -r; x <= r; x++) {
                     for (int y = -r; y <= r; y++) {
                         Block a = c.getRelative(o[0], x).getRelative(o[1], y);
-                        if (ChestManip.is_chest(a.getTypeId())) {
+                        if (ChestManip.is_chest(a.getType())) {
                             if (a.getY() > y_limit - 2.0D) {
 
                                 if (a.getY() < y_limit + 4.0D) {

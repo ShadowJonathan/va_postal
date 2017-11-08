@@ -2,6 +2,7 @@ package com.vodhanel.minecraft.va_postal.common;
 
 import com.vodhanel.minecraft.va_postal.VA_postal;
 import com.vodhanel.minecraft.va_postal.commands.Cmdexecutor;
+import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
 public class P_WG {
@@ -16,12 +17,9 @@ public class P_WG {
             if (Cmdexecutor.hasPermission(player, "postal.accept.bypass")) {
                 return true;
             }
-            org.bukkit.Location location = player.getLocation();
+            Location location = player.getLocation();
 
-            if (VA_postal.worldguard.canBuild(player, location)) {
-                return true;
-            }
-            return false;
+            return VA_postal.worldguard.canBuild(player, location);
         }
 
         return true;

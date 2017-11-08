@@ -1,11 +1,15 @@
 package com.vodhanel.minecraft.va_postal.common;
 
 import com.vodhanel.minecraft.va_postal.VA_postal;
+import com.vodhanel.minecraft.va_postal.config.*;
 import org.bukkit.Location;
+import org.bukkit.entity.Player;
 import org.dynmap.markers.Marker;
 
+import java.util.Collection;
+
 public class P_Dynmap {
-    public static java.util.Collection<String> disabled_worlds = null;
+    public static Collection<String> disabled_worlds = null;
     public static int dyn_po_cnt = 0;
     public static int dyn_addr_cnt = 0;
     public static int dyn_postmen_cnt = 0;
@@ -83,12 +87,9 @@ public class P_Dynmap {
                     return;
                 }
                 int minzoom = 0;
-                if (minzoom > 0) {
-                    VA_postal.markerset.setMinZoom(minzoom);
-                }
                 VA_postal.markerset.setLayerPriority(1);
                 VA_postal.markerset.setHideByDefault(false);
-                VA_postal.markerset.setLabelShow(Boolean.valueOf(true));
+                VA_postal.markerset.setLabelShow(true);
                 dynmap_markerset_created = true;
             }
 
@@ -141,17 +142,17 @@ public class P_Dynmap {
             return;
         }
 
-        String sowner = "server";
-        if (com.vodhanel.minecraft.va_postal.config.C_Owner.is_local_po_owner_defined(stown)) {
-            sowner = com.vodhanel.minecraft.va_postal.config.C_Owner.get_owner_local_po(stown);
+        Player owner = VA_postal.SERVER;
+        if (C_Owner.is_local_po_owner_defined(stown)) {
+            owner = C_Owner.get_owner_local_po(stown);
         }
-        String[] addr_list = com.vodhanel.minecraft.va_postal.config.C_Arrays.addresses_list(stown);
+        String[] addr_list = C_Arrays.addresses_list(stown);
         int addr_cnt = 0;
         if (addr_list != null) {
             addr_cnt = addr_list.length;
         }
         addr_list = null;
-        Location location = Util.str2location(com.vodhanel.minecraft.va_postal.config.C_Postoffice.get_local_po_location_by_name(stown));
+        Location location = Util.str2location(C_Postoffice.get_local_po_location_by_name(stown));
         String sid = null;
         String saddr_cnt = Util.int2str(index);
         sid = "po_" + saddr_cnt;
@@ -167,9 +168,9 @@ public class P_Dynmap {
         if ((VA_postal.towny_configured) && (VA_postal.towny_opt_in) && (P_Towny.is_towny_by_db(stown))) {
             String townt_t = P_Towny.get_town_name_by_db(stown);
             String blocks = Util.int2str(P_Towny.get_town_blocks_by_db(stown));
-            msg = "Post office in " + Util.df(townt_t) + ", named " + Util.df(stown) + ", owned by " + Util.df(sowner) + ", services " + saddr_cnt + " addresses." + "  This town contains " + blocks + " town blocks.";
+            msg = "Post office in " + Util.df(townt_t) + ", named " + Util.df(stown) + ", owned by " + owner + ", services " + saddr_cnt + " addresses." + " This town contains " + blocks + " town blocks.";
         } else {
-            msg = "Post office for " + Util.df(stown) + ", owned by " + Util.df(sowner) + ", services " + saddr_cnt + " addresses.";
+            msg = "Post office for " + Util.df(stown) + ", owned by " + owner + ", services " + saddr_cnt + " addresses.";
         }
 
         VA_postal.dyn_po_mrkr[index] = VA_postal.markerset.createMarker(sid, Util.df(stown), sworld, X, Y, Z, VA_postal.dyn_postoffice_ico, false);
@@ -210,12 +211,12 @@ public class P_Dynmap {
             return;
         }
 
-        String sowner = "server";
-        if (com.vodhanel.minecraft.va_postal.config.C_Owner.is_address_owner_defined(stown, saddress)) {
-            sowner = com.vodhanel.minecraft.va_postal.config.C_Owner.get_owner_address(stown, saddress);
+        Player owner = VA_postal.SERVER;
+        if (C_Owner.is_address_owner_defined(stown, saddress)) {
+            owner = C_Owner.get_owner_address(stown, saddress);
         }
 
-        Location location = Util.str2location(com.vodhanel.minecraft.va_postal.config.C_Address.get_address_location(stown, saddress));
+        Location location = Util.str2location(C_Address.get_address_location(stown, saddress));
         String sid = "addr_" + Util.int2str(index);
         String sworld = location.getWorld().getName();
         double X = location.getX();
@@ -228,9 +229,9 @@ public class P_Dynmap {
         String msg;
         if ((VA_postal.towny_configured) && (VA_postal.towny_opt_in) && (P_Towny.is_towny_by_db(stown))) {
             String townt_t = P_Towny.get_town_name_by_db(stown);
-            msg = "Address: " + Util.df(saddress) + ", post office name: " + Util.df(stown) + ", owned by: " + Util.df(sowner) + ", in town: " + Util.df(townt_t);
+            msg = "Address: " + Util.df(saddress) + ", post office name: " + Util.df(stown) + ", owned by: " + owner + ", in town: " + Util.df(townt_t);
         } else {
-            msg = "Address: " + Util.df(saddress) + ", in town: " + Util.df(stown) + ", owned by: " + Util.df(sowner);
+            msg = "Address: " + Util.df(saddress) + ", in town: " + Util.df(stown) + ", owned by: " + owner;
         }
 
         VA_postal.dyn_addr_mrkr[index] = VA_postal.markerset.createMarker(sid, Util.df(saddress), sworld, X, Y, Z, VA_postal.dyn_address_ico, false);
@@ -275,7 +276,7 @@ public class P_Dynmap {
                 VA_postal.dyn_address_ico = VA_postal.markerapi.getMarkerIcon("default");
 
 
-                String[] town_list = com.vodhanel.minecraft.va_postal.config.C_Arrays.town_list();
+                String[] town_list = C_Arrays.town_list();
 
                 int address_count = 0;
                 if (town_list == null) {
@@ -286,12 +287,12 @@ public class P_Dynmap {
                 P_Dynmap.dyn_po_cnt = town_list.length;
 
 
-                for (int i = 0; i < town_list.length; i++) {
-                    String[] addr_list = com.vodhanel.minecraft.va_postal.config.C_Arrays.addresses_list(town_list[i]);
+                for (String aTown_list : town_list) {
+                    String[] addr_list = C_Arrays.addresses_list(aTown_list);
                     if (addr_list == null) {
                         Util.cinform("Dynmap - Problem getting address array.");
                     } else {
-                        for (int j = 0; j < addr_list.length; j++) {
+                        for (String anAddr_list : addr_list) {
                             address_count++;
                         }
                     }
@@ -305,26 +306,19 @@ public class P_Dynmap {
                 VA_postal.dyn_addr_str_addr = new String[address_allocation];
 
 
-                if (town_list == null) {
-                    Util.cinform("Dynmap - Problem getting town array.");
-                    creating_labels = (false);
-                    return;
-                }
-
-
                 address_count = 0;
                 for (int i = 0; i < town_list.length; i++) {
                     String stown = town_list[i];
-                    String sowner = "server";
-                    if (com.vodhanel.minecraft.va_postal.config.C_Owner.is_local_po_owner_defined(stown)) {
-                        sowner = com.vodhanel.minecraft.va_postal.config.C_Owner.get_owner_local_po(stown);
+                    Player owner = VA_postal.SERVER;
+                    if (C_Owner.is_local_po_owner_defined(stown)) {
+                        owner = C_Owner.get_owner_local_po(stown);
                     }
-                    String[] addr_list = com.vodhanel.minecraft.va_postal.config.C_Arrays.addresses_list(town_list[i]);
+                    String[] addr_list = C_Arrays.addresses_list(town_list[i]);
                     if (addr_list != null) {
 
-                        Location location = Util.str2location(com.vodhanel.minecraft.va_postal.config.C_Postoffice.get_local_po_location_by_name(stown));
-                        String sid = null;
-                        String saddr_cnt = null;
+                        Location location = Util.str2location(C_Postoffice.get_local_po_location_by_name(stown));
+                        String sid;
+                        String saddr_cnt;
                         sid = "po_" + Util.int2str(i);
                         saddr_cnt = Util.int2str(addr_list.length);
                         String sworld = location.getWorld().getName();
@@ -341,9 +335,9 @@ public class P_Dynmap {
                             if ((VA_postal.towny_configured) && (VA_postal.towny_opt_in) && (P_Towny.is_towny_by_db(stown))) {
                                 String townt_t = P_Towny.get_town_name_by_db(stown);
                                 String blocks = Util.int2str(P_Towny.get_town_blocks_by_db(stown));
-                                msg = "Post office in " + Util.df(townt_t) + ", named " + Util.df(stown) + ", owned by " + Util.df(sowner) + ", services " + saddr_cnt + " addresses." + "  This town contains " + blocks + " town blocks.";
+                                msg = "Post office in " + Util.df(townt_t) + ", named " + Util.df(stown) + ", owned by " + owner + ", services " + saddr_cnt + " addresses." + " This town contains " + blocks + " town blocks.";
                             } else {
-                                msg = "Post office for " + Util.df(stown) + ", owned by " + Util.df(sowner) + ", services " + saddr_cnt + " addresses.";
+                                msg = "Post office for " + Util.df(stown) + ", owned by " + owner + ", services " + saddr_cnt + " addresses.";
                             }
 
                             VA_postal.dyn_po_mrkr[i] = VA_postal.markerset.createMarker(sid, Util.df(stown), sworld, X, Y, Z, VA_postal.dyn_postoffice_ico, false);
@@ -351,44 +345,40 @@ public class P_Dynmap {
                             VA_postal.dyn_po_str[i] = stown;
 
 
-                            if (addr_list == null) {
-                                Util.cinform("Dynmap - Problem getting address array.");
-                            } else
-                                for (int j = 0; j < addr_list.length; j++) {
-                                    String saddr = addr_list[j];
-                                    sowner = "server";
-                                    if (com.vodhanel.minecraft.va_postal.config.C_Owner.is_address_owner_defined(stown, saddr)) {
-                                        sowner = com.vodhanel.minecraft.va_postal.config.C_Owner.get_owner_address(stown, saddr);
-                                    }
-
-                                    location = Util.str2location(com.vodhanel.minecraft.va_postal.config.C_Address.get_address_location(stown, saddr));
-                                    sid = "addr_" + Util.int2str(address_count);
-                                    sworld = location.getWorld().getName();
-                                    if (P_Dynmap.is_world_enabled(sworld)) {
-
-                                        X = location.getX();
-                                        Y = location.getY();
-                                        Z = location.getZ();
-                                        if (VA_postal.dyn_addr_mrkr[address_count] != null) {
-                                            VA_postal.dyn_addr_mrkr[address_count].deleteMarker();
-                                            VA_postal.dyn_addr_mrkr[address_count] = null;
-                                        }
-
-                                        if ((VA_postal.towny_configured) && (VA_postal.towny_opt_in) && (P_Towny.is_towny_by_db(stown))) {
-                                            String townt_t = P_Towny.get_town_name_by_db(stown);
-                                            msg = "Address: " + Util.df(saddr) + ", post office name: " + Util.df(stown) + ", owned by: " + Util.df(sowner) + ", in town: " + Util.df(townt_t);
-                                        } else {
-                                            msg = "Address: " + Util.df(saddr) + ", in town: " + Util.df(stown) + ", owned by: " + Util.df(sowner);
-                                        }
-
-                                        VA_postal.dyn_addr_mrkr[address_count] = VA_postal.markerset.createMarker(sid, Util.df(saddr), sworld, X, Y, Z, VA_postal.dyn_address_ico, false);
-                                        VA_postal.dyn_addr_mrkr[address_count].setDescription(msg);
-                                        VA_postal.dyn_addr_str_po[address_count] = stown;
-                                        VA_postal.dyn_addr_str_addr[address_count] = saddr;
-
-                                        address_count++;
-                                    }
+                            for (String saddr : addr_list) {
+                                owner = VA_postal.SERVER;
+                                if (C_Owner.is_address_owner_defined(stown, saddr)) {
+                                    owner = C_Owner.get_owner_address(stown, saddr);
                                 }
+
+                                location = Util.str2location(C_Address.get_address_location(stown, saddr));
+                                sid = "addr_" + Util.int2str(address_count);
+                                sworld = location.getWorld().getName();
+                                if (P_Dynmap.is_world_enabled(sworld)) {
+
+                                    X = location.getX();
+                                    Y = location.getY();
+                                    Z = location.getZ();
+                                    if (VA_postal.dyn_addr_mrkr[address_count] != null) {
+                                        VA_postal.dyn_addr_mrkr[address_count].deleteMarker();
+                                        VA_postal.dyn_addr_mrkr[address_count] = null;
+                                    }
+
+                                    if ((VA_postal.towny_configured) && (VA_postal.towny_opt_in) && (P_Towny.is_towny_by_db(stown))) {
+                                        String townt_t = P_Towny.get_town_name_by_db(stown);
+                                        msg = "Address: " + Util.df(saddr) + ", post office name: " + Util.df(stown) + ", owned by: " + owner + ", in town: " + Util.df(townt_t);
+                                    } else {
+                                        msg = "Address: " + Util.df(saddr) + ", in town: " + Util.df(stown) + ", owned by: " + owner;
+                                    }
+
+                                    VA_postal.dyn_addr_mrkr[address_count] = VA_postal.markerset.createMarker(sid, Util.df(saddr), sworld, X, Y, Z, VA_postal.dyn_address_ico, false);
+                                    VA_postal.dyn_addr_mrkr[address_count].setDescription(msg);
+                                    VA_postal.dyn_addr_str_po[address_count] = stown;
+                                    VA_postal.dyn_addr_str_addr[address_count] = saddr;
+
+                                    address_count++;
+                                }
+                            }
                         }
                     }
                 }
@@ -519,14 +509,14 @@ public class P_Dynmap {
                 String stown = VA_postal.wtr_poffice[id];
                 String saddr = VA_postal.wtr_address[id];
                 String sid = "rt_" + Util.int2str(id);
-                String route_secs = com.vodhanel.minecraft.va_postal.config.C_Address.get_addr_interval(stown, saddr).trim();
+                String route_secs = C_Address.get_addr_interval(stown, saddr).trim();
 
-                int waypoint_cnt = com.vodhanel.minecraft.va_postal.config.C_Route.route_waypoint_count(stown, saddr);
+                int waypoint_cnt = C_Route.route_waypoint_count(stown, saddr);
                 double[] X = new double[waypoint_cnt];
                 double[] Y = new double[waypoint_cnt];
                 double[] Z = new double[waypoint_cnt];
                 for (int i = 0; i < waypoint_cnt; i++) {
-                    String swaypoint = com.vodhanel.minecraft.va_postal.config.C_Route.get_waypoint_location(stown, saddr, i);
+                    String swaypoint = C_Route.get_waypoint_location(stown, saddr, i);
                     Location waypoint = Util.str2location(swaypoint);
                     if (waypoint == null) break;
                     X[i] = waypoint.getX();
@@ -535,16 +525,14 @@ public class P_Dynmap {
                 }
 
 
-                if (X != null) {
-                    String msg = "Route from the " + Util.df(stown) + " post office to the address: " + Util.df(saddr) + ".  Last walk took " + route_secs + " seconds round trip.";
-                    if (VA_postal.dyn_route[id] == null) {
-                        VA_postal.dyn_route[id] = VA_postal.markerset.createPolyLineMarker(sid, msg, false, sworld, X, Y, Z, false);
-                    } else {
-                        VA_postal.dyn_route[id].setCornerLocations(X, Y, Z);
-                        VA_postal.dyn_route[id].setLabel(msg);
-                    }
-                    VA_postal.dyn_route[id].setLineStyle(line_weight, line_opacity, line_color);
+                String msg = "Route from the " + Util.df(stown) + " post office to the address: " + Util.df(saddr) + ". Last walk took " + route_secs + " seconds round trip.";
+                if (VA_postal.dyn_route[id] == null) {
+                    VA_postal.dyn_route[id] = VA_postal.markerset.createPolyLineMarker(sid, msg, false, sworld, X, Y, Z, false);
+                } else {
+                    VA_postal.dyn_route[id].setCornerLocations(X, Y, Z);
+                    VA_postal.dyn_route[id].setLabel(msg);
                 }
+                VA_postal.dyn_route[id].setLineStyle(line_weight, line_opacity, line_color);
             }
         }, 5L);
     }
@@ -657,7 +645,7 @@ public class P_Dynmap {
             return;
         }
         if (VA_postal.dynmap_active) {
-            Location target = Util.str2location(com.vodhanel.minecraft.va_postal.config.C_Postoffice.get_local_po_location_by_name(stown));
+            Location target = Util.str2location(C_Postoffice.get_local_po_location_by_name(stown));
             String sworld = target.getWorld().getName();
             if (!is_world_enabled(sworld)) {
                 return;
@@ -665,8 +653,8 @@ public class P_Dynmap {
             double X = target.getX() - 4.0D;
             double Y = target.getY() + 4.0D;
             double Z = target.getZ();
-            String pmaster_secs = com.vodhanel.minecraft.va_postal.config.C_Postoffice.get_po_interval(stown).trim();
-            String msg = "The PostMaster is managing out of town mail at: " + Util.df(stown) + ".  His last visit was " + pmaster_secs + " seconds ago.";
+            String pmaster_secs = C_Postoffice.get_po_interval(stown).trim();
+            String msg = "The PostMaster is managing out of town mail at: " + Util.df(stown) + ". His last visit was " + pmaster_secs + " seconds ago.";
             if (VA_postal.dyn_postmaster != null) {
                 VA_postal.dyn_postmaster.setDescription(msg);
                 VA_postal.dyn_postmaster.setLocation(sworld, X, Y, Z);
@@ -697,7 +685,7 @@ public class P_Dynmap {
 
         String stown = Util.df(VA_postal.wtr_poffice[id]);
         String saddr = Util.df(VA_postal.wtr_address[id]);
-        String msg = "";
+        String msg;
 
         if (finished) {
             VA_postal.dyn_postman[id].setLineStyle(1, 1.0D, black);
@@ -788,7 +776,7 @@ public class P_Dynmap {
             if (string.length() > 0) {
                 return string.substring(0, 1).toUpperCase() + string.substring(1).toLowerCase().trim();
             }
-        } catch (Exception e) {
+        } catch (Exception ignored) {
         }
 
         return "";
@@ -802,16 +790,18 @@ public class P_Dynmap {
                 return input.substring(0, len);
             }
 
-            while (input.length() < len) {
-                input = input + filler;
+            StringBuilder inputBuilder = new StringBuilder(input);
+            while (inputBuilder.length() < len) {
+                inputBuilder.append(filler);
             }
+            input = inputBuilder.toString();
             return input;
         } catch (Exception e) {
-            String blank = "";
+            StringBuilder blank = new StringBuilder();
             for (int i = 0; i < len; i++) {
-                blank = blank + filler;
+                blank.append(filler);
             }
-            return blank;
+            return blank.toString();
         }
     }
 }

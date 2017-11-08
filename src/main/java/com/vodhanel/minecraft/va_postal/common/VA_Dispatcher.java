@@ -4,6 +4,7 @@ import com.vodhanel.minecraft.va_postal.VA_postal;
 import com.vodhanel.minecraft.va_postal.commands.Cmdexecutor;
 import com.vodhanel.minecraft.va_postal.config.C_Arrays;
 import com.vodhanel.minecraft.va_postal.config.C_Dispatcher;
+import com.vodhanel.minecraft.va_postal.config.C_Queue;
 import com.vodhanel.minecraft.va_postal.config.GetConfig;
 import com.vodhanel.minecraft.va_postal.navigation.RouteMngr;
 import org.bukkit.scheduler.BukkitTask;
@@ -48,7 +49,7 @@ public class VA_Dispatcher {
         }
         dispatcher_id = dispatcher_task.getTaskId();
 
-        int elapsed_seconds_since_last_npc_aciviy = Util.time_stamp() - VA_postal.wtr_watchdog_sys_ext_stamp;
+        int elapsed_seconds_since_last_nbc_activity = Util.time_stamp() - VA_postal.wtr_watchdog_sys_ext_stamp;
 
         int wd_delay = VA_postal.wtr_postman_cool;
         if (wd_delay > 40) {
@@ -56,7 +57,7 @@ public class VA_Dispatcher {
         } else {
             wd_delay = 60;
         }
-        if (elapsed_seconds_since_last_npc_aciviy > wd_delay) {
+        if (elapsed_seconds_since_last_nbc_activity > wd_delay) {
             VA_postal.wtr_watchdog_sys_ext_stamp = Util.time_stamp();
 
             Util.cinform(AnsiColor.RED + "[Dispatcher] Activity timeout for job queue.");
@@ -64,7 +65,7 @@ public class VA_Dispatcher {
             restart(true);
         }
 
-        String queue_pair = com.vodhanel.minecraft.va_postal.config.C_Queue.get_next_queue_task();
+        String queue_pair = C_Queue.get_next_queue_task();
 
         if (!"BZY".equals(queue_pair.trim())) {
             RouteMngr.npc_scheduler(queue_pair);

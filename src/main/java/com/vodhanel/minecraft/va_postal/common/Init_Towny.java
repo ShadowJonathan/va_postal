@@ -18,7 +18,6 @@ public class Init_Towny implements Runnable {
         int hits = 0;
         plugin.getLogger().info("================================================");
         for (Resident resident : TownyUniverse.getDataSource().getResidents()) {
-
             hits++;
         }
         plugin.getLogger().info("Postal registered " + hits + " Towny residents");

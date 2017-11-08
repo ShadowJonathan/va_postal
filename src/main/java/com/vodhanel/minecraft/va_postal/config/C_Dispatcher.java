@@ -11,6 +11,7 @@ import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.configuration.ConfigurationSection;
 
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Set;
 
@@ -523,7 +524,7 @@ public class C_Dispatcher {
         int addr_count = 0;
         int rt_count = 0;
         while (itr_poffice.hasNext()) {
-            spoffice = ((String) itr_poffice.next()).trim();
+            spoffice = itr_poffice.next().trim();
 
             path = GetConfig.path_format("address." + spoffice);
             ConfigurationSection plr = VA_postal.configsettings.getConfigurationSection(path);
@@ -548,7 +549,7 @@ public class C_Dispatcher {
 
 
                 while (itr_plr.hasNext()) {
-                    saddress = ((String) itr_plr.next()).trim();
+                    saddress = itr_plr.next().trim();
                     path = GetConfig.path_format("address." + spoffice + "." + saddress + ".route");
                     ConfigurationSection plr_route = VA_postal.configsettings.getConfigurationSection(path);
 
@@ -594,7 +595,7 @@ public class C_Dispatcher {
 
         itr_poffice = po_addr_keys.iterator();
         while (itr_poffice.hasNext()) {
-            spoffice = ((String) itr_poffice.next()).trim();
+            spoffice = itr_poffice.next().trim();
 
             path = GetConfig.path_format("address." + spoffice);
             ConfigurationSection plr = VA_postal.configsettings.getConfigurationSection(path);
@@ -605,7 +606,7 @@ public class C_Dispatcher {
 
 
                 while (itr_plr.hasNext()) {
-                    saddress = ((String) itr_plr.next()).trim();
+                    saddress = itr_plr.next().trim();
                     path = GetConfig.path_format("address." + spoffice + "." + saddress + ".route");
                     ConfigurationSection plr_route = VA_postal.configsettings.getConfigurationSection(path);
 
@@ -615,7 +616,7 @@ public class C_Dispatcher {
 
 
                         while (itr_plr_route.hasNext()) {
-                            swpoint = (String) itr_plr_route.next();
+                            swpoint = itr_plr_route.next();
                             path = GetConfig.path_format("address." + spoffice + "." + saddress + ".route." + swpoint + ".location");
                             result = VA_postal.plugin.getConfig().getString(path);
                             chunk_list[count] = (spoffice + "," + saddress + "," + slocation2schunk(result));
@@ -625,7 +626,7 @@ public class C_Dispatcher {
                 }
             }
         }
-        java.util.Arrays.sort(chunk_list);
+        Arrays.sort(chunk_list);
         String this_route = "";
         String last_route = "";
         String sindex = "";
@@ -804,7 +805,7 @@ public class C_Dispatcher {
             int pl_index = 0;
             int po_index = 0;
             while (po_iterator.hasNext()) {
-                spostoffice = (String) po_iterator.next();
+                spostoffice = po_iterator.next();
                 pathp = GetConfig.path_format("address." + spostoffice);
                 ConfigurationSection pl = VA_postal.configsettings.getConfigurationSection(pathp);
                 if (pl != null) {
@@ -829,7 +830,7 @@ public class C_Dispatcher {
                     Iterator<String> pl_iterator = pl_keys.iterator();
                     pl_index = 0;
                     while (pl_iterator.hasNext()) {
-                        saddress = (String) pl_iterator.next();
+                        saddress = pl_iterator.next();
                         patha = GetConfig.path_format(pathp + "." + saddress);
 
                         ConfigurationSection rt = VA_postal.configsettings.getConfigurationSection(patha + ".route");

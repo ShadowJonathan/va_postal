@@ -11,11 +11,14 @@ import com.vodhanel.minecraft.va_postal.mail.BookManip;
 import com.vodhanel.minecraft.va_postal.mail.ChestManip;
 import com.vodhanel.minecraft.va_postal.mail.SignManip;
 import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.Chest;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.plugin.IllegalPluginAccessException;
 
 import java.text.Format;
 import java.text.SimpleDateFormat;
@@ -31,129 +34,129 @@ public class Cmd_static {
     }
 
     public static void menu_admin(Player player) {
-        Util.pinform(player, " &7&oUsage: &f&r/postal  <start/stop/restart/admin/chests/speed>");
-        Util.pinform(player, "     &7&oTeleport to a Postal location");
-        Util.pinform(player, "         &f&r/go [PostOffice] [address] &7&o(no parms = Central)");
-        Util.pinform(player, "     &7&oAddress a book in your hand");
-        Util.pinform(player, "         &f&r/addr <PostOffice> <address> [player]");
-        Util.pinform(player, "     &7&oSet Attention (to) of addressed book in your hand");
-        Util.pinform(player, "         &f&r/att <player>");
-        Util.pinform(player, "     &7&oPrepare a package for shipment");
-        Util.pinform(player, "         &f&r/package <PostOffice> <address> [player] &7&o(alias: /pk)");
-        Util.pinform(player, "     &7&oMake a shipping label C.O.D.");
-        Util.pinform(player, "         &f&r/cod <price>");
-        Util.pinform(player, "     &7&oAccept shipment - shipping label in your hand");
-        Util.pinform(player, "         &f&r/accept");
-        Util.pinform(player, "     &7&oRefuse shipment - shipping label in your hand");
-        Util.pinform(player, "         &f&r/refuse");
-        Util.pinform(player, "     &7&oDistribute written book to Postal addresses");
-        Util.pinform(player, "         &f&r/distr <all/owners> [PostOffice] [expiration_days]");
-        Util.pinform(player, "     &7&oList towns with post offices");
-        Util.pinform(player, "         &f&r/tlist &7&o(alias: /tl)");
-        Util.pinform(player, "     &7&oList addresses in a town");
-        Util.pinform(player, "         &f&r/alist <PostOffice> &7&o(alias: /al)");
-        Util.pinform(player, "     &7&oList players that have been on server");
-        Util.pinform(player, "         &f&r/plist <string match> &7&o(alias: /pl)");
-        Util.pinform(player, "     &7&oSet your compass to a post office or address");
-        Util.pinform(player, "         &f&r/gps <PostOffice> [Address] &7&o(alias: /gpsp)");
-        Util.pinform(player, "     &7&oPush a route schedule forward");
-        Util.pinform(player, "         &f&r/expedite <PostOffice> <address> &7&o(alias: /ex)");
-        Util.pinform(player, "     &7&oSet the central post office");
-        Util.pinform(player, "         &f&r/setcentral");
-        Util.pinform(player, "     &7&oSet a local post office");
-        Util.pinform(player, "         &f&r/setlocal <PostOffice>");
-        Util.pinform(player, "     &7&oSet a town address");
-        Util.pinform(player, "         &f&r/setaddr <PostOffice> <address>");
-        Util.pinform(player, "     &7&oDefine route from local post office to address");
-        Util.pinform(player, "         &f&r/setroute <PostOffice> <address>");
-        Util.pinform(player, "     &7&oAsign ownership of post office, or address");
-        Util.pinform(player, "         &f&r/setowner [PostOffice] [address] <player>");
-        Util.pinform(player, "     &7&oHighlight route waypoints");
-        Util.pinform(player, "         &f&r/showroute <PostOffice> <address> &7&o(alias: /sr)");
-        Util.pinform(player, "     &7&oOpen local post office");
-        Util.pinform(player, "         &f&r/openlocal <PostOffice>");
-        Util.pinform(player, "     &7&oClose local post office");
-        Util.pinform(player, "         &f&r/closelocal <PostOffice>");
-        Util.pinform(player, "     &7&oOpen local address");
-        Util.pinform(player, "         &f&r/openaddr <PostOffice> <address>");
-        Util.pinform(player, "     &7&oClose local address");
-        Util.pinform(player, "         &f&r/closeaddr <PostOffice> <address>");
-        Util.pinform(player, "     &7&oDelete local post office");
-        Util.pinform(player, "         &f&r/deletelocal <PostOffice>");
-        Util.pinform(player, "     &7&oDelete address");
-        Util.pinform(player, "         &f&r/deleteaddr <PostOffice> <address>");
+        Util.pinform(player, " &7&oUsage: &f&r/postal <start/stop/restart/admin/chests/speed>");
+        Util.pinform(player, " &7&oTeleport to a Postal location");
+        Util.pinform(player, " &f&r/go [PostOffice] [address] &7&o(no parms = Central)");
+        Util.pinform(player, " &7&oAddress a book in your hand");
+        Util.pinform(player, " &f&r/addr <PostOffice> <address> [player]");
+        Util.pinform(player, " &7&oSet Attention (to) of addressed book in your hand");
+        Util.pinform(player, " &f&r/att <player>");
+        Util.pinform(player, " &7&oPrepare a package for shipment");
+        Util.pinform(player, " &f&r/package <PostOffice> <address> [player] &7&o(alias: /pk)");
+        Util.pinform(player, " &7&oMake a shipping label C.O.D.");
+        Util.pinform(player, " &f&r/cod <price>");
+        Util.pinform(player, " &7&oAccept shipment - shipping label in your hand");
+        Util.pinform(player, " &f&r/accept");
+        Util.pinform(player, " &7&oRefuse shipment - shipping label in your hand");
+        Util.pinform(player, " &f&r/refuse");
+        Util.pinform(player, " &7&oDistribute written book to Postal addresses");
+        Util.pinform(player, " &f&r/distr <all/owners> [PostOffice] [expiration_days]");
+        Util.pinform(player, " &7&oList towns with post offices");
+        Util.pinform(player, " &f&r/tlist &7&o(alias: /tl)");
+        Util.pinform(player, " &7&oList addresses in a town");
+        Util.pinform(player, " &f&r/alist <PostOffice> &7&o(alias: /al)");
+        Util.pinform(player, " &7&oList players that have been on server");
+        Util.pinform(player, " &f&r/plist <string match> &7&o(alias: /pl)");
+        Util.pinform(player, " &7&oSet your compass to a post office or address");
+        Util.pinform(player, " &f&r/gps <PostOffice> [Address] &7&o(alias: /gpsp)");
+        Util.pinform(player, " &7&oPush a route schedule forward");
+        Util.pinform(player, " &f&r/expedite <PostOffice> <address> &7&o(alias: /ex)");
+        Util.pinform(player, " &7&oSet the central post office");
+        Util.pinform(player, " &f&r/setcentral");
+        Util.pinform(player, " &7&oSet a local post office");
+        Util.pinform(player, " &f&r/setlocal <PostOffice>");
+        Util.pinform(player, " &7&oSet a town address");
+        Util.pinform(player, " &f&r/setaddr <PostOffice> <address>");
+        Util.pinform(player, " &7&oDefine route from local post office to address");
+        Util.pinform(player, " &f&r/setroute <PostOffice> <address>");
+        Util.pinform(player, " &7&oAsign ownership of post office, or address");
+        Util.pinform(player, " &f&r/setowner [PostOffice] [address] <player>");
+        Util.pinform(player, " &7&oHighlight route waypoints");
+        Util.pinform(player, " &f&r/showroute <PostOffice> <address> &7&o(alias: /sr)");
+        Util.pinform(player, " &7&oOpen local post office");
+        Util.pinform(player, " &f&r/openlocal <PostOffice>");
+        Util.pinform(player, " &7&oClose local post office");
+        Util.pinform(player, " &f&r/closelocal <PostOffice>");
+        Util.pinform(player, " &7&oOpen local address");
+        Util.pinform(player, " &f&r/openaddr <PostOffice> <address>");
+        Util.pinform(player, " &7&oClose local address");
+        Util.pinform(player, " &f&r/closeaddr <PostOffice> <address>");
+        Util.pinform(player, " &7&oDelete local post office");
+        Util.pinform(player, " &f&r/deletelocal <PostOffice>");
+        Util.pinform(player, " &7&oDelete address");
+        Util.pinform(player, " &f&r/deleteaddr <PostOffice> <address>");
         Util.pinform(player, " &7&o(Press '/' and 'PgUp' to review this list)");
     }
 
     public static void menu_owner(Player player) {
         Util.pinform(player, " &7&oPostal commands; chests with Postal Logs are mail boxes.");
         Util.pinform(player, " &7&oUse book and quill to write letters");
-        Util.pinform(player, "     &7&oTeleport to a Postal location");
-        Util.pinform(player, "         &f&r/go [PostOffice] [address] &7&o(no parms = Central)");
-        Util.pinform(player, "     &7&oAddress a book in your hand");
-        Util.pinform(player, "         &f&r/addr <PostOffice> <address> [player]");
-        Util.pinform(player, "     &7&oSet Attention: (to) of addressed book in your hand");
-        Util.pinform(player, "         &f&r/att <player>");
-        Util.pinform(player, "     &7&oPrepare a package for shipment");
-        Util.pinform(player, "         &f&r/package <PostOffice> <address> [player] &7&o(alias: /pk)");
-        Util.pinform(player, "     &7&oMake a shipping label C.O.D.");
-        Util.pinform(player, "         &f&r/cod <price>");
-        Util.pinform(player, "     &7&oAccept shipment - shipping label in your hand");
-        Util.pinform(player, "         &f&r/accept");
-        Util.pinform(player, "     &7&oRefuse shipment - shipping label in your hand");
-        Util.pinform(player, "         &f&r/refuse");
-        Util.pinform(player, "     &7&oList towns with post offices");
-        Util.pinform(player, "         &f&r/tlist &7&o(alias: /tl)");
-        Util.pinform(player, "     &7&oList addresses in a town");
-        Util.pinform(player, "         &f&r/alist <PostOffice> &7&o(alias: /al)");
-        Util.pinform(player, "     &7&oList players that have been on server");
-        Util.pinform(player, "         &f&r/plist <string match> &7&o(alias: /pl)");
-        Util.pinform(player, "     &7&oSet your compass to a post office or address");
-        Util.pinform(player, "         &f&r/gps <PostOffice> [Address] &7&o(alias: /gpsp)");
-        Util.pinform(player, "     &7&oPush a route schedule forward");
-        Util.pinform(player, "         &f&r/expedite <PostOffice> <address> &7&o(alias: /ex)");
-        Util.pinform(player, "     &7&oSet a local post office");
-        Util.pinform(player, "         &f&r/setlocal <PostOffice>");
-        Util.pinform(player, "     &7&oDefine route from local post office to address");
-        Util.pinform(player, "         &f&r/setroute <PostOffice> <address>");
-        Util.pinform(player, "     &7&oHighlight route waypoints");
-        Util.pinform(player, "         &f&r/showroute <PostOffice> <address> &7&o(alias: /sr)");
-        Util.pinform(player, "     &7&oOpen local post office");
-        Util.pinform(player, "         &f&r/openlocal <PostOffice>");
-        Util.pinform(player, "     &7&oClose local post office");
-        Util.pinform(player, "         &f&r/closelocal <PostOffice>");
-        Util.pinform(player, "     &7&oOpen local address");
-        Util.pinform(player, "         &f&r/openaddr <PostOffice> <address>");
-        Util.pinform(player, "     &7&oClose local address");
-        Util.pinform(player, "         &f&r/closeaddr <PostOffice> <address>");
+        Util.pinform(player, " &7&oTeleport to a Postal location");
+        Util.pinform(player, " &f&r/go [PostOffice] [address] &7&o(no parms = Central)");
+        Util.pinform(player, " &7&oAddress a book in your hand");
+        Util.pinform(player, " &f&r/addr <PostOffice> <address> [player]");
+        Util.pinform(player, " &7&oSet Attention: (to) of addressed book in your hand");
+        Util.pinform(player, " &f&r/att <player>");
+        Util.pinform(player, " &7&oPrepare a package for shipment");
+        Util.pinform(player, " &f&r/package <PostOffice> <address> [player] &7&o(alias: /pk)");
+        Util.pinform(player, " &7&oMake a shipping label C.O.D.");
+        Util.pinform(player, " &f&r/cod <price>");
+        Util.pinform(player, " &7&oAccept shipment - shipping label in your hand");
+        Util.pinform(player, " &f&r/accept");
+        Util.pinform(player, " &7&oRefuse shipment - shipping label in your hand");
+        Util.pinform(player, " &f&r/refuse");
+        Util.pinform(player, " &7&oList towns with post offices");
+        Util.pinform(player, " &f&r/tlist &7&o(alias: /tl)");
+        Util.pinform(player, " &7&oList addresses in a town");
+        Util.pinform(player, " &f&r/alist <PostOffice> &7&o(alias: /al)");
+        Util.pinform(player, " &7&oList players that have been on server");
+        Util.pinform(player, " &f&r/plist <string match> &7&o(alias: /pl)");
+        Util.pinform(player, " &7&oSet your compass to a post office or address");
+        Util.pinform(player, " &f&r/gps <PostOffice> [Address] &7&o(alias: /gpsp)");
+        Util.pinform(player, " &7&oPush a route schedule forward");
+        Util.pinform(player, " &f&r/expedite <PostOffice> <address> &7&o(alias: /ex)");
+        Util.pinform(player, " &7&oSet a local post office");
+        Util.pinform(player, " &f&r/setlocal <PostOffice>");
+        Util.pinform(player, " &7&oDefine route from local post office to address");
+        Util.pinform(player, " &f&r/setroute <PostOffice> <address>");
+        Util.pinform(player, " &7&oHighlight route waypoints");
+        Util.pinform(player, " &f&r/showroute <PostOffice> <address> &7&o(alias: /sr)");
+        Util.pinform(player, " &7&oOpen local post office");
+        Util.pinform(player, " &f&r/openlocal <PostOffice>");
+        Util.pinform(player, " &7&oClose local post office");
+        Util.pinform(player, " &f&r/closelocal <PostOffice>");
+        Util.pinform(player, " &7&oOpen local address");
+        Util.pinform(player, " &f&r/openaddr <PostOffice> <address>");
+        Util.pinform(player, " &7&oClose local address");
+        Util.pinform(player, " &f&r/closeaddr <PostOffice> <address>");
         Util.pinform(player, " &7&o(Press '/' and 'PgUp' to review this list)");
     }
 
     public static void menu_player(Player player) {
         Util.pinform(player, " &7&oPostal commands; chests with Postal Logs are mail boxes.");
         Util.pinform(player, " &7&oUse book and quill to write letters");
-        Util.pinform(player, "     &7&oTeleport to a Postal location");
-        Util.pinform(player, "         &f&r/go [PostOffice] [address] &7&o(no parms = Central)");
-        Util.pinform(player, "     &7&oAddress a book in your hand:");
-        Util.pinform(player, "         &f&r/addr <PostOffice> <address> [player]");
-        Util.pinform(player, "     &7&oSet Attention: (to) of addressed book in your hand");
-        Util.pinform(player, "         &f&r/att <player>");
-        Util.pinform(player, "     &7&oPrepare a package for shipment");
-        Util.pinform(player, "         &f&r/package <PostOffice> <address> [player] &7&o(alias: /pk)");
-        Util.pinform(player, "     &7&oMake a shipping label C.O.D.");
-        Util.pinform(player, "         &f&r/cod <price>");
-        Util.pinform(player, "     &7&oAccept shipment - shipping label in your hand");
-        Util.pinform(player, "         &f&r/accept");
-        Util.pinform(player, "     &7&oRefuse shipment - shipping label in your hand");
-        Util.pinform(player, "         &f&r/refuse");
-        Util.pinform(player, "     &7&oList towns with post offices");
-        Util.pinform(player, "         &f&r/tlist &7&o(alias: /tl)");
-        Util.pinform(player, "     &7&oList addresses in a town");
-        Util.pinform(player, "         &f&r/alist <PostOffice> &7&o(alias: /al)");
-        Util.pinform(player, "     &7&oList players that have been on server");
-        Util.pinform(player, "         &f&r/plist <string match> &7&o(alias: /pl)");
-        Util.pinform(player, "     &7&oSet your compass to a post office or address");
-        Util.pinform(player, "         &f&r/gps <PostOffice> [Address] &7&o(alias: /gpse)");
+        Util.pinform(player, " &7&oTeleport to a Postal location");
+        Util.pinform(player, " &f&r/go [PostOffice] [address] &7&o(no parms = Central)");
+        Util.pinform(player, " &7&oAddress a book in your hand:");
+        Util.pinform(player, " &f&r/addr <PostOffice> <address> [player]");
+        Util.pinform(player, " &7&oSet Attention: (to) of addressed book in your hand");
+        Util.pinform(player, " &f&r/att <player>");
+        Util.pinform(player, " &7&oPrepare a package for shipment");
+        Util.pinform(player, " &f&r/package <PostOffice> <address> [player] &7&o(alias: /pk)");
+        Util.pinform(player, " &7&oMake a shipping label C.O.D.");
+        Util.pinform(player, " &f&r/cod <price>");
+        Util.pinform(player, " &7&oAccept shipment - shipping label in your hand");
+        Util.pinform(player, " &f&r/accept");
+        Util.pinform(player, " &7&oRefuse shipment - shipping label in your hand");
+        Util.pinform(player, " &f&r/refuse");
+        Util.pinform(player, " &7&oList towns with post offices");
+        Util.pinform(player, " &f&r/tlist &7&o(alias: /tl)");
+        Util.pinform(player, " &7&oList addresses in a town");
+        Util.pinform(player, " &f&r/alist <PostOffice> &7&o(alias: /al)");
+        Util.pinform(player, " &7&oList players that have been on server");
+        Util.pinform(player, " &f&r/plist <string match> &7&o(alias: /pl)");
+        Util.pinform(player, " &7&oSet your compass to a post office or address");
+        Util.pinform(player, " &f&r/gps <PostOffice> [Address] &7&o(alias: /gpse)");
         Util.pinform(player, " &7&o(Press '/' and 'PgUp' to review this list)");
     }
 
@@ -182,16 +185,19 @@ public class Cmd_static {
             if (saved_dist > 20.0D) {
                 Util.safe_tps(player, saved_loc);
                 Util.pinform(player, "&6You have been teleported to the closest waypoint.");
-                Util.pinform(player, "&7&oExisting route.  You are on waypoint: &r" + Util.int2str(saved_pos));
+                Util.pinform(player, "&7&oExisting route. You are on waypoint: &r" + Util.int2str(saved_pos));
             }
         } else {
             VA_postal.plistener_newroute = true;
-            Util.pinform(player, "&7&oNew route.  Teleporting you to: &r" + Util.df(stown));
+            Util.pinform(player, "&7&oNew route. Teleporting you to: &r" + Util.df(stown));
             String slocation = C_Postoffice.get_local_po_location_by_name(stown);
             Util.safe_tps(player, slocation);
         }
         C_Dispatcher.open_address(stown, saddress, false);
-        VA_Timers.routeRditor_start(true, player);
+        try {
+            VA_Timers.routeRditor_start(true, player);
+        } catch (IllegalPluginAccessException ignored) {
+        }
         Util.pinform(player, "&7&oAddress: &r" + Util.df(stown) + "/" + Util.df(saddress));
         Util.pinform(player, "&7&oSelect waypoints to the residence with left mouse clicks.");
         Util.pinform(player, "&7&oRight mouse click to back up, or undo a point");
@@ -212,6 +218,8 @@ public class Cmd_static {
         player.getInventory().setItem(4, new ItemStack(345));
 
         RouteEditor.create_hud(stown, saddress);
+
+        RouteEditor.startHighlighter();
     }
 
     public static void validate_route(Player player, String stown, String saddress) {
@@ -231,8 +239,8 @@ public class Cmd_static {
         }
 
         if (price > 0.0D) {
-            String sender = cod_sender(stack);
-            if ((player != null) && (sender != null)) {
+            Player sender = cod_sender(stack);
+            if (sender != null) {
                 P_Economy.charge_player(player, price);
                 P_Economy.pay_player(sender, price);
             } else {
@@ -247,7 +255,7 @@ public class Cmd_static {
         }
 
         ItemStack stamped = BookManip.stamp_parcel_statement(player, stack, true);
-        player.setItemInHand(stamped);
+        player.setItemOnCursor(stamped);
         return true;
     }
 
@@ -320,7 +328,7 @@ public class Cmd_static {
         return 0.0D;
     }
 
-    public static String cod_sender(ItemStack ind_item) {
+    public static Player cod_sender(ItemStack ind_item) {
         Book book = new Book(ind_item);
         if (!book.is_valid()) {
             return null;
@@ -328,22 +336,13 @@ public class Cmd_static {
         String title = book.getTitle();
         String author = book.getAuthor();
         String[] pages = book.getPages();
-        book = null;
         if ((pages == null) || (pages.length < 1)) {
             return null;
         }
-        String[] parts = pages[0].split("\n");
-        if ((parts == null) || (parts.length < 10)) {
-            return null;
-        }
-        String sender = parts[9].substring(4).toLowerCase().trim();
-        if ((sender != null) && (!sender.isEmpty()) && (sender.length() > 1)) {
-            return sender;
-        }
-        return null;
+        return book.extractEmbeddedAuthor();
     }
 
-    public static boolean parcel_worker(Player player, String attention, String stown, String saddress) {
+    public static boolean parcel_worker(Player player, String attention, Player Attention, String stown, String saddress) {
         Block block = ChestManip.get_parcel_chest(player);
         String slocation = Util.location2str(block.getLocation());
 
@@ -356,7 +355,6 @@ public class Cmd_static {
             return false;
         }
         byte c_data = block.getData();
-        chest_dir = Byte.toString(c_data);
         Inventory inventory = chest.getInventory();
 
         if (inventory.getSize() > 27) {
@@ -413,9 +411,7 @@ public class Cmd_static {
             page++;
         }
 
-        for (int i = 9; i < 36; i++) {
-            pages[i] = item_list[(i + 41)];
-        }
+        System.arraycopy(item_list, 50, pages, 9, 27);
 
 
         String splayer = player.getName().trim();
@@ -424,18 +420,18 @@ public class Cmd_static {
         }
         Book new_book = new Book("[shipping label]", splayer, pages);
         ItemStack new_stack = new_book.generateItemStack();
-        addr_worker(player, inventory, new_stack, attention, stown, saddress);
+        addr_worker(player, inventory, new_stack, attention, Attention, stown, saddress);
         BookManip.standard_addr_sign(slocation, 2, stown, saddress, splayer);
         return true;
     }
 
-    public static boolean addr_worker(Player player, Inventory inventory, ItemStack stack, String attention, String stown, String saddress) {
+    public static void addr_worker(Player player, Inventory inventory, ItemStack stack, String attention, Player OriginalPlayerAttention, String stown, String saddress) {
         Book book = new Book(stack);
-        String title = "";
-        String author = "";
-        String town = "";
-        String address = "";
-        String[] existing_pages = null;
+        String title;
+        String author;
+        String town;
+        String address;
+        String[] existing_pages;
 
         String page1 = book.getPage(1);
         boolean re_address = false;
@@ -455,38 +451,27 @@ public class Cmd_static {
             existing_pages = book.getPages_with_blank_first_page();
         }
 
+        Player pauthor = Util.str2player(author);
 
         Format formatter = new SimpleDateFormat("MM/dd/yy HH:mm");
         Date date = new Date();
         String fdate = formatter.format(date);
-        String spage = "";
-        spage = spage + "§7§oTo:\n";
-        spage = spage + "§c  " + town + "\n";
-        spage = spage + "§9  " + address + "\n";
-        spage = spage + "§7§oAttention:\n";
-        spage = spage + "§2  " + attention + "\n";
-        spage = spage + "§7§oMailed from:\n";
-        spage = spage + "§7  [not-processed]\n";
-        spage = spage + "§7  [not-processed]\n";
-        spage = spage + "§7§oWritten by:\n";
-        spage = spage + "§8  " + author + "\n";
-        spage = spage + "§8  " + title + "\n";
-        spage = spage + "§7.\n";
-        spage = spage + "§7" + fdate + "\n";
-        existing_pages[0] = spage;
+
+        existing_pages[0] = Book.makeFirstMailPage(town, address, attention, null, null, author, title, fdate, pauthor, OriginalPlayerAttention);
+
         Book new_book = new Book(town, address, existing_pages);
         ItemStack new_stack = new_book.generateItemStack();
         if ((inventory != null) &&
                 (title.equals(Util.df("[shipping label]")))) {
 
-            ItemStack holding = player.getItemInHand();
-            if (holding.getTypeId() != 0) {
-                player.getWorld().dropItemNaturally(player.getLocation(), player.getItemInHand());
+            ItemStack holding = player.getItemOnCursor();
+            if (holding.getType() != Material.AIR) {
+                player.getWorld().dropItemNaturally(player.getLocation(), player.getItemOnCursor());
                 Util.pinform(player, "&9The item you were holding has been dropped.");
             }
         }
 
-        player.setItemInHand(new_stack);
+        player.setItemOnCursor(new_stack);
         if (VA_postal.economy_configured) {
             if (inventory == null) {
                 if (!re_address) {
@@ -501,16 +486,16 @@ public class Cmd_static {
         Util.pinform(player, "&7&oTitle &9&o" + title + " &7&oAuthor &9&o" + author);
         Util.pinform(player, "&7&oAddressed to &9&o" + Util.df(saddress) + " &7&otown of &9&o" + Util.df(stown));
         Util.pinform(player, "&7&oAttention: &9&o" + attention);
-        return true;
     }
 
-    public static boolean distr_worker(Player player, ItemStack stack, String sdistribution, String srch_stown, int iexpiration) {
+    public static void distr_worker(Player player, ItemStack stack, String sdistribution, String srch_stown, int iexpiration) {
         if ("[all]".equals(sdistribution)) {
             sdistribution = "all_addresses";
         }
         if ("[all]".equals(srch_stown)) {
             srch_stown = "all_towns";
         }
+
         Book book = new Book(stack);
         String title = proper(book.getTitle());
         String author = book.getAuthor();
@@ -521,22 +506,9 @@ public class Cmd_static {
         Date date = new Date();
         String fdate = formatter.format(date);
 
-        String spage = "";
-        spage = spage + "§7§oTo:\n";
-        spage = spage + "§c  " + Util.df(sdistribution) + "\n";
-        spage = spage + "§9  " + Util.df(srch_stown) + "\n";
-        spage = spage + "§7§oAttention:\n";
-        spage = spage + "§2  Resident\n";
-        spage = spage + "§7§oMailed from:\n";
-        spage = spage + "§7  [Central]\n";
-        spage = spage + "§7  [PostMaster]\n";
-        spage = spage + "§7§oWritten by:\n";
-        spage = spage + "§8  " + author + "\n";
-        spage = spage + "§8  " + title + "\n";
-        spage = spage + "§7.\n";
-        spage = spage + "§7" + fdate + "\n";
-        existing_pages[0] = spage;
+        Player pauthor = Util.str2player(author);
 
+        existing_pages[0] = Book.makeFirstMailPage(Util.df(sdistribution), Util.df(srch_stown), "Resident", "[Central]", "[PostMaster]", author, title, fdate, pauthor, null);
 
         int seconds_per_day = 86400;
         int exp_factor = seconds_per_day * iexpiration;
@@ -550,13 +522,13 @@ public class Cmd_static {
 
         Book new_book = new Book("[Distribution]", s_expiration, existing_pages);
         ItemStack dist_stack = new_book.generateItemStack();
-        player.setItemInHand(null);
+        player.setItemOnCursor(null);
 
 
         String[] town_list = C_Arrays.town_list();
         if (town_list == null) {
             Util.cinform("Problem getting town array.");
-            return true;
+            return;
         }
         Util.pinform(player, "Distribution: " + s_expiration);
         for (String stown : town_list) {
@@ -565,7 +537,7 @@ public class Cmd_static {
                 Util.cinform("Problem getting address array.");
             } else
                 for (String saddress : addr_list) {
-                    String sowner = "server";
+                    Player owner = VA_postal.SERVER;
                     if (("all_addresses".equalsIgnoreCase(sdistribution)) ||
                             (C_Owner.is_address_owner_defined(stown, saddress))) {
 
@@ -575,7 +547,7 @@ public class Cmd_static {
 
 
                             if (C_Owner.is_address_owner_defined(stown, saddress)) {
-                                sowner = C_Owner.get_owner_address(stown, saddress);
+                                owner = C_Owner.get_owner_address(stown, saddress);
                             }
 
 
@@ -586,13 +558,12 @@ public class Cmd_static {
                                 Location p_search_location = Util.str2location(search_location);
                                 p_search_location.subtract(0.0D, 1.0D, 0.0D);
                                 Block b_sign_search = SignManip.LookForSignChest(p_search_location, 10, "[Postal_Mail]", stown, saddress, null);
-                                String details = "[" + Util.df(stown) + ", " + Util.df(saddress) + ", " + Util.df(sowner) + "]&7";
-                                details = "  " + fixed_len(details, 45, "-");
+                                String details = "[" + Util.df(stown) + ", " + Util.df(saddress) + ", " + owner + "]&7";
+                                details = " " + fixed_len(details, 45, "-");
                                 if (b_sign_search != null) {
                                     Chest chest = (Chest) b_sign_search.getState();
-                                    if ((chest == null) || (!ChestManip.is_chest(chest.getTypeId()))) {
+                                    if ((chest == null) || (!ChestManip.is_chest(chest.getType()))) {
                                         Util.cinform("Problem with chest definition");
-
 
                                     } else if (add_to_mailbox(chest, dist_stack)) {
                                         Util.pinform(player, details + " Delivered");
@@ -610,11 +581,10 @@ public class Cmd_static {
         if (VA_postal.economy_configured) {
             P_Economy.charge_distr(player, sdistribution, srch_stown);
         }
-        return true;
     }
 
     public static void place_new_mail_marker(Location location) {
-        org.bukkit.World w = location.getWorld();
+        World w = location.getWorld();
         Block block = w.getBlockAt(location);
         if (block == null) {
             return;
@@ -631,7 +601,7 @@ public class Cmd_static {
         Inventory inventory = chest.getInventory();
 
         if (inventory.firstEmpty() != -1) {
-            inventory.addItem(new ItemStack[]{book_item});
+            inventory.addItem(book_item);
             return true;
         }
 
@@ -654,7 +624,7 @@ public class Cmd_static {
             int index = 0;
             while (item_itr.hasNext()) {
                 ItemStack ind_item = (ItemStack) item_itr.next();
-                if ((ind_item != null) && (ind_item.getType() != org.bukkit.Material.WRITTEN_BOOK)) {
+                if ((ind_item != null) && (ind_item.getType() != Material.WRITTEN_BOOK)) {
                     inventory.setItem(index, book_item);
                     return true;
                 }
@@ -670,7 +640,7 @@ public class Cmd_static {
             int index = 0;
             while (item_itr.hasNext()) {
                 ItemStack ind_item = (ItemStack) item_itr.next();
-                if ((ind_item != null) && (ind_item.getType() == org.bukkit.Material.WRITTEN_BOOK)) {
+                if ((ind_item != null) && (ind_item.getType() == Material.WRITTEN_BOOK)) {
                     Book book = new Book(ind_item);
                     if (book.is_valid()) {
                         String mail_title = book.getTitle().toLowerCase().trim();
@@ -709,13 +679,14 @@ public class Cmd_static {
         return result;
     }
 
-    public static boolean att_worker(boolean create, Player player, ItemStack stack, String attention) {
+    public static boolean att_worker(boolean create, Player player, ItemStack stack, String attention, Player original) {
         Book book = new Book(stack);
-        String title = "";
-        String author = "";
-        String town = "";
-        String address = "";
-        String[] existing_pages = null;
+        String title;
+        String author;
+        Player pauthor;
+        String town;
+        String address;
+        String[] existing_pages;
 
         String page1 = book.getPage(1);
         boolean re_address = false;
@@ -725,6 +696,7 @@ public class Cmd_static {
             address = Util.df(parts[2].substring(2).trim());
             title = proper(parts[10].substring(2).trim());
             author = parts[9].substring(2).trim();
+            pauthor = book.extractEmbeddedAuthor();
             existing_pages = book.getPages();
         } else {
             Util.pinform(player, "&7&oThis command is meant to easily re-set 'Attention to:'");
@@ -732,24 +704,24 @@ public class Cmd_static {
             Util.pinform(player, "&7&oUse &f&raddr <Town> <Address> [player]");
             return false;
         }
-        if (create) {
 
+        if (create) {
             Format formatter = new SimpleDateFormat("MM/dd/yy HH:mm");
             Date date = new Date();
             String fdate = formatter.format(date);
             String spage = "";
             spage = spage + "§7§oTo:\n";
-            spage = spage + "§c  " + town + "\n";
-            spage = spage + "§9  " + address + "\n";
+            spage = spage + "§c " + town + "\n";
+            spage = spage + "§9 " + address + "\n";
             spage = spage + "§7§oAttention:\n";
-            spage = spage + "§2  " + attention + "\n";
+            spage = spage + "§2 " + attention + "\n";
             spage = spage + "§7§oMailed from:\n";
-            spage = spage + "§7  [not-processed]\n";
-            spage = spage + "§7  [not-processed]\n";
+            spage = spage + "§7 [not-processed]\n";
+            spage = spage + "§7 [not-processed]\n";
             spage = spage + "§7§oWritten by:\n";
-            spage = spage + "§8  " + author + "\n";
-            spage = spage + "§8  " + title + "\n";
-            spage = spage + "§7.\n";
+            spage = spage + "§8 " + author + "\n";
+            spage = spage + "§8 " + title + "\n";
+            spage = spage + "§7 \n";
             spage = spage + "§7" + fdate + "\n";
             existing_pages[0] = spage;
             Book new_book = new Book(town, address, existing_pages);
@@ -762,19 +734,19 @@ public class Cmd_static {
         return true;
     }
 
-    public static void owneraddr_worker(Player player, String stown, String subject, String saddress) {
+    public static void owneraddr_worker(Player player, String stown, Player subject, String saddress) {
         if (VA_postal.economy_configured) {
-            double cost = 0.0D;
-
+            double cost;
             cost = P_Economy.charge_addr_purchase(player, subject, stown, saddress);
             if (cost > 0.0D) {
                 if (player == null) {
-                    Util.con_type(Util.df(subject) + " charged " + ef(cost));
+                    Util.con_type(subject + " charged " + ef(cost));
                 } else {
-                    Util.pinform(player, Util.df(subject) + " charged " + ef(cost));
+                    Util.pinform(player, subject + " charged " + ef(cost));
                 }
             }
-        } else if (!"none".equals(subject)) {
+        }
+        if (subject != null) {
             C_Owner.set_owner_address(stown, saddress, subject);
             if (player == null) {
                 Util.con_type(Util.df(stown) + ", " + Util.df(saddress) + " now owned by " + subject);
@@ -784,26 +756,26 @@ public class Cmd_static {
         } else {
             C_Owner.del_owner_address(stown, saddress);
             if (player == null) {
-                Util.con_type("Owner removed from:  " + Util.df(stown) + ", " + Util.df(saddress));
+                Util.con_type("Owner removed from: " + Util.df(stown) + ", " + Util.df(saddress));
             } else {
-                Util.pinform(player, "Owner removed from:  " + Util.df(stown) + ", " + Util.df(saddress));
+                Util.pinform(player, "Owner removed from: " + Util.df(stown) + ", " + Util.df(saddress));
             }
         }
     }
 
-    public static void ownerlocal_worker(Player player, String stown, String subject) {
+    public static void ownerlocal_worker(Player player, String stown, Player subject) {
         if (VA_postal.economy_configured) {
             double cost = 0.0D;
 
             cost = P_Economy.charge_po_purchase(player, subject, stown);
             if (cost > 0.0D) {
                 if (player == null) {
-                    Util.con_type(Util.df(subject) + " charged " + ef(cost));
+                    Util.con_type(subject + " charged " + ef(cost));
                 } else {
-                    Util.pinform(player, Util.df(subject) + " charged " + ef(cost));
+                    Util.pinform(player, subject + " charged " + ef(cost));
                 }
             }
-        } else if (!"none".equals(subject)) {
+        } else if (subject != null) {
             C_Owner.set_owner_local_po(stown, subject);
             if (player == null) {
                 Util.con_type(Util.df(stown) + " is now owned by " + subject);
@@ -815,9 +787,9 @@ public class Cmd_static {
                 C_Owner.del_owner_local_po(stown);
             }
             if (player == null) {
-                Util.con_type("Owner removed from:  " + Util.df(stown));
+                Util.con_type("Owner removed from: " + Util.df(stown));
             } else {
-                Util.pinform(player, "Owner removed from:  " + Util.df(stown));
+                Util.pinform(player, "Owner removed from: " + Util.df(stown));
             }
         }
     }

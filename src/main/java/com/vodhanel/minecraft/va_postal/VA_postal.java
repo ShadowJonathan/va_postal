@@ -23,6 +23,7 @@ import net.citizensnpcs.api.npc.NPC;
 import net.citizensnpcs.api.npc.NPCRegistry;
 import net.milkbowl.vault.economy.Economy;
 import net.milkbowl.vault.permission.Permission;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.block.BlockState;
 import org.bukkit.configuration.Configuration;
@@ -34,14 +35,16 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scoreboard.Objective;
 import org.bukkit.scoreboard.Score;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.ScoreboardManager;
 import org.dynmap.DynmapCommonAPI;
-import org.dynmap.markers.Marker;
-import org.dynmap.markers.MarkerIcon;
-import org.dynmap.markers.MarkerSet;
-import org.dynmap.markers.PolyLineMarker;
+import org.dynmap.markers.*;
+
+import java.util.UUID;
+
+// ANTI-PACKAGE REGEX: (?<!package\s)(?<!import(?:\sstatic)?\s)(?:com\.|net\.|org\.|java\.)[a-z._]+
 
 public class VA_postal extends JavaPlugin {
     public static VA_postal plugin;
@@ -60,7 +63,7 @@ public class VA_postal extends JavaPlugin {
     public static ScoreboardManager plistener_sb_manager = null;
     public static boolean plistener_using_scoreboard = false;
     public static Scoreboard plistener_hud_board;
-    public static org.bukkit.scoreboard.Objective plistener_hud_objective;
+    public static final UUID SERVER_ID = UUID.fromString("069a79f4-44e9-4726-a5be-fca90e38aaf5");
     public static Score plistener_hud_po;
     public static Score plistener_hud_addr;
     public static Score plistener_hud_addr_elev;
@@ -187,9 +190,9 @@ public class VA_postal extends JavaPlugin {
     public static boolean dynmap_configured = false;
     public static boolean dynmap_active = false;
     public static DynmapCommonAPI apiDynmap;
-    public static org.dynmap.markers.MarkerAPI markerapi;
+    public static Objective plistener_hud_objective;
     public static MarkerSet markerset;
-    public static org.dynmap.markers.CircleMarker[] dyn_postman;
+    public static MarkerAPI markerapi;
     public static String[] dyn_postman_po;
     public static PolyLineMarker[] dyn_route;
     public static Marker dyn_postmaster;
@@ -217,34 +220,8 @@ public class VA_postal extends JavaPlugin {
         return (towny_configured) && (towny_opt_in);
     }
 
-    public static synchronized void SHUTDOWN() {
-        VA_Dispatcher.dispatcher_running = false;
-        if (Postal_Started) {
-            Postal_Started = false;
-            if (!needs_configuration) {
-                Util.dinform("NPC DELETE ALL...");
-                RouteMngr.npc_delete_all(true);
-                Util.dinform("ALL NPC DELETED");
-                if ((dynmap_active) &&
-                        (dynmap.isEnabled()) &&
-                        (markerset != null)) {
-                    markerset.deleteMarkerSet();
-                    markerset = null;
-                }
-            }
-        }
-    }
-
-    public static synchronized String proper(String string) {
-        try {
-            if (string.length() > 0) {
-                return string.substring(0, 1).toUpperCase() + string.substring(1).toLowerCase().trim();
-            }
-        } catch (Exception e) {
-        }
-
-        return "";
-    }
+    public static CircleMarker[] dyn_postman;
+    public static Player SERVER;
 
     public static synchronized String fixed_len(String input, int len, String filler) {
         try {
@@ -269,6 +246,37 @@ public class VA_postal extends JavaPlugin {
         }
     }
 
+    public static synchronized void SHUTDOWN() {
+        VA_Dispatcher.dispatcher_running = false;
+        if (Postal_Started) {
+            Postal_Started = false;
+            if (!needs_configuration) {
+                Util.dinform("NPC DELETE ALL...");
+                RouteMngr.npc_delete_all(true);
+                Util.dinform("ALL NPC DELETED");
+                if ((dynmap_active) &&
+                        (dynmap.isEnabled()) &&
+                        (markerset != null)) {
+                    markerset.deleteMarkerSet();
+                    markerset = null;
+                }
+            }
+            if (plistener_player != null)
+                RouteEditor.Exit_routeEditor(plistener_player);
+        }
+    }
+
+    public static synchronized String proper(String string) {
+        try {
+            if (string.length() > 0) {
+                return string.substring(0, 1).toUpperCase() + string.substring(1).toLowerCase().trim();
+            }
+        } catch (Exception ignored) {
+        }
+
+        return "";
+    }
+
     public void onEnable() {
         Postal_Started = false;
         try {
@@ -277,6 +285,8 @@ public class VA_postal extends JavaPlugin {
             Util.cinform("[Postal] Citizens2 was not found, aborting....");
             return;
         }
+
+        SERVER = getServer().getPlayer(SERVER_ID);
 
         plugin = this;
         admin_overide = false;
@@ -355,22 +365,21 @@ public class VA_postal extends JavaPlugin {
         SHUTDOWN();
     }
 
-    private synchronized boolean setupPermissions() {
+    private synchronized void setupPermissions() {
         try {
             Class.forName("net.milkbowl.vault.permission.Permission");
         } catch (ClassNotFoundException e) {
             perms = null;
             Util.cinform("[Postal] Using Bukkit for permissions.");
-            return false;
+            return;
         }
-        RegisteredServiceProvider<Permission> rsp = null;
+        RegisteredServiceProvider<Permission> rsp;
         rsp = getServer().getServicesManager().getRegistration(Permission.class);
-        perms = (Permission) rsp.getProvider();
+        perms = rsp.getProvider();
         Util.cinform("[Postal] Using Vault for permissions hook.");
-        return true;
     }
 
-    private boolean setupEconomy() {
+    private synchronized void setupEconomy() {
         economy_configured = GetConfig.economy_use();
         if (economy_configured) {
             economy_configured = false;
@@ -379,21 +388,21 @@ public class VA_postal extends JavaPlugin {
             } catch (ClassNotFoundException e) {
                 perms = null;
                 Util.cinform("[Postal] Could not find Vault class for economy.");
-                return false;
+                return;
             }
             if (getServer().getPluginManager().getPlugin("Vault") == null) {
                 Util.cinform("[Postal] Could not find Vault plugin for economy.");
-                return false;
+                return;
             }
             RegisteredServiceProvider<Economy> rsp = getServer().getServicesManager().getRegistration(Economy.class);
             if (rsp == null) {
                 Util.cinform("[Postal] Could not register Vault for economy.");
-                return false;
+                return;
             }
-            econ = (Economy) rsp.getProvider();
+            econ = rsp.getProvider();
             if (econ == null) {
                 Util.cinform("[Postal] No economy service providor via Vault.");
-                return false;
+                return;
             }
             if (econ.hasBankSupport()) {
                 String e_name = Util.df(econ.getName());
@@ -401,16 +410,15 @@ public class VA_postal extends JavaPlugin {
                 Util.cinform("[Postal] Using " + e_name + " for economy.");
                 economy_configured = true;
                 P_Economy.init_economy();
-                return true;
+                return;
             }
             Util.cinform("\033[0;33m[Postal] Vault enabled economy detected, but Postal");
             Util.cinform("\033[0;33m[Postal] requires bank support. Disabling economy.");
-            return false;
+            return;
         }
 
 
         Util.cinform("[Postal] Economy disabled in config.yml");
-        return false;
     }
 
     private synchronized void setupScoreboard() {
@@ -423,7 +431,7 @@ public class VA_postal extends JavaPlugin {
                 Util.cinform("[Postal] Not using ScoreBoard");
             }
             if (plistener_using_scoreboard) {
-                plistener_sb_manager = org.bukkit.Bukkit.getScoreboardManager();
+                plistener_sb_manager = Bukkit.getScoreboardManager();
                 Util.cinform("[Postal] Using ScoreBoard for HUD display");
             }
         } else {
@@ -470,7 +478,8 @@ public class VA_postal extends JavaPlugin {
     public synchronized void check_towny() {
         PluginManager pm = getServer().getPluginManager();
         Plugin p = pm.getPlugin("Towny");
-        if ((p != null) || ((p instanceof Towny))) {
+        //noinspection ConstantConditions
+        if ((p != null) && (p instanceof Towny)) {
             towny = (Towny) p;
         }
     }

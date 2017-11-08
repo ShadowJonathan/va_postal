@@ -4,30 +4,45 @@ import com.vodhanel.minecraft.va_postal.VA_postal;
 import com.vodhanel.minecraft.va_postal.commands.Cmdexecutor;
 import com.vodhanel.minecraft.va_postal.common.AnsiColor;
 import com.vodhanel.minecraft.va_postal.common.Util;
+import com.vodhanel.minecraft.va_postal.common.VA_Dispatcher;
 import com.vodhanel.minecraft.va_postal.config.C_Route;
+import com.vodhanel.minecraft.va_postal.config.GetConfig;
+import com.vodhanel.minecraft.va_postal.mail.BookManip;
 import com.vodhanel.minecraft.va_postal.mail.ChestManip;
 import com.vodhanel.minecraft.va_postal.mail.MailSecurity;
 import com.vodhanel.minecraft.va_postal.mail.SignManip;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockState;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.Monster;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
+import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
+import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.server.PluginDisableEvent;
 import org.bukkit.event.server.ServerCommandEvent;
 import org.bukkit.event.world.ChunkUnloadEvent;
+import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.material.Chest;
+import org.bukkit.material.Sign;
 
+import java.util.ArrayList;
 import java.util.List;
 
-public class BukkitListener implements org.bukkit.event.Listener {
+public class BukkitListener implements Listener {
     public static VA_postal plugin;
     public static String[] st_world;
     public static int[] st_xmin;
@@ -39,7 +54,7 @@ public class BukkitListener implements org.bukkit.event.Listener {
 
 
     public BukkitListener(VA_postal plugin) {
-        this.plugin = plugin;
+        BukkitListener.plugin = plugin;
     }
 
     private static boolean invalid_player(Entity entity, boolean check_live_player) {
@@ -71,12 +86,12 @@ public class BukkitListener implements org.bukkit.event.Listener {
         }
 
 
-        String entered_cmd = "";
-        String root = "";
+        String entered_cmd;
+        String root;
         if (event.getMessage() != null) {
             entered_cmd = event.getMessage().toLowerCase().trim();
             String[] parts = entered_cmd.split(" ");
-            if ((parts != null) && (parts.length > 0)) {
+            if (parts.length > 0) {
                 root = parts[0].trim();
             } else {
                 return;
@@ -167,23 +182,22 @@ public class BukkitListener implements org.bukkit.event.Listener {
         Action action = event.getAction();
 
 
-        org.bukkit.block.BlockState state = event.getClickedBlock().getState();
-        if ((!(state instanceof org.bukkit.block.Chest)) && (!(state instanceof org.bukkit.block.Sign))) {
+        BlockState state = event.getClickedBlock().getState();
+        if ((!(state instanceof Chest)) && (!(state instanceof Sign))) {
             return;
         }
 
-
-        if ((state instanceof org.bukkit.block.Sign)) {
+        if ((state instanceof Sign)) {
             if (SignManip.is_this_a_postal_sign(event.getClickedBlock(), 2)) {
                 if (!event.isCancelled()) {
                     event.setCancelled(true);
                 }
 
                 if ((action == Action.LEFT_CLICK_BLOCK) && (MailSecurity.allowed_to_break_shipment(event.getClickedBlock(), player))) {
-                    event.getClickedBlock().setTypeId(0);
+                    event.getClickedBlock().setType(Material.AIR);
                     Block block = SignManip.sign2chest_block(event.getClickedBlock());
-                    block.setTypeId(0);
-                    player.setItemInHand(null);
+                    block.setType(Material.AIR);
+                    player.setItemOnCursor(null);
                 }
             }
         } else {
@@ -194,25 +208,26 @@ public class BukkitListener implements org.bukkit.event.Listener {
                 }
 
                 if ((action == Action.LEFT_CLICK_BLOCK) && (MailSecurity.allowed_to_break_shipment(sign_block, player))) {
-                    event.getClickedBlock().setTypeId(0);
-                    sign_block.setTypeId(0);
-                    player.setItemInHand(null);
+                    event.getClickedBlock().setType(Material.AIR);
+                    sign_block.setType(Material.AIR);
+                    player.setItemOnCursor(null);
                 }
                 return;
             }
         }
 
 
-        Block sign_block = null;
-        Block block = null;
+        Block sign_block;
+        Block block;
 
-        if ((state instanceof org.bukkit.block.Chest)) {
+        if ((state instanceof Chest)) {
             block = ChestManip.block2postal_block(event.getClickedBlock());
             if (block == null) {
                 return;
             }
             sign_block = ChestManip.chest2sign_block(block);
-            if (sign_block != null) {
+            if (sign_block == null) {
+                return;
             }
         } else {
             block = SignManip.sign2chest_block(event.getClickedBlock());
@@ -238,8 +253,8 @@ public class BukkitListener implements org.bukkit.event.Listener {
 
         if ((action == Action.LEFT_CLICK_BLOCK) &&
                 (MailSecurity.is_authorized_to_break_chest_event(block, player))) {
-            sign_block.setTypeId(0);
-            block.setTypeId(0);
+            sign_block.setType(Material.AIR);
+            block.setType(Material.AIR);
             return;
         }
 
@@ -259,14 +274,12 @@ public class BukkitListener implements org.bukkit.event.Listener {
             return;
         }
 
-
         if (event.getInventory() == null) {
             return;
         }
 
-
-        if ("CHEST".equalsIgnoreCase(event.getInventory().getType().name())) {
-            com.vodhanel.minecraft.va_postal.mail.MailSecurity.event_check_chest_for_new_mail(event.getInventory());
+        if (InventoryType.CHEST == event.getInventory().getType()) {
+            MailSecurity.event_check_chest_for_new_mail(event.getInventory());
         }
     }
 
@@ -283,17 +296,17 @@ public class BukkitListener implements org.bukkit.event.Listener {
         Player player = (Player) event.getWhoClicked();
 
 
-        if ((event.getInventory() != null) && (!com.vodhanel.minecraft.va_postal.mail.BookManip.is_there_a_postal_log(event.getInventory()))) {
+        if ((event.getInventory() != null) && (!BookManip.is_there_a_postal_log(event.getInventory()))) {
             return;
         }
 
 
-        org.bukkit.inventory.Inventory inventory = event.getInventory();
-        org.bukkit.inventory.ItemStack stack = event.getCurrentItem();
+        Inventory inventory = event.getInventory();
+        ItemStack stack = event.getCurrentItem();
         int slot = event.getRawSlot();
         if ((inventory != null) && (stack != null) && (slot >= 0) &&
                 ("CONTAINER".equals(event.getSlotType().name())) &&
-                (stack.getType() == org.bukkit.Material.WRITTEN_BOOK)) {
+                (stack.getType() == Material.WRITTEN_BOOK)) {
             if (!MailSecurity.may_player_access_this_mail(inventory, stack, slot, player)) {
                 event.setCancelled(true);
             }
@@ -303,7 +316,7 @@ public class BukkitListener implements org.bukkit.event.Listener {
     @EventHandler(priority = EventPriority.MONITOR)
     public static void onPlayerJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
-        String msg1 = com.vodhanel.minecraft.va_postal.config.GetConfig.join_message();
+        String msg1 = GetConfig.join_message();
         String splayer = proper(player.getName());
         String msg = msg1.replace("%player%", splayer);
 
@@ -314,7 +327,7 @@ public class BukkitListener implements org.bukkit.event.Listener {
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
-    public static void onPlayerQuit(org.bukkit.event.player.PlayerQuitEvent event) {
+    public static void onPlayerQuit(PlayerQuitEvent event) {
         Player player = event.getPlayer();
 
         if ((VA_postal.plistener_player != null) &&
@@ -330,8 +343,8 @@ public class BukkitListener implements org.bukkit.event.Listener {
             return;
         }
         Entity spawned = event.getEntity();
-        if (((spawned instanceof org.bukkit.entity.Monster)) &&
-                (!com.vodhanel.minecraft.va_postal.config.GetConfig.allow_monster_spawn())) {
+        if (((spawned instanceof Monster)) &&
+                (!GetConfig.allow_monster_spawn())) {
             Chunk chunk = event.getLocation().getChunk();
             if (is_chunk_on_route(chunk)) {
                 event.setCancelled(true);
@@ -347,7 +360,7 @@ public class BukkitListener implements org.bukkit.event.Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST)
     public static void onChunkUnload(ChunkUnloadEvent event) {
-        if ((!com.vodhanel.minecraft.va_postal.common.VA_Dispatcher.dispatcher_running) || (event.isCancelled()) || (VA_postal.needs_configuration)) {
+        if ((!VA_Dispatcher.dispatcher_running) || (event.isCancelled()) || (VA_postal.needs_configuration)) {
             return;
         }
         Chunk chunk = event.getChunk();
@@ -366,10 +379,10 @@ public class BukkitListener implements org.bukkit.event.Listener {
         int X = chunk.getX();
         int Z = chunk.getZ();
         String[] parts = new String[5];
-        int c_Xmin = 0;
-        int c_Zmin = 0;
-        int c_Xmax = 0;
-        int c_Zmax = 0;
+        int c_Xmin;
+        int c_Zmin;
+        int c_Xmax;
+        int c_Zmax;
         for (int i = 0; i < st_count; i++) {
             if (st_world[i].equals(sworld)) {
                 c_Xmin = st_xmin[i];
@@ -400,7 +413,7 @@ public class BukkitListener implements org.bukkit.event.Listener {
             return;
         }
         if (temp_chunk_list == null) {
-            temp_chunk_list = new java.util.ArrayList();
+            temp_chunk_list = new ArrayList<Chunk>();
         }
         if (!temp_chunk_list.contains(chunk)) {
             temp_chunk_list.add(chunk);
@@ -420,7 +433,7 @@ public class BukkitListener implements org.bukkit.event.Listener {
         if ((stown == null) || (saddress == null)) {
             return;
         }
-        String slocation = "";
+        String slocation;
         if (C_Route.is_route_defined(stown, saddress)) {
             int route_len = C_Route.route_waypoint_count(stown, saddress);
             for (int i = 0; i < route_len; i++) {
@@ -465,6 +478,6 @@ public class BukkitListener implements org.bukkit.event.Listener {
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
-    public void onPluginDisableEvent(org.bukkit.event.server.PluginDisableEvent event) {
+    public void onPluginDisableEvent(PluginDisableEvent event) {
     }
 }

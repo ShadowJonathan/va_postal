@@ -3,10 +3,16 @@ package com.vodhanel.minecraft.va_postal.navigation;
 import com.vodhanel.minecraft.va_postal.VA_postal;
 import com.vodhanel.minecraft.va_postal.common.*;
 import com.vodhanel.minecraft.va_postal.config.*;
+import net.citizensnpcs.api.CitizensAPI;
 import net.citizensnpcs.api.astar.pathfinder.BlockExaminer;
 import net.citizensnpcs.api.npc.NPC;
 import net.citizensnpcs.api.trait.trait.Equipment;
+import net.citizensnpcs.api.trait.trait.MobType;
+import net.citizensnpcs.api.trait.trait.Owner;
 import net.citizensnpcs.trait.LookClose;
+import org.bukkit.Location;
+import org.bukkit.entity.EntityType;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
 public class RouteMngr {
@@ -31,12 +37,12 @@ public class RouteMngr {
         int id = -1;
         String name = "PostMan";
         if (local) {
-            name = com.vodhanel.minecraft.va_postal.config.GetConfig.get_local_pman_name();
+            name = GetConfig.get_local_pman_name();
         } else {
-            name = com.vodhanel.minecraft.va_postal.config.GetConfig.get_central_pman_name();
+            name = GetConfig.get_central_pman_name();
         }
         Util.dinform("\033[1;34mnpc_create: " + slocation + "," + name);
-        org.bukkit.Location location = Util.str2location(slocation);
+        Location location = Util.str2location(slocation);
         boolean used_deleted_slot = false;
         if (local) {
             try {
@@ -48,11 +54,11 @@ public class RouteMngr {
                         break;
                     }
                 }
-                org.bukkit.entity.EntityType buk_entity_type = org.bukkit.entity.EntityType.PLAYER;
+                EntityType buk_entity_type = EntityType.PLAYER;
                 VA_postal.wtr_npc[id] = VA_postal.npcRegistry.createNPC(buk_entity_type, name);
                 VA_postal.wtr_slocation_local_po_spawn[id] = slocation;
                 VA_postal.wtr_npc[id].spawn(location);
-                VA_postal.wtr_npc_player[id] = ((org.bukkit.entity.Player) VA_postal.wtr_npc[id].getEntity());
+                VA_postal.wtr_npc_player[id] = ((Player) VA_postal.wtr_npc[id].getEntity());
                 VA_postal.wtr_inventory_npc[id] = VA_postal.wtr_npc_player[id].getInventory();
                 VA_postal.wtr_watchdog_ext_npc_stamp[id] = Util.time_stamp();
 
@@ -62,7 +68,7 @@ public class RouteMngr {
                 return -1;
             }
             if (VA_postal.dynmap_configured) {
-                com.vodhanel.minecraft.va_postal.common.P_Dynmap.create_marker_postman(id, slocation, label);
+                P_Dynmap.create_marker_postman(id, slocation, label);
             }
             if (!used_deleted_slot) {
                 VA_postal.wtr_count += 1;
@@ -70,12 +76,12 @@ public class RouteMngr {
         } else {
             try {
                 id = 1000;
-                VA_postal.central_route_npc_reg = net.citizensnpcs.api.CitizensAPI.getNPCRegistry();
-                org.bukkit.entity.EntityType buk_entity_type = org.bukkit.entity.EntityType.PLAYER;
+                VA_postal.central_route_npc_reg = CitizensAPI.getNPCRegistry();
+                EntityType buk_entity_type = EntityType.PLAYER;
                 VA_postal.central_route_npc = VA_postal.central_route_npc_reg.createNPC(buk_entity_type, name);
                 VA_postal.central_po_slocation_spawn = slocation;
                 VA_postal.central_route_npc.spawn(location);
-                VA_postal.central_route_player = (org.bukkit.entity.Player) VA_postal.central_route_npc.getEntity();
+                VA_postal.central_route_player = (Player) VA_postal.central_route_npc.getEntity();
 
                 initialize_npc(id);
             } catch (Exception e) {
@@ -83,26 +89,26 @@ public class RouteMngr {
                 return -1;
             }
             if (VA_postal.dynmap_configured) {
-                com.vodhanel.minecraft.va_postal.common.P_Dynmap.create_marker_postmaster(slocation, label);
+                P_Dynmap.create_marker_postmaster(slocation, label);
             }
         }
         return id;
     }
 
     public static synchronized void initialize_npc(int id) {
-        org.bukkit.entity.EntityType buk_entity_type = org.bukkit.entity.EntityType.PLAYER;
+        EntityType buk_entity_type = EntityType.PLAYER;
         if (id == 1000) {
             if ((VA_postal.central_route_npc == null) || (VA_postal.central_route_npc.getEntity() == null)) {
                 return;
             }
 
             if (!VA_postal.central_route_npc.isSpawned()) {
-                org.bukkit.Location target = VA_postal.central_route_npc.getEntity().getLocation();
+                Location target = VA_postal.central_route_npc.getEntity().getLocation();
                 VA_postal.central_route_npc.spawn(target);
             }
 
-            VA_postal.central_route_npc.getTrait(net.citizensnpcs.api.trait.trait.Owner.class).setOwner("server");
-            VA_postal.central_route_npc.getTrait(net.citizensnpcs.api.trait.trait.MobType.class).setType(buk_entity_type);
+            VA_postal.central_route_npc.getTrait(Owner.class).setOwner("server");
+            VA_postal.central_route_npc.getTrait(MobType.class).setType(buk_entity_type);
             VA_postal.central_route_npc.getTrait(LookClose.class).lookClose(true);
             Equipment trait = VA_postal.central_route_npc.getTrait(Equipment.class);
             ItemStack uniform = uniform_part(1, false);
@@ -127,23 +133,22 @@ public class RouteMngr {
             }
 
             if (!VA_postal.wtr_npc[id].getEntity().isValid()) {
-                org.bukkit.Location target = Util.str2location(VA_postal.wtr_slocation_local_po_spawn[id]);
+                Location target = Util.str2location(VA_postal.wtr_slocation_local_po_spawn[id]);
                 VA_postal.wtr_npc[id].despawn();
                 VA_postal.wtr_npc[id].spawn(target);
-                VA_postal.wtr_npc_player[id] = ((org.bukkit.entity.Player) VA_postal.wtr_npc[id].getEntity());
+                VA_postal.wtr_npc_player[id] = ((Player) VA_postal.wtr_npc[id].getEntity());
                 VA_postal.wtr_inventory_npc[id] = VA_postal.wtr_npc_player[id].getInventory();
-                target = null;
             }
 
             if (!VA_postal.wtr_npc[id].isSpawned()) {
-                org.bukkit.Location target = VA_postal.wtr_npc[id].getEntity().getLocation();
+                Location target = VA_postal.wtr_npc[id].getEntity().getLocation();
                 VA_postal.wtr_npc[id].spawn(target);
             }
             VA_postal.wtr_inventory_npc[id].clear();
-            VA_postal.wtr_npc_player[id] = ((org.bukkit.entity.Player) VA_postal.wtr_npc[id].getEntity());
-            VA_postal.wtr_npc_player[id].setItemInHand(null);
-            VA_postal.wtr_npc[id].getTrait(net.citizensnpcs.api.trait.trait.Owner.class).setOwner("server");
-            VA_postal.wtr_npc[id].getTrait(net.citizensnpcs.api.trait.trait.MobType.class).setType(buk_entity_type);
+            VA_postal.wtr_npc_player[id] = ((Player) VA_postal.wtr_npc[id].getEntity());
+            VA_postal.wtr_npc_player[id].setItemOnCursor(null);
+            VA_postal.wtr_npc[id].getTrait(Owner.class).setOwner("server");
+            VA_postal.wtr_npc[id].getTrait(MobType.class).setType(buk_entity_type);
             VA_postal.wtr_npc[id].getTrait(LookClose.class).lookClose(true);
             Equipment trait = VA_postal.wtr_npc[id].getTrait(Equipment.class);
             ItemStack uniform = uniform_part(1, true);
@@ -168,12 +173,12 @@ public class RouteMngr {
     public static synchronized void lookclose_on_route(int id, boolean route_start) {
         if (route_start) {
             if (VA_postal.lookclose_on_route) {
-                ((LookClose) VA_postal.wtr_npc[id].getTrait(LookClose.class)).lookClose(true);
+                VA_postal.wtr_npc[id].getTrait(LookClose.class).lookClose(true);
             } else {
-                ((LookClose) VA_postal.wtr_npc[id].getTrait(LookClose.class)).lookClose(false);
+                VA_postal.wtr_npc[id].getTrait(LookClose.class).lookClose(false);
             }
         } else {
-            ((LookClose) VA_postal.wtr_npc[id].getTrait(LookClose.class)).lookClose(true);
+            VA_postal.wtr_npc[id].getTrait(LookClose.class).lookClose(true);
         }
     }
 
@@ -185,8 +190,8 @@ public class RouteMngr {
             }
         }
 
-        String postman = com.vodhanel.minecraft.va_postal.config.GetConfig.get_local_pman_name();
-        String pmaster = com.vodhanel.minecraft.va_postal.config.GetConfig.get_central_pman_name();
+        String postman = GetConfig.get_local_pman_name();
+        String pmaster = GetConfig.get_central_pman_name();
         for (NPC npc : VA_postal.npcRegistry.sorted()) {
             try {
                 if (npc != null) {
@@ -229,7 +234,7 @@ public class RouteMngr {
         if (VA_postal.wtr_npc[id] != null) {
             try {
                 VA_postal.wtr_npc[id].destroy();
-            } catch (Exception e) {
+            } catch (Exception ignored) {
             }
             VA_postal.wtr_npc[id] = null;
         }
@@ -246,8 +251,8 @@ public class RouteMngr {
             return;
         }
 
-        if (!com.vodhanel.minecraft.va_postal.config.C_Route.is_waypoint_defined(local_po, address, 1)) {
-            com.vodhanel.minecraft.va_postal.config.C_Dispatcher.open_address(local_po, address, false);
+        if (!C_Route.is_waypoint_defined(local_po, address, 1)) {
+            C_Dispatcher.open_address(local_po, address, false);
             return;
         }
 
@@ -267,8 +272,8 @@ public class RouteMngr {
         VA_postal.wtr_pos_last[id] = -1;
         VA_postal.wtr_pos[id] = 0;
         VA_postal.wtr_pos_next[id] = 1;
-        VA_postal.wtr_pos_final[id] = com.vodhanel.minecraft.va_postal.config.C_Route.get_last_waypoint_position(local_po, address);
-        VA_postal.wtr_swaypoint[id] = com.vodhanel.minecraft.va_postal.config.C_Route.get_waypoint_location(local_po, address, 0);
+        VA_postal.wtr_pos_final[id] = C_Route.get_last_waypoint_position(local_po, address);
+        VA_postal.wtr_swaypoint[id] = C_Route.get_waypoint_location(local_po, address, 0);
         VA_postal.wtr_waypoint[id] = Util.str2location(VA_postal.wtr_swaypoint[id]);
         VA_postal.wtr_id = C_Queue.npc_id_for_queue_pair(queue_pair);
         VA_postal.wtr_trap_door[id] = null;
@@ -280,7 +285,7 @@ public class RouteMngr {
         VA_postal.wtr_forward[id] = true;
         VA_postal.wtr_controller[id] = VA_postal.wtr_npc[VA_postal.wtr_id].getDefaultGoalController();
 
-        VA_postal.wtr_swaypoint_next[id] = com.vodhanel.minecraft.va_postal.config.C_Route.get_waypoint_location(local_po, address, 1);
+        VA_postal.wtr_swaypoint_next[id] = C_Route.get_waypoint_location(local_po, address, 1);
         VA_postal.wtr_waypoint_next[id] = Util.str2location(VA_postal.wtr_swaypoint_next[id]);
         VA_postal.wtr_dist_next[id] = VA_postal.wtr_waypoint[id].distance(VA_postal.wtr_waypoint_next[id]);
         VA_postal.wtr_waypoint_dynamic[id] = "null";
@@ -298,7 +303,7 @@ public class RouteMngr {
 
         VA_Timers.run_goal(id, 1L);
         if (VA_postal.dynmap_configured) {
-            com.vodhanel.minecraft.va_postal.common.P_Dynmap.show_route(id);
+            P_Dynmap.show_route(id);
         }
         lookclose_on_route(id, true);
 
@@ -372,11 +377,11 @@ public class RouteMngr {
         VA_postal.wtr_done[id] = true;
 
         String slocation = VA_postal.wtr_slocation_local_po_spawn[id];
-        org.bukkit.Location target = Util.str2location(slocation);
+        Location target = Util.str2location(slocation);
         try {
             VA_postal.wtr_npc[id].despawn();
             VA_postal.wtr_npc[id].spawn(target);
-            VA_postal.wtr_npc_player[id] = ((org.bukkit.entity.Player) VA_postal.wtr_npc[id].getEntity());
+            VA_postal.wtr_npc_player[id] = ((Player) VA_postal.wtr_npc[id].getEntity());
             VA_postal.wtr_inventory_npc[id] = VA_postal.wtr_npc_player[id].getInventory();
         } catch (Exception e) {
             Util.cinform(AnsiColor.RED + "Problem teleporting (cancel route)");
@@ -414,12 +419,12 @@ public class RouteMngr {
             String e_qp = C_Queue.get_queue_pair(stown, saddress);
             if (e_qp.equals(queue_pair)) {
 
-                com.vodhanel.minecraft.va_postal.config.C_Dispatcher.demote_schedule(stown, saddress, 3000);
+                C_Dispatcher.demote_schedule(stown, saddress, 3000);
                 return;
             }
         }
 
-        int elapsed = -1;
+        int elapsed;
         int cooldown = VA_postal.wtr_postman_cool;
         long age = C_Queue.queue_pair_get_age(queue_pair);
         long time = System.currentTimeMillis() / 1000L;
@@ -504,9 +509,9 @@ public class RouteMngr {
         }
         if (cal_stability > cal_cos_threshold) {
             if (cal_last_save != VA_Dispatcher.dispatcher_heartbeat) {
-                com.vodhanel.minecraft.va_postal.config.GetConfig.set_heartbeat_ticks(VA_Dispatcher.dispatcher_heartbeat);
+                GetConfig.set_heartbeat_ticks(VA_Dispatcher.dispatcher_heartbeat);
                 cal_last_save = VA_Dispatcher.dispatcher_heartbeat;
-                Util.cinform(AnsiColor.CYAN + "Postal auto calibration saved.  Heartbeat: " + VA_Dispatcher.dispatcher_heartbeat + ", Stability: " + cal_cos_threshold);
+                Util.cinform(AnsiColor.CYAN + "Postal auto calibration saved. Heartbeat: " + VA_Dispatcher.dispatcher_heartbeat + ", Stability: " + cal_cos_threshold);
             }
             switch (cal_cos_threshold) {
                 case 5:
@@ -532,7 +537,7 @@ public class RouteMngr {
                 case 12:
                 default:
                     cal_cos_threshold = 100;
-                    Util.cinform(AnsiColor.CYAN + "Postal final calibration saved.  Heartbeat: " + VA_Dispatcher.dispatcher_heartbeat + ", Stability: " + cal_cos_threshold);
+                    Util.cinform(AnsiColor.CYAN + "Postal final calibration saved. Heartbeat: " + VA_Dispatcher.dispatcher_heartbeat + ", Stability: " + cal_cos_threshold);
             }
             cal_stability = 0;
         }
@@ -549,7 +554,7 @@ public class RouteMngr {
 
         switch (slot) {
             case 1:
-                int helmet = com.vodhanel.minecraft.va_postal.config.GetConfig.uniform_part_config(slot, local);
+                int helmet = GetConfig.uniform_part_config(slot, local);
                 switch (helmet) {
                     case 298:
                         stack = new ItemStack(helmet, 1);
@@ -571,7 +576,7 @@ public class RouteMngr {
 
 
             case 2:
-                int chestplate = com.vodhanel.minecraft.va_postal.config.GetConfig.uniform_part_config(slot, local);
+                int chestplate = GetConfig.uniform_part_config(slot, local);
                 switch (chestplate) {
                     case 299:
                         stack = new ItemStack(chestplate, 1);
@@ -593,7 +598,7 @@ public class RouteMngr {
 
 
             case 3:
-                int leggings = com.vodhanel.minecraft.va_postal.config.GetConfig.uniform_part_config(slot, local);
+                int leggings = GetConfig.uniform_part_config(slot, local);
                 switch (leggings) {
                     case 300:
                         stack = new ItemStack(leggings, 1);
@@ -615,7 +620,7 @@ public class RouteMngr {
 
 
             case 4:
-                int boots = com.vodhanel.minecraft.va_postal.config.GetConfig.uniform_part_config(slot, local);
+                int boots = GetConfig.uniform_part_config(slot, local);
                 switch (boots) {
                     case 301:
                         stack = new ItemStack(boots, 1);

@@ -21,7 +21,7 @@ public class MailGen {
         return name + "," + qty + "," + id + "," + durability;
     }
 
-    public static synchronized boolean replace_slot_by_index_cen(int index, final ItemStack book_item) {
+    public static synchronized void replace_slot_by_index_cen(int index, final ItemStack book_item) {
         Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(VA_postal.plugin, new Runnable() {
 
             public void run() {
@@ -30,7 +30,6 @@ public class MailGen {
         }, 6L);
 
 
-        return true;
     }
 
     public static synchronized String proper(String string) {

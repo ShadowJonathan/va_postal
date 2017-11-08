@@ -1,35 +1,38 @@
 package com.vodhanel.minecraft.va_postal.listeners;
 
+import com.darkblade12.particleeffect.ParticleEffect;
 import com.vodhanel.minecraft.va_postal.VA_postal;
 import com.vodhanel.minecraft.va_postal.commands.Cmd_static;
-import com.vodhanel.minecraft.va_postal.common.P_Towny;
-import com.vodhanel.minecraft.va_postal.common.Util;
-import com.vodhanel.minecraft.va_postal.common.VA_Dispatcher;
-import com.vodhanel.minecraft.va_postal.common.VA_Timers;
+import com.vodhanel.minecraft.va_postal.common.*;
 import com.vodhanel.minecraft.va_postal.config.*;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.block.Block;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
+import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockDamageEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.plugin.IllegalPluginAccessException;
+import org.bukkit.scheduler.BukkitTask;
+import org.bukkit.scoreboard.DisplaySlot;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import static com.vodhanel.minecraft.va_postal.common.Util.df;
 
-public class RouteEditor implements org.bukkit.event.Listener {
+public class RouteEditor implements Listener {
     public static VA_postal plugin;
-    public static org.bukkit.scheduler.BukkitTask plistener_hud_worker = null;
+    public static BukkitTask plistener_hud_worker = null;
     public static List<Integer> route_blocks_type = null;
     public static List<Byte> route_blocks_data = null;
     public static List<Location> route_blocks_loc = null;
@@ -43,12 +46,13 @@ public class RouteEditor implements org.bukkit.event.Listener {
     private static boolean waypoint_inquire = false;
     private static int selected_pos = -1;
     private static Location saved_loc = null;
+    private static int highlighttask;
 
     public RouteEditor(VA_postal plugin) {
-        this.plugin = plugin;
+        RouteEditor.plugin = plugin;
     }
 
-    private static boolean invalid_player(org.bukkit.entity.Entity entity) {
+    private static boolean invalid_player(Entity entity) {
         if (VA_postal.plistener_player == null) {
             return true;
         }
@@ -57,10 +61,7 @@ public class RouteEditor implements org.bukkit.event.Listener {
             return true;
         }
 
-        if (entity != VA_postal.plistener_player) {
-            return true;
-        }
-        return false;
+        return entity != VA_postal.plistener_player;
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
@@ -71,11 +72,9 @@ public class RouteEditor implements org.bukkit.event.Listener {
 
         Player player = event.getPlayer();
 
-
         if ((event.getClickedBlock() == null) || (event.getAction() == null)) {
             return;
         }
-
 
         VA_postal.plistener_last_used = Util.time_stamp();
 
@@ -88,7 +87,6 @@ public class RouteEditor implements org.bukkit.event.Listener {
             }
             return;
         }
-
 
         if (process_ground_click) {
             if (!event.isCancelled()) {
@@ -321,11 +319,7 @@ public class RouteEditor implements org.bukkit.event.Listener {
 
         int ti = block.getTypeId();
         if ((ti == 64) || (ti == 71) || (ti == 96) || (ti == 63) || (ti == 68) || (ti == 107)) {
-            if (action == Action.RIGHT_CLICK_BLOCK) {
-                return false;
-            }
-
-            return true;
+            return action != Action.RIGHT_CLICK_BLOCK;
         }
 
         process_ground_click = true;
@@ -351,10 +345,10 @@ public class RouteEditor implements org.bukkit.event.Listener {
             if (append_marker(slocation)) {
                 int pos = C_Route.append_route_waypoint(stown, saddress, slocation);
                 if (pos >= 0) {
-                    Util.pinform(player, "&7&oWaypoint:  &f&r" + pos + " &7&oLocation:  &f&r" + slocation);
+                    Util.pinform(player, "&7&oWaypoint: &f&r" + pos + " &7&oLocation: &f&r" + slocation);
                 } else {
-                    Util.pinform(player, "&c&oUnexpected problem seting waypoint.  Exiting.");
-                    Util.pinform(player, "&7&oWaypoint:  &f&r" + pos + " &7&oLocation:  &f&r" + slocation);
+                    Util.pinform(player, "&c&oUnexpected problem seting waypoint. Exiting.");
+                    Util.pinform(player, "&7&oWaypoint: &f&r" + pos + " &7&oLocation: &f&r" + slocation);
                     Exit_routeEditor(player);
                 }
 
@@ -391,17 +385,17 @@ public class RouteEditor implements org.bukkit.event.Listener {
                     if (overide_dist) {
                         Util.safe_tps(player, slocation);
                     }
-                    Util.pinform(player, "&7&oBack one waypoint.  You are now on waypoint: &f&r" + cur_pos);
+                    Util.pinform(player, "&7&oBack one waypoint. You are now on waypoint: &f&r" + cur_pos);
                 } else {
-                    Util.pinform(player, "&c&oUnexpected problem undo'ing waypoint.  Exiting.");
-                    Util.pinform(player, "&7&oWaypoint:  &f&r" + cur_pos + " &7&oLocation:  &f&r" + slocation);
+                    Util.pinform(player, "&c&oUnexpected problem undo'ing waypoint. Exiting.");
+                    Util.pinform(player, "&7&oWaypoint: &f&r" + cur_pos + " &7&oLocation: &f&r" + slocation);
                     Exit_routeEditor(player);
                 }
             } else {
                 New_Route(player);
             }
         } else {
-            Util.pinform(player, "&7&oWaypoint:  &f&r" + cur_pos + " &7&oLocation:  &f&r" + slocation);
+            Util.pinform(player, "&7&oWaypoint: &f&r" + cur_pos + " &7&oLocation: &f&r" + slocation);
             Util.pinform(player, "&7&oYou are &f&r" + click_dist + " &7&oBlocks from your last waypoint.");
         }
     }
@@ -710,7 +704,7 @@ public class RouteEditor implements org.bukkit.event.Listener {
 
     public static void Exit_routeEditor(Player player) {
         restore_quickbar(player);
-        VA_Timers.routeRditor_start(false, player);
+        stopHighlighter();
         delete_hud();
         String stown = VA_postal.plistener_local_po;
         String saddress = VA_postal.plistener_address;
@@ -736,8 +730,7 @@ public class RouteEditor implements org.bukkit.event.Listener {
             Util.pinform(player, "&6&oPlease finish route with /setroute");
             Util.pinform(player, "&6&oOr delete " + df(stown) + ", " + df(saddress) + " and re-define.");
         }
-        if ((player != null) &&
-                (VA_Dispatcher.dispatcher_running)) {
+        if ((player != null) && (VA_Dispatcher.dispatcher_running)) {
             if (VA_postal.plistener_newroute) {
                 C_Dispatcher.open_poffice(stown, true);
 
@@ -753,6 +746,11 @@ public class RouteEditor implements org.bukkit.event.Listener {
         }
 
         VA_postal.plistener_player = null;
+        try {
+            VA_Timers.routeRditor_start(false, player);
+        } catch (IllegalPluginAccessException ignored) {
+
+        }
     }
 
     public static void create_hud(String po, String addr) {
@@ -767,7 +765,7 @@ public class RouteEditor implements org.bukkit.event.Listener {
             VA_postal.plistener_hud_objective = VA_postal.plistener_hud_board.registerNewObjective("Elv_To_Addrss:", "dummy");
             VA_postal.plistener_hud_objective = VA_postal.plistener_hud_board.registerNewObjective("Dst_To_Lst_WP:", "dummy");
             VA_postal.plistener_hud_objective = VA_postal.plistener_hud_board.registerNewObjective("Total_WPoints:", "dummy");
-            VA_postal.plistener_hud_objective.setDisplaySlot(org.bukkit.scoreboard.DisplaySlot.SIDEBAR);
+            VA_postal.plistener_hud_objective.setDisplaySlot(DisplaySlot.SIDEBAR);
             VA_postal.plistener_hud_objective.setDisplayName(display_title);
             VA_postal.plistener_hud_po = VA_postal.plistener_hud_objective.getScore(Bukkit.getOfflinePlayer(ChatColor.GREEN + "Dst_To_Poffce:"));
             VA_postal.plistener_hud_addr = VA_postal.plistener_hud_objective.getScore(Bukkit.getOfflinePlayer(ChatColor.GREEN + "Dst_To_Addrss:"));
@@ -794,7 +792,7 @@ public class RouteEditor implements org.bukkit.event.Listener {
                 VA_postal.plistener_hud_lwp = null;
                 VA_postal.plistener_hud_objective.unregister();
                 VA_postal.plistener_hud_objective = null;
-                VA_postal.plistener_hud_board.clearSlot(org.bukkit.scoreboard.DisplaySlot.SIDEBAR);
+                VA_postal.plistener_hud_board.clearSlot(DisplaySlot.SIDEBAR);
                 VA_postal.plistener_hud_board = null;
             }
         }
@@ -862,14 +860,16 @@ public class RouteEditor implements org.bukkit.event.Listener {
 
     public static synchronized void clear_route_markers() {
         if ((route_blocks_type != null) && (!route_blocks_type.isEmpty())) {
-            World w = ((Location) route_blocks_loc.get(0)).getWorld();
+            World w = route_blocks_loc.get(0).getWorld();
             for (int i = 0; i < route_blocks_loc.size(); i++) {
-                Block marker = w.getBlockAt((Location) route_blocks_loc.get(i));
-                int type = ((Integer) route_blocks_type.get(i)).intValue();
-                byte data = ((Byte) route_blocks_data.get(i)).byteValue();
+                Block marker = w.getBlockAt(route_blocks_loc.get(i));
+                int type = route_blocks_type.get(i);
+                byte data = route_blocks_data.get(i);
                 try {
                     marker.setTypeIdAndData(type, data, false);
                 } catch (Exception e) {
+                    Util.dinform(AnsiColor.RED + "EXCEPTION IN clear_route_markers: " + e);
+                    if (VA_postal.debug) e.printStackTrace();
                 }
             }
             route_blocks_type.clear();
@@ -901,8 +901,8 @@ public class RouteEditor implements org.bukkit.event.Listener {
         }
         int type = block.getTypeId();
         byte data = block.getData();
-        route_blocks_type.add(Integer.valueOf(type));
-        route_blocks_data.add(Byte.valueOf(data));
+        route_blocks_type.add(type);
+        route_blocks_data.add(data);
         route_blocks_loc.add(location);
         try {
             block.setTypeId(wpnt_hilite_id);
@@ -916,10 +916,10 @@ public class RouteEditor implements org.bukkit.event.Listener {
         if (route_blocks_type != null) {
             int index = route_blocks_type.size() - 1;
             if (index >= 0) {
-                World w = ((Location) route_blocks_loc.get(index)).getWorld();
-                Block marker = w.getBlockAt((Location) route_blocks_loc.get(index));
-                int type = ((Integer) route_blocks_type.get(index)).intValue();
-                byte data = ((Byte) route_blocks_data.get(index)).byteValue();
+                World w = route_blocks_loc.get(index).getWorld();
+                Block marker = w.getBlockAt(route_blocks_loc.get(index));
+                int type = route_blocks_type.get(index).intValue();
+                byte data = route_blocks_data.get(index).byteValue();
                 try {
                     marker.setTypeIdAndData(type, data, false);
                 } catch (Exception e) {
@@ -928,6 +928,35 @@ public class RouteEditor implements org.bukkit.event.Listener {
                 route_blocks_type.remove(index);
                 route_blocks_data.remove(index);
             }
+        }
+    }
+
+    public static synchronized void startHighlighter() {
+        highlighttask = Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, RouteEditor::highlightWorker, 0L, 10);
+    }
+
+    public static synchronized void stopHighlighter() {
+        Bukkit.getScheduler().cancelTask(highlighttask);
+    }
+
+    public static void highlightWorker() {
+        Location latest = null;
+        ArrayList<Location> list = C_Route.get_waypoint_locations(VA_postal.plistener_local_po, VA_postal.plistener_address);
+/*        StringBuilder s = new StringBuilder();
+        for (Location location : list) {
+            s.append(location.toString());
+        }
+        Util.dinform(s.toString());*/
+        int index = 1;
+        for (Location l : list) {
+            //Util.dinform("got: " + l);
+            //Util.dinform("at: " + index + "/" + list.size());
+            if (latest != null) {
+                //Util.dinform(latest + " -> " + l);
+                Particles.displayLine(latest.clone().add(0.5, 0.5, 0.5), l.clone().add(0.5, 0.5, 0.5), VA_postal.plistener_player, ParticleEffect.PORTAL);
+            }
+            latest = l;
+            index++;
         }
     }
 

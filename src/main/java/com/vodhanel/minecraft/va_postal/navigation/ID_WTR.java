@@ -5,19 +5,25 @@ import com.vodhanel.minecraft.va_postal.common.AnsiColor;
 import com.vodhanel.minecraft.va_postal.common.P_Towny;
 import com.vodhanel.minecraft.va_postal.common.Util;
 import com.vodhanel.minecraft.va_postal.common.VA_Dispatcher;
+import com.vodhanel.minecraft.va_postal.config.C_Citizens;
 import com.vodhanel.minecraft.va_postal.config.C_Owner;
 import com.vodhanel.minecraft.va_postal.config.C_Queue;
 import com.vodhanel.minecraft.va_postal.config.C_Route;
 import com.vodhanel.minecraft.va_postal.mail.ID_Mail;
 import net.citizensnpcs.api.npc.NPC;
+import net.citizensnpcs.trait.LookClose;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.entity.Player;
+import org.bukkit.material.Gate;
+
+import java.util.Map;
 
 import static com.vodhanel.minecraft.va_postal.common.Util.df;
+import static net.citizensnpcs.util.Util.faceLocation;
 
 public class ID_WTR {
     public ID_WTR() {
@@ -55,23 +61,23 @@ public class ID_WTR {
                 (!"null".equals(VA_postal.wtr_schest_location[id]))) {
             String sloc = VA_postal.wtr_schest_location[id];
             Location loc = Util.str2location(sloc);
-            String name = P_Towny.towny_addr_owner_by_loc(loc);
-            if (!name.equals("not_towny")) {
-                if (name.equals("un_owned_plot")) {
+            Map.Entry<String, Player> addr_owner = P_Towny.towny_addr_owner_by_loc(loc);
+            if (!addr_owner.getKey().equals("not_towny")) {
+                if (addr_owner.getKey().equals("un_owned_plot")) {
                     if (C_Owner.is_address_owner_defined(spostoffice, saddress)) {
                         C_Owner.del_owner_address(spostoffice, saddress);
-                        Util.cinform("Towny override: Owner removed from:  " + df(spostoffice) + ", " + df(saddress));
+                        Util.cinform("Towny override: Owner removed from: " + df(spostoffice) + ", " + df(saddress));
                     }
 
                 } else if (C_Owner.is_address_owner_defined(spostoffice, saddress)) {
-                    String tname = C_Owner.get_owner_address(spostoffice, saddress);
-                    if (!tname.equalsIgnoreCase(name)) {
-                        C_Owner.set_owner_address(spostoffice, saddress, name);
-                        Util.cinform("Towny override: New owner:  " + df(spostoffice) + ", " + df(saddress));
+                    Player tname = C_Owner.get_owner_address(spostoffice, saddress);
+                    if (tname == addr_owner.getValue()) {
+                        C_Owner.set_owner_address(spostoffice, saddress, addr_owner.getValue());
+                        Util.cinform("Towny override: New owner: " + df(spostoffice) + ", " + df(saddress));
                     }
                 } else {
-                    C_Owner.set_owner_address(spostoffice, saddress, name);
-                    Util.cinform("Towny override: New owner:  " + df(spostoffice) + ", " + df(saddress));
+                    C_Owner.set_owner_address(spostoffice, saddress, addr_owner.getValue());
+                    Util.cinform("Towny override: New owner: " + df(spostoffice) + ", " + df(saddress));
                 }
             }
         }
@@ -133,7 +139,7 @@ public class ID_WTR {
 
 
         VA_postal.wtr_npc_player[id] = ((Player) VA_postal.wtr_npc[id].getEntity());
-        VA_postal.wtr_npc_player[id].setItemInHand(null);
+        VA_postal.wtr_npc_player[id].setItemOnCursor(null);
 
 
         ID_Mail.set_postoffice_chest_inv(id);
@@ -158,10 +164,10 @@ public class ID_WTR {
     }
 
     public static synchronized void report_recovery(int id, String msg) {
-        if (com.vodhanel.minecraft.va_postal.config.C_Citizens.report_nav_probs()) {
+        if (C_Citizens.report_nav_probs()) {
             Util.cinform("\033[0;33m[Postal] \033[1;32m" + msg);
-            Util.cinform("\033[0;33m[Postal] Nav  recovery for: \033[0;37m" + VA_postal.wtr_poffice[id] + "\033[0;33m" + " postman ");
-            Util.cinform("\033[0;33m[Postal] While  servicing : \033[0;37m" + VA_postal.wtr_address[id]);
+            Util.cinform("\033[0;33m[Postal] Nav recovery for : \033[0;37m" + VA_postal.wtr_poffice[id] + "\033[0;33m" + " postman ");
+            Util.cinform("\033[0;33m[Postal] While servicing  : \033[0;37m" + VA_postal.wtr_address[id]);
             Util.cinform("\033[0;33m[Postal] Waypoint sequence: \033[0;37m" + VA_postal.wtr_pos[id]);
             Util.cinform("\033[1;32m-------------------------------------------------------");
         }
@@ -344,7 +350,8 @@ public class ID_WTR {
                     (npc_loc.distance(target) <= 3.5D)) {
                 return true;
             }
-        } else Util.dinform("wtr_waypoint_completed is not true for " + id);
+        } else
+            Util.dinform("wtr_waypoint_completed is true for " + id);
 
         return false;
     }
@@ -473,7 +480,7 @@ public class ID_WTR {
         if (block != null) {
             if (block.getType() == Material.FENCE_GATE) {
                 BlockState state = block.getState();
-                org.bukkit.material.Gate gate = (org.bukkit.material.Gate) state.getData();
+                Gate gate = (Gate) state.getData();
                 gate.setOpen(true);
                 state.update();
                 if (!quiet) {
@@ -498,7 +505,7 @@ public class ID_WTR {
         if (block != null) {
             if (block.getType() == Material.FENCE_GATE) {
                 BlockState state = block.getState();
-                org.bukkit.material.Gate gate = (org.bukkit.material.Gate) state.getData();
+                Gate gate = (Gate) state.getData();
                 gate.setOpen(false);
                 state.update();
                 if (!quiet) {
@@ -509,7 +516,7 @@ public class ID_WTR {
                 byte the_byte = block.getData();
 
                 int bit = 2;
-                the_byte = (byte) (the_byte & (1 << bit ^ 0xFFFFFFFF));
+                the_byte = (byte) (the_byte & (~1 << bit));
                 state.setRawData(the_byte);
                 state.update();
                 if (!quiet) {
@@ -595,7 +602,7 @@ public class ID_WTR {
             return;
         }
         if ((VA_postal.lookclose_on_route) && (open)) {
-            ((net.citizensnpcs.trait.LookClose) VA_postal.wtr_npc[id].getTrait(net.citizensnpcs.trait.LookClose.class)).lookClose(false);
+            VA_postal.wtr_npc[id].getTrait(LookClose.class).lookClose(false);
         }
         target.setY(door_loc.getY());
         final Location f_target = target;
@@ -612,12 +619,12 @@ public class ID_WTR {
                     ID_WTR.walk_to(id, f_door_loc, 0.5F);
                     VA_postal.plugin.getServer().getScheduler().runTaskLater(VA_postal.plugin, new Runnable() {
                         public void run() {
-                            net.citizensnpcs.util.Util.faceLocation(VA_postal.wtr_npc[id].getEntity(), f_target);
+                            faceLocation(VA_postal.wtr_npc[id].getEntity(), f_target);
                             if (VA_postal.lookclose_on_route) {
                                 VA_postal.plugin.getServer().getScheduler().runTaskLater(VA_postal.plugin, new Runnable() {
 
                                     public void run() {
-                                        ((net.citizensnpcs.trait.LookClose) VA_postal.wtr_npc[id].getTrait(net.citizensnpcs.trait.LookClose.class)).lookClose(true);
+                                        VA_postal.wtr_npc[id].getTrait(LookClose.class).lookClose(true);
                                     }
                                 }, 40L);
                             }

@@ -4,7 +4,9 @@ import com.vodhanel.minecraft.va_postal.VA_postal;
 import com.vodhanel.minecraft.va_postal.common.AnsiColor;
 import com.vodhanel.minecraft.va_postal.common.Util;
 import com.vodhanel.minecraft.va_postal.config.C_Postoffice;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
@@ -67,16 +69,16 @@ public class ChestManip {
         if (block == null) {
             return null;
         }
-        int dir = block.getData();
+        BlockFace dir = ((org.bukkit.material.Chest) block.getState().getData()).getFacing();
         Location chest_front = block.getLocation();
 
-        if (dir == 2) {
+        if (dir == BlockFace.NORTH) {
             chest_front.subtract(0.0D, 0.0D, 1.0D);
-        } else if (dir == 3) {
+        } else if (dir == BlockFace.SOUTH) {
             chest_front.add(0.0D, 0.0D, 1.0D);
-        } else if (dir == 4) {
+        } else if (dir == BlockFace.WEST) {
             chest_front.subtract(1.0D, 0.0D, 0.0D);
-        } else if (dir == 5) {
+        } else if (dir == BlockFace.EAST) {
             chest_front.add(1.0D, 0.0D, 0.0D);
         }
         World w = chest_front.getWorld();
@@ -91,18 +93,8 @@ public class ChestManip {
         if (block == null) {
             return false;
         }
-        if (!(block.getState() instanceof Chest)) {
-            return false;
-        }
+        return block.getState() instanceof Chest && (BookManip.valid_postal_log(block, null, null) || block2postal_block(block) != null);
 
-        if (BookManip.valid_postal_log(block, null, null)) {
-            return true;
-        }
-
-        if (block2postal_block(block) != null) {
-            return true;
-        }
-        return false;
     }
 
     public static synchronized int postal_chest_type(Block block) {
@@ -125,8 +117,7 @@ public class ChestManip {
 
     public static synchronized Block at_chest(Player player) {
         Location location = player.getLocation();
-        Block result = getNearestPackageChest(location, 1, player);
-        return result;
+        return getNearestPackageChest(location, 1, player);
     }
 
     public static synchronized Block get_parcel_chest(Player player) {
@@ -135,7 +126,7 @@ public class ChestManip {
     }
 
     public static synchronized Block parcel_place_chest_accept(Player player) {
-        byte dir = 0;
+        BlockFace dir = BlockFace.NORTH;
         Location location = player.getLocation();
         double rotation = (player.getLocation().getYaw() - 90.0F) % 360.0F;
         if (rotation < 0.0D) {
@@ -143,33 +134,33 @@ public class ChestManip {
         }
         if ((0.0D <= rotation) && (rotation < 22.5D)) {
             location.subtract(1.0D, 0.0D, 0.0D);
-            dir = 5;
+            dir = BlockFace.EAST;
         } else if ((22.5D <= rotation) && (rotation < 67.5D)) {
             location.subtract(1.0D, 0.0D, 1.0D);
-            dir = 5;
+            dir = BlockFace.EAST;
         } else if ((67.5D <= rotation) && (rotation < 112.5D)) {
             location.subtract(0.0D, 0.0D, 1.0D);
-            dir = 3;
+            dir = BlockFace.SOUTH;
         } else if ((112.5D <= rotation) && (rotation < 157.5D)) {
             location.subtract(0.0D, 0.0D, 1.0D);
             location.add(1.0D, 0.0D, 0.0D);
-            dir = 3;
+            dir = BlockFace.SOUTH;
         } else if ((157.5D <= rotation) && (rotation < 202.5D)) {
             location.add(1.0D, 0.0D, 0.0D);
-            dir = 4;
+            dir = BlockFace.WEST;
         } else if ((202.5D <= rotation) && (rotation < 247.5D)) {
             location.add(1.0D, 0.0D, 1.0D);
-            dir = 4;
+            dir = BlockFace.WEST;
         } else if ((247.5D <= rotation) && (rotation < 292.5D)) {
             location.add(0.0D, 0.0D, 1.0D);
-            dir = 2;
+            dir = BlockFace.NORTH;
         } else if ((292.5D <= rotation) && (rotation < 337.5D)) {
             location.add(0.0D, 0.0D, 1.0D);
             location.subtract(1.0D, 0.0D, 0.0D);
-            dir = 2;
+            dir = BlockFace.NORTH;
         } else if ((337.5D <= rotation) && (rotation < 360.0D)) {
             location.subtract(1.0D, 0.0D, 0.0D);
-            dir = 5;
+            dir = BlockFace.EAST;
         }
         World w = location.getWorld();
         Block test_block = w.getBlockAt(location);
@@ -178,7 +169,7 @@ public class ChestManip {
         }
         int stack_height = 0;
 
-        while (test_block.getTypeId() != 0) {
+        while (test_block.getType() != Material.AIR) {
             location.add(0.0D, 1.0D, 0.0D);
             test_block = w.getBlockAt(location);
             stack_height++;
@@ -186,8 +177,9 @@ public class ChestManip {
                 break;
             }
         }
+
         if (stack_height <= 4) {
-            while (test_block.getTypeId() == 0) {
+            while (test_block.getType() == Material.AIR) {
                 location.subtract(0.0D, 1.0D, 0.0D);
                 test_block = w.getBlockAt(location);
             }
@@ -195,10 +187,10 @@ public class ChestManip {
             location.add(0.0D, 1.0D, 0.0D);
             test_block = w.getBlockAt(location);
 
-            if (test_block.getTypeId() == 0) {
+            if (test_block.getType() == Material.AIR) {
                 try {
-                    test_block.setTypeId(54);
-                    test_block.setData(dir);
+                    test_block.setType(Material.CHEST);
+                    ((org.bukkit.material.Chest) test_block.getState().getData()).setFacingDirection(dir);
                     return test_block;
                 } catch (Exception e) {
                     return null;
@@ -209,11 +201,10 @@ public class ChestManip {
     }
 
     public static synchronized Block parcel_place_chest_refuse(ItemStack ind_item) {
-        Book book = null;
+        Book book;
         try {
             book = new Book(ind_item);
         } catch (Exception e) {
-            book = null;
             return null;
         }
 
@@ -223,11 +214,11 @@ public class ChestManip {
         String sworld = parts[0].substring(2).trim();
         String scoords = parts[1].trim();
         String[] parts_c = scoords.split(",");
-        String X = "";
-        String Y = "";
-        String Z = "";
-        String sdir = "";
-        byte dir = 0;
+        String X;
+        String Y;
+        String Z;
+        String sdir;
+        byte dir;
         try {
             X = parts_c[0].trim();
             Y = parts_c[1].trim();
@@ -235,7 +226,6 @@ public class ChestManip {
             sdir = parts_c[3].trim();
             dir = Byte.parseByte(sdir);
         } catch (Exception e) {
-            book = null;
             return null;
         }
         String slocation = sworld + "," + X + "," + Y + "," + Z;
@@ -247,7 +237,7 @@ public class ChestManip {
         }
         int stack_height = 0;
 
-        while (test_block.getTypeId() != 0) {
+        while (test_block.getType() != Material.AIR) {
             location.add(0.0D, 1.0D, 0.0D);
             test_block = w.getBlockAt(location);
             stack_height++;
@@ -256,7 +246,7 @@ public class ChestManip {
             }
         }
         if (stack_height <= 4) {
-            while (test_block.getTypeId() == 0) {
+            while (test_block.getType() == Material.AIR) {
                 location.subtract(0.0D, 1.0D, 0.0D);
                 test_block = w.getBlockAt(location);
             }
@@ -264,85 +254,69 @@ public class ChestManip {
             location.add(0.0D, 1.0D, 0.0D);
             test_block = w.getBlockAt(location);
 
-            if (test_block.getTypeId() == 0) {
+            if (test_block.getType() == Material.AIR) {
                 try {
-                    test_block.setTypeId(54);
-                    test_block.setData(dir);
-                    book = null;
+                    test_block.setType(Material.CHEST);
+                    ((org.bukkit.material.Chest) test_block.getState().getData()).setFacingDirection(Util.int2BF(dir));
                     return test_block;
                 } catch (Exception e) {
                     return null;
                 }
             }
         }
-        book = null;
         return null;
     }
 
-    public static synchronized boolean parcel_remove_origen_chest(ItemStack ind_item) {
-        Book book = null;
+    public static synchronized void parcel_remove_origen_chest(ItemStack ind_item) {
+        Book book;
         try {
             book = new Book(ind_item);
         } catch (Exception e) {
-            book = null;
-            return false;
+            return;
         }
         String[] spage = book.getPages();
         String[] parts = spage[1].split("\n");
         String sworld = parts[0].substring(2).trim();
         String scoords = parts[1].trim();
         String[] parts_c = scoords.split(",");
-        String X = "";
-        String Y = "";
-        String Z = "";
+        String X;
+        String Y;
+        String Z;
         try {
             X = parts_c[0].trim();
             Y = parts_c[1].trim();
             Z = parts_c[2].trim();
         } catch (Exception e) {
-            book = null;
-            return false;
+            return;
         }
-        book = null;
         String slocation = sworld + "," + X + "," + Y + "," + Z;
         Location location = Util.str2location(slocation);
         World w = location.getWorld();
         Block block = w.getBlockAt(location);
         if (block == null) {
-            return false;
+            return;
         }
         if (!(block.getState() instanceof Chest)) {
-            return false;
+            return;
         }
         Chest chest = (Chest) block.getState();
 
         chest.getInventory().clear();
 
         SignManip.remove_sign_id_chest(block);
-        try {
-            block.setTypeId(0);
-            return true;
-        } catch (Exception e) {
-        }
-        return false;
+        block.setType(Material.AIR);
     }
 
-    public static synchronized boolean add_to_central_chest(ItemStack book_item) {
+    public static synchronized void add_to_central_chest(ItemStack book_item) {
         if (book_item == null) {
-            return false;
+            return;
         }
-        org.bukkit.Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(VA_postal.plugin, new Runnable() {
-
-            public void run() {
-                VA_postal.central_po_inventory.addItem(new ItemStack[]{book_item});
-            }
-        }, 12L);
+        Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(VA_postal.plugin, () -> VA_postal.central_po_inventory.addItem(book_item), 12L);
 
 
-        return true;
     }
 
-    public static synchronized boolean set_central_chest_inv() {
+    public static synchronized void set_central_chest_inv() {
         VA_postal.central_po_slocation = Util.put_point_on_ground(C_Postoffice.get_central_po_location(), false);
         if (VA_postal.cstalk) {
             Util.cinform(AnsiColor.CYAN + "Searching for Central post office chest....");
@@ -351,36 +325,28 @@ public class ChestManip {
         ID_Mail.SetPostoffice_Chest_nTP_point(1000);
         if ("null".equals(VA_postal.central_schest_location)) {
             Util.cinform(AnsiColor.RED + "[set_central_chest_inv] unable to locate chest");
-            return false;
+            return;
         }
         Util.dinform(AnsiColor.CYAN + "[Central PO] chest location: " + VA_postal.central_schest_location);
         Location mailbox_loc = Util.str2location(VA_postal.central_schest_location);
         Chest chest = (Chest) mailbox_loc.getBlock().getState();
-        if ((chest == null) || (!is_chest(chest.getTypeId()))) {
+        if ((chest == null) || (!is_chest(chest.getType()))) {
             Util.cinform(AnsiColor.RED + "[set_central_chest_inv] unable set inventory");
             VA_postal.central_po_inventory = null;
-            return false;
+            return;
         }
         VA_postal.central_po_inventory = chest.getInventory();
-        return true;
     }
 
     public static synchronized ItemStack central_create_log() {
         String title = "§c[Postal Log]";
         String author = "Central";
 
-
         String slocation = VA_postal.central_schest_location;
         String[] parts = slocation.split(",");
         String sworld = parts[0];
         String slocation_mod = parts[1] + "," + parts[2] + "," + parts[3];
-        String[] pages = new String[1];
-        String p1 = sworld + "\n";
-        p1 = p1 + slocation_mod + "\n";
-        p1 = p1 + "Postal_Central\n";
-        p1 = p1 + "Server\n";
-        p1 = p1 + "§2" + "[" + Util.stime_stamp() + "]\n";
-        pages[0] = p1;
+        String[] pages = new String[]{Book.makeFirstLogPage(sworld, slocation_mod, "Postal_Central", "Server", VA_postal.SERVER)};
 
         Book book = new Book(title, author, pages);
 
@@ -391,16 +357,16 @@ public class ChestManip {
         if (block == null) {
             return "null";
         }
-        int dir = block.getData();
+        BlockFace dir = ((org.bukkit.material.Chest) block.getState().getData()).getFacing();
         Location chest_front = block.getLocation();
 
-        if (dir == 2) {
+        if (dir == Util.int2BF(2)) {
             chest_front.subtract(0.0D, 0.0D, 1.0D);
-        } else if (dir == 3) {
+        } else if (dir == Util.int2BF(3)) {
             chest_front.add(0.0D, 0.0D, 1.0D);
-        } else if (dir == 4) {
+        } else if (dir == Util.int2BF(4)) {
             chest_front.subtract(1.0D, 0.0D, 0.0D);
-        } else if (dir == 5) {
+        } else if (dir == Util.int2BF(5)) {
             chest_front.add(1.0D, 0.0D, 0.0D);
         }
         return Util.location2str(chest_front);
@@ -422,7 +388,7 @@ public class ChestManip {
                 for (int x = -r; x <= r; x++) {
                     for (int y = -r; y <= r; y++) {
                         Block a = c.getRelative(o[0], x).getRelative(o[1], y);
-                        if (is_chest(a.getTypeId())) {
+                        if (is_chest(a.getType())) {
                             if (!is_this_a_postal_chest(a)) {
                                 return a;
                             }
@@ -455,7 +421,7 @@ public class ChestManip {
                 for (int x = -r; x <= r; x++) {
                     for (int y = -r; y <= r; y++) {
                         Block a = c.getRelative(o[0], x).getRelative(o[1], y);
-                        if (is_chest(a.getTypeId())) {
+                        if (is_chest(a.getType())) {
                             return a;
                         }
                     }
@@ -479,7 +445,7 @@ public class ChestManip {
                 for (int x = -r; x <= r; x++) {
                     for (int y = -r; y <= r; y++) {
                         Block a = c.getRelative(o[0], x).getRelative(o[1], y);
-                        if (is_chest(a.getTypeId())) {
+                        if (is_chest(a.getType())) {
                             return a;
                         }
                     }
@@ -502,7 +468,7 @@ public class ChestManip {
             for (int x = -1; x <= 1; x++) {
                 for (int y = -1; y <= 1; y++) {
                     Block a = c.getRelative(o[0], x).getRelative(o[1], y);
-                    if (a.getTypeId() == 68) {
+                    if (a.getType() == Material.WALL_SIGN) {
                         return true;
                     }
                 }
@@ -511,8 +477,8 @@ public class ChestManip {
         return false;
     }
 
-    public static synchronized boolean is_chest(int id_type) {
-        return (id_type == 54) || (id_type == 146);
+    public static synchronized boolean is_chest(Material type) {
+        return (type == Material.CHEST) || (type == Material.TRAPPED_CHEST);
     }
 
     public static synchronized boolean ok_to_use_chest(Block block, boolean check_is_postal) {
@@ -539,7 +505,7 @@ public class ChestManip {
             Location test_loc = block.getLocation().clone();
             test_loc.add(1.0D, 0.0D, 0.0D);
 
-            if ((is_chest(test_loc.getBlock().getTypeId())) &&
+            if ((is_chest(test_loc.getBlock().getType())) &&
                     (!does_chest_have_sign(test_loc.getBlock()))) {
                 return true;
             }
@@ -547,7 +513,7 @@ public class ChestManip {
             test_loc = block.getLocation().clone();
             test_loc.subtract(1.0D, 0.0D, 0.0D);
 
-            if ((is_chest(test_loc.getBlock().getTypeId())) &&
+            if ((is_chest(test_loc.getBlock().getType())) &&
                     (!does_chest_have_sign(test_loc.getBlock()))) {
                 return true;
             }
@@ -555,7 +521,7 @@ public class ChestManip {
             test_loc = block.getLocation().clone();
             test_loc.add(0.0D, 0.0D, 1.0D);
 
-            if ((is_chest(test_loc.getBlock().getTypeId())) &&
+            if ((is_chest(test_loc.getBlock().getType())) &&
                     (!does_chest_have_sign(test_loc.getBlock()))) {
                 return true;
             }
@@ -563,7 +529,7 @@ public class ChestManip {
             test_loc = block.getLocation().clone();
             test_loc.subtract(0.0D, 0.0D, 1.0D);
 
-            if ((is_chest(test_loc.getBlock().getTypeId())) &&
+            if ((is_chest(test_loc.getBlock().getType())) &&
                     (!does_chest_have_sign(test_loc.getBlock()))) {
                 return true;
             }

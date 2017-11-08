@@ -6,12 +6,14 @@ import com.vodhanel.minecraft.va_postal.common.VA_Dispatcher;
 import com.vodhanel.minecraft.va_postal.config.C_Citizens;
 import net.citizensnpcs.api.event.*;
 import net.citizensnpcs.api.npc.NPC;
+import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
+import org.bukkit.event.Listener;
 
-public class CitizensListener implements org.bukkit.event.Listener {
+public class CitizensListener implements Listener {
     VA_postal plugin;
 
     public CitizensListener(VA_postal instance) {
@@ -26,7 +28,7 @@ public class CitizensListener implements org.bukkit.event.Listener {
 
         boolean npc_despawned = false;
         NPC npc = null;
-        org.bukkit.Location location = null;
+        Location location = null;
         try {
             DespawnReason chunkunload = DespawnReason.CHUNK_UNLOAD;
             DespawnReason reason = event.getReason();

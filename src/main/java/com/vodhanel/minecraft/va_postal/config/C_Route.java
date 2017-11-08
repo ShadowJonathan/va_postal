@@ -3,6 +3,9 @@ package com.vodhanel.minecraft.va_postal.config;
 import com.vodhanel.minecraft.va_postal.VA_postal;
 import com.vodhanel.minecraft.va_postal.common.AnsiColor;
 import com.vodhanel.minecraft.va_postal.common.Util;
+import org.bukkit.Location;
+
+import java.util.ArrayList;
 
 public class C_Route {
     VA_postal plugin;
@@ -39,16 +42,16 @@ public class C_Route {
         return false;
     }
 
-    public static synchronized int route_waypoint_count(String po_name, String splayer) {
+    public static synchronized int route_waypoint_count(String po_name, String address) {
         try {
-            String spath = GetConfig.path_format("address." + po_name + "." + splayer + ".route");
+            String spath = GetConfig.path_format("address." + po_name + "." + address + ".route");
             return GetConfig.get_number_of_children(spath);
         } catch (Exception e) {
         }
         return 0;
     }
 
-    public static synchronized boolean is_waypoint_defined(String po_name, String splayer, int pos) {
+    public static synchronized boolean is_waypoint_defined(String po_name, String address, int pos) {
         String spos = "null";
         try {
             spos = Integer.toString(pos).trim();
@@ -56,24 +59,24 @@ public class C_Route {
             return false;
         }
         try {
-            String spath = GetConfig.path_format("address." + po_name + "." + splayer + ".route." + spos);
+            String spath = GetConfig.path_format("address." + po_name + "." + address + ".route." + spos);
             return GetConfig.is_parent_defined(spath);
         } catch (Exception e) {
         }
         return false;
     }
 
-    public static synchronized String get_last_waypoint_location(String stown, String saddress) {
+    public static synchronized String get_last_waypoint_location(String stown, String address) {
         String result = null;
         String spos = null;
         try {
-            int pos = get_last_waypoint_position(stown, saddress);
+            int pos = get_last_waypoint_position(stown, address);
             spos = Integer.toString(pos).trim();
         } catch (Exception e) {
             return "null";
         }
         try {
-            String spath = GetConfig.path_format("address." + stown + "." + saddress + ".route." + spos + ".location");
+            String spath = GetConfig.path_format("address." + stown + "." + address + ".route." + spos + ".location");
             result = VA_postal.plugin.getConfig().getString(spath);
         } catch (Exception e) {
             return "null";
@@ -84,31 +87,37 @@ public class C_Route {
         return result;
     }
 
-    public static synchronized String get_waypoint_location(String po_name, String splayer, int pos) {
+    public static synchronized String get_waypoint_location(String po_name, String address, int pos) {
         String result = null;
         String spos = null;
         //Util.binform(po_name + " " + splayer + " " + pos);
         try {
             spos = Integer.toString(pos).trim();
         } catch (Exception e) {
-            Util.dinform(AnsiColor.RED + "EXCEPTION WHEN GETTING WAYPOINT LOCATION: "
-                    + AnsiColor.L_YELLOW + po_name + " " + splayer + " " + pos
+            Util.dinform(AnsiColor.RED + "EXCEPTION WHEN GETTING WAYPOINT LOCATION: " + AnsiColor.L_YELLOW + po_name + " " + address + " " + pos
                     + AnsiColor.RED + " " + e);
             return "null";
         }
         try {
-            String spath = GetConfig.path_format("address." + po_name + "." + splayer + ".route." + spos + ".location");
+            String spath = GetConfig.path_format("address." + po_name + "." + address + ".route." + spos + ".location");
             result = VA_postal.plugin.getConfig().getString(spath);
         } catch (Exception e) {
-            Util.dinform(AnsiColor.RED + "EXCEPTION WHEN GETTING WAYPOINT LOCATION: " + AnsiColor.L_YELLOW + po_name + " " + splayer + " " + pos + AnsiColor.RED + " "
-                    + e);
+            Util.dinform(AnsiColor.RED + "EXCEPTION WHEN GETTING WAYPOINT LOCATION: " + AnsiColor.L_YELLOW + po_name + " " + address + " " + pos + AnsiColor.RED + " " + e);
             return "null";
         }
         if (result == null) {
-            Util.dinform(AnsiColor.RED + "RESULT WAS NULL FOR " + AnsiColor.L_YELLOW + po_name + " " + splayer + " " + pos);
+            Util.dinform(AnsiColor.RED + "RESULT WAS NULL FOR " + AnsiColor.L_YELLOW + po_name + " " + address + " " + pos);
             return "null";
         }
         return result;
+    }
+
+    public static synchronized ArrayList<Location> get_waypoint_locations(String po_name, String address) {
+        ArrayList<Location> list = new ArrayList<>();
+        for (int i = 0; i < route_waypoint_count(po_name, address); i++) {
+            list.add(Util.str2location(get_waypoint_location(po_name, address, i)));
+        }
+        return list;
     }
 
     public static synchronized int get_last_waypoint_position(String po_name, String splayer) {

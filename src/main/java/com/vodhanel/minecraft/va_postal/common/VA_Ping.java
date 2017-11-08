@@ -2,8 +2,12 @@ package com.vodhanel.minecraft.va_postal.common;
 
 import com.vodhanel.minecraft.va_postal.VA_postal;
 import com.vodhanel.minecraft.va_postal.config.C_Citizens;
+import com.vodhanel.minecraft.va_postal.config.C_Dispatcher;
+import com.vodhanel.minecraft.va_postal.config.C_Postoffice;
 import com.vodhanel.minecraft.va_postal.config.GetConfig;
+import com.vodhanel.minecraft.va_postal.listeners.RouteEditor;
 import com.vodhanel.minecraft.va_postal.mail.BookManip;
+import com.vodhanel.minecraft.va_postal.mail.ChestManip;
 import com.vodhanel.minecraft.va_postal.mail.ID_Mail;
 import com.vodhanel.minecraft.va_postal.navigation.RouteMngr;
 import org.bukkit.Location;
@@ -55,7 +59,6 @@ public class VA_Ping {
         if (VA_postal.wtr_poffice[id] == null) {
             return;
         }
-        String spostoffice = VA_postal.wtr_poffice[id];
 
         if (VA_postal.wtr_goal[id] == null) {
             return;
@@ -79,11 +82,11 @@ public class VA_Ping {
             VA_postal.wtr_ext_watchdog_reset[id] = true;
             try {
                 VA_postal.wtr_goal[id].reset();
-            } catch (Exception e) {
+            } catch (Exception ignored) {
             }
         }
 
-        double distanced_moved = 0.0D;
+        double distanced_moved;
         try {
             distanced_moved = VA_postal.wtr_npc_player[id].getLocation().distanceSquared(VA_postal.wtr_watchdog_ext_last_location[id]);
         } catch (Exception e) {
@@ -93,7 +96,7 @@ public class VA_Ping {
             try {
                 VA_postal.wtr_watchdog_ext_npc_stamp[id] = Util.time_stamp();
                 VA_postal.wtr_watchdog_ext_last_location[id] = VA_postal.wtr_npc_player[id].getLocation();
-            } catch (Exception e) {
+            } catch (Exception ignored) {
             }
         }
         VA_postal.route_watchdog_ping_time = System.currentTimeMillis();
@@ -145,9 +148,9 @@ public class VA_Ping {
 
 
             if (!VA_postal.central_array_promoted[oldest_index]) {
-                int elapsed_seconds_since_last_central_aciviy = Util.time_stamp() - VA_postal.central_route_time;
+                int elapsed_seconds_since_last_central_activity = Util.time_stamp() - VA_postal.central_route_time;
 
-                if (elapsed_seconds_since_last_central_aciviy < VA_postal.central_cooldown) {
+                if (elapsed_seconds_since_last_central_activity < VA_postal.central_cooldown) {
                     return;
                 }
             }
@@ -163,12 +166,7 @@ public class VA_Ping {
 
         int index = oldest_index;
         if (VA_Dispatcher.dispatcher_async) {
-            VA_postal.plugin.getServer().getScheduler().scheduleSyncDelayedTask(VA_postal.plugin, new Runnable() {
-
-                public void run() {
-                    VA_Ping.ping_central_postmaster_worker(index);
-                }
-            }, 20L);
+            VA_postal.plugin.getServer().getScheduler().scheduleSyncDelayedTask(VA_postal.plugin, () -> VA_Ping.ping_central_postmaster_worker(index), 20L);
 
         } else {
             ping_central_postmaster_worker(index);
@@ -191,10 +189,10 @@ public class VA_Ping {
 
         String stown = VA_postal.wtr_poffice[id];
 
-        com.vodhanel.minecraft.va_postal.config.C_Dispatcher.central_time_stamp(stown);
+        C_Dispatcher.central_time_stamp(stown);
 
 
-        VA_postal.central_po_slocation = com.vodhanel.minecraft.va_postal.config.C_Postoffice.get_central_po_location();
+        VA_postal.central_po_slocation = C_Postoffice.get_central_po_location();
         if (VA_postal.central_route_npc == null) {
             RouteMngr.npc_create(VA_postal.central_po_slocation, false, "PostMaster");
         }
@@ -203,7 +201,7 @@ public class VA_Ping {
         P_Economy.verify_bank(stown);
 
 
-        com.vodhanel.minecraft.va_postal.mail.ChestManip.set_central_chest_inv();
+        ChestManip.set_central_chest_inv();
         if (VA_postal.central_po_inventory == null) {
             Util.cinform(AnsiColor.RED + "[Central PO] unable to set central chest inventory.");
             Util.cinform(AnsiColor.RED + "[Central PO] Stopping VA_Postal....");
@@ -251,7 +249,7 @@ public class VA_Ping {
         VA_postal.central_route_player = (Player) VA_postal.central_route_npc.getEntity();
         try {
             VA_postal.central_route_player.closeInventory();
-        } catch (Exception e) {
+        } catch (Exception ignored) {
         }
 
 
@@ -270,7 +268,7 @@ public class VA_Ping {
     }
 
     public static synchronized int find_local_id(int index) {
-        String found_name = "";
+        String found_name;
         if (VA_postal.central_array_name[index] != null) {
             found_name = VA_postal.central_array_name[index].toLowerCase().trim();
         } else {
@@ -295,14 +293,14 @@ public class VA_Ping {
     }
 
     public static synchronized void check_for_elapsed_timed_routines() {
-        int elapsed_seconds_since_last_admin_aciviy = Util.time_stamp() - VA_postal.admin_overide_stamp;
-        if (elapsed_seconds_since_last_admin_aciviy > 60) {
+        int elapsed_seconds_since_last_admin_activity = Util.time_stamp() - VA_postal.admin_overide_stamp;
+        if (elapsed_seconds_since_last_admin_activity > 60) {
             VA_postal.admin_overide = false;
         }
 
 
-        int elapsed_seconds_since_last_bypass_aciviy = Util.time_stamp() - VA_postal.admin_bypass_stamp;
-        if (elapsed_seconds_since_last_bypass_aciviy > 300) {
+        int elapsed_seconds_since_last_bypass_activity = Util.time_stamp() - VA_postal.admin_bypass_stamp;
+        if (elapsed_seconds_since_last_bypass_activity > 300) {
             VA_postal.admin_bypass = false;
         }
 
@@ -319,7 +317,7 @@ public class VA_Ping {
             String splayer = VA_postal.plistener_player.getName();
             if (interval > VA_postal.allowed_reditor_afk) {
                 Util.cinform("[Postal] Ending route editor session for " + splayer + ", AFK while editing.");
-                com.vodhanel.minecraft.va_postal.listeners.RouteEditor.Exit_routeEditor(VA_postal.plistener_player);
+                RouteEditor.Exit_routeEditor(VA_postal.plistener_player);
             }
         }
     }

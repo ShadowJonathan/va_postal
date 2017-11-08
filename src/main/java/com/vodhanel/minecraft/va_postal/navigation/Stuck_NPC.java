@@ -61,7 +61,6 @@ public class Stuck_NPC implements StuckAction {
 
 
             if ((VA_postal.wtr_last_stuck_action[id] != null) && (VA_postal.wtr_last_stuck_action[id].equals(stuck_action))) {
-
                 ID_WTR.report_recovery(id, "Route Navigation, Teleport Reset");
                 ID_WTR.tp_npc(npc, VA_postal.wtr_waypoint[id]);
                 VA_postal.wtr_last_stuck_action[id] = "";

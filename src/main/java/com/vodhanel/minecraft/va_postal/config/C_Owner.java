@@ -13,15 +13,10 @@ public class C_Owner {
     }
 
     public static synchronized boolean does_player_own_anything(Player player) {
-        String splayer = player.getName();
-
-        if (splayer.length() > 15) {
-            splayer = splayer.substring(0, 15);
-        }
-        String sowner = "";
-        String stown = "";
-        String saddress = "";
-        String[] town_list = null;
+        Player owner;
+        String stown;
+        String saddress;
+        String[] town_list;
         try {
             town_list = C_Arrays.town_list();
         } catch (Exception e) {
@@ -34,17 +29,18 @@ public class C_Owner {
 
                     if ((C_Postoffice.is_local_po_name_defined(stown)) &&
                             (is_local_po_owner_defined(stown))) {
-                        sowner = get_owner_local_po(stown);
-                        if (splayer.equalsIgnoreCase(sowner)) {
+                        owner = get_owner_local_po(stown);
+                        if (owner == player) {
                             return true;
                         }
                     }
 
 
-                    String[] addr_list = null;
+                    String[] addr_list;
                     try {
                         addr_list = C_Arrays.addresses_list(stown);
                     } catch (Exception e) {
+                        Util.dinform(AnsiColor.RED + "ADDRESSES LIST FAILED: " + e);
                         return false;
                     }
                     if ((addr_list != null) && (addr_list.length > 0)) {
@@ -53,8 +49,8 @@ public class C_Owner {
                                 saddress = anAddr_list;
                                 if (C_Address.is_address_defined(stown, saddress)) {
                                     if (is_address_owner_defined(stown, saddress)) {
-                                        sowner = get_owner_address(stown, saddress);
-                                        if (splayer.equalsIgnoreCase(sowner)) {
+                                        owner = get_owner_address(stown, saddress);
+                                        if (owner == player) {
                                             return true;
                                         }
                                     }
@@ -76,38 +72,28 @@ public class C_Owner {
         try {
             String spath = GetConfig.path_format("postoffice.local." + stown + ".owner");
             return GetConfig.is_parent_defined(spath);
-        } catch (Exception e) {
+        } catch (Exception ignored) {
         }
         return false;
     }
 
-
-    public static synchronized void set_owner_local_po(String stown, String sowner) {
-        if (sowner.length() > 15) {
-            sowner = sowner.substring(0, 15);
-        }
+    public static synchronized void set_owner_local_po(String stown, Player owner) {
         try {
-            String spath = GetConfig.path_format("postoffice.local." + stown + ".owner.name");
-            VA_postal.plugin.getConfig().set(spath, sowner);
+            String spath = GetConfig.path_format("postoffice.local." + stown + ".owner.uuid");
+            VA_postal.plugin.getConfig().set(spath, owner.getUniqueId().toString());
             VA_postal.plugin.saveConfig();
         } catch (Exception e) {
             Util.cinform(AnsiColor.RED + "Problem setting local PO owner");
         }
     }
 
-    public static synchronized String get_owner_local_po(String stown) {
-        String result = "";
+    public static synchronized Player get_owner_local_po(String stown) {
         try {
-            String spath = GetConfig.path_format("postoffice.local." + stown + ".owner.name");
-            result = VA_postal.plugin.getConfig().getString(spath);
-
-            if (result.length() > 15) {
-            }
-            return result.substring(0, 15);
-        } catch (Exception e) {
+            String spath = GetConfig.path_format("postoffice.local." + stown + ".owner.uuid");
+            return Util.UUID2Player(VA_postal.plugin.getConfig().getString(spath));
+        } catch (Exception ignored) {
+            return null;
         }
-
-        return "null";
     }
 
     public static synchronized void del_owner_local_po(String stown) {
@@ -124,38 +110,29 @@ public class C_Owner {
         try {
             String spath = GetConfig.path_format("address." + stown + "." + saddress + ".owner");
             return GetConfig.is_parent_defined(spath);
-        } catch (Exception e) {
+        } catch (Exception ignored) {
         }
         return false;
     }
 
-
-    public static synchronized void set_owner_address(String stown, String saddress, String sowner) {
-        if (sowner.length() > 15) {
-            sowner = sowner.substring(0, 15);
-        }
+    public static synchronized void set_owner_address(String stown, String saddress, Player sowner) {
         try {
-            String spath = GetConfig.path_format("address." + stown + "." + saddress + ".owner.name");
-            VA_postal.plugin.getConfig().set(spath, sowner);
+            String spath = GetConfig.path_format("address." + stown + "." + saddress + ".owner.uuid");
+            VA_postal.plugin.getConfig().set(spath, sowner.getUniqueId().toString());
             VA_postal.plugin.saveConfig();
         } catch (Exception e) {
             Util.cinform(AnsiColor.RED + "Problem setting owner address");
         }
     }
 
-    public static synchronized String get_owner_address(String stown, String saddress) {
-        String result = "";
+    public static synchronized Player get_owner_address(String stown, String saddress) {
         try {
-            String spath = GetConfig.path_format("address." + stown + "." + saddress + ".owner.name");
-            result = VA_postal.plugin.getConfig().getString(spath);
-
-            if (result.length() > 15) {
-            }
-            return result.substring(0, 15);
+            String spath = GetConfig.path_format("address." + stown + "." + saddress + ".owner.uuid");
+            return Util.UUID2Player(VA_postal.plugin.getConfig().getString(spath));
         } catch (Exception e) {
+            return null;
         }
 
-        return "null";
     }
 
     public static synchronized void del_owner_address(String stown, String saddress) {

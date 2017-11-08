@@ -93,7 +93,7 @@ public class C_Arrays {
 
         String[] result = new String[list.size()];
         for (int i = 0; i < list.size(); i++) {
-            result[i] = ((String) list.get(i)).toLowerCase().trim();
+            result[i] = list.get(i).toLowerCase().trim();
         }
         list = null;
 
@@ -146,7 +146,7 @@ public class C_Arrays {
         if (list.size() > 0) {
             result = new String[list.size()];
             for (int i = 0; i < list.size(); i++) {
-                result[i] = ((String) list.get(i)).toLowerCase().trim();
+                result[i] = list.get(i).toLowerCase().trim();
             }
             list = null;
         } else {
@@ -198,7 +198,7 @@ public class C_Arrays {
         if (list.size() > 0) {
             String[] result = new String[list.size()];
             for (int i = 0; i < list.size(); i++) {
-                result[i] = ((String) list.get(i)).trim();
+                result[i] = list.get(i).trim();
             }
             list = null;
 
@@ -259,7 +259,7 @@ public class C_Arrays {
         if (list.size() > 0) {
             String[] result = new String[list.size()];
             for (int i = 0; i < list.size(); i++) {
-                result[i] = ((String) list.get(i)).trim();
+                result[i] = list.get(i).trim();
             }
             list = null;
 

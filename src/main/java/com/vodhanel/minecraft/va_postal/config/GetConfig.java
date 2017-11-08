@@ -2,6 +2,8 @@ package com.vodhanel.minecraft.va_postal.config;
 
 import com.vodhanel.minecraft.va_postal.VA_postal;
 import com.vodhanel.minecraft.va_postal.common.Util;
+import com.vodhanel.minecraft.va_postal.common.VA_Timers;
+import org.bukkit.configuration.ConfigurationSection;
 
 import java.util.Set;
 
@@ -57,7 +59,7 @@ public class GetConfig {
     }
 
     public static synchronized int new_mail_secs() {
-        com.vodhanel.minecraft.va_postal.common.VA_Timers.new_mail_stamp = Util.time_stamp();
+        VA_Timers.new_mail_stamp = Util.time_stamp();
         String spath = path_format("settings.new_mail_secs");
         try {
             String str = VA_postal.plugin.getConfig().getString(spath);
@@ -427,7 +429,7 @@ public class GetConfig {
     }
 
     public static synchronized int get_number_of_children(String path) {
-        org.bukkit.configuration.ConfigurationSection cs = null;
+        ConfigurationSection cs = null;
         try {
             path = path_format(path);
             cs = VA_postal.configsettings.getConfigurationSection(path);

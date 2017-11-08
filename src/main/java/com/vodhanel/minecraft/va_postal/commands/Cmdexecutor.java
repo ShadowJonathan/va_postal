@@ -1,18 +1,26 @@
 package com.vodhanel.minecraft.va_postal.commands;
 
+import com.darkblade12.particleeffect.ParticleEffect;
 import com.vodhanel.minecraft.va_postal.VA_postal;
 import com.vodhanel.minecraft.va_postal.common.*;
 import com.vodhanel.minecraft.va_postal.config.*;
 import com.vodhanel.minecraft.va_postal.listeners.RouteEditor;
 import com.vodhanel.minecraft.va_postal.mail.BookManip;
 import com.vodhanel.minecraft.va_postal.mail.ChestManip;
+import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.command.Command;
+import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
-public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
+import java.util.Map;
+import java.util.Objects;
+
+public class Cmdexecutor implements CommandExecutor {
     public static Player player;
     public static VA_postal plugin;
     public static String[][] command_confirm = new String[50][3];
@@ -20,7 +28,7 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
     boolean result = false;
 
     public Cmdexecutor(VA_postal plugin) {
-        this.plugin = plugin;
+        Cmdexecutor.plugin = plugin;
     }
 
     public static boolean hasPermission(Player player, String node) {
@@ -57,24 +65,22 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
     }
 
     public static boolean hasPermission_ext(Player player, String node, String stown, String saddress) {
-        String splayer = player.getName().toLowerCase().trim();
-
         if (VA_postal.perms != null) {
             if (VA_postal.perms.has(player, "postal.admin")) {
-                Util.perm_inform("Vault: postal.admin, " + splayer);
+                Util.perm_inform("Vault: postal.admin, " + player);
                 return true;
             }
             if (VA_postal.perms.has(player, node)) {
-                Util.perm_inform("Vault: " + node + ", " + splayer);
+                Util.perm_inform("Vault: " + node + ", " + player);
                 return true;
             }
         } else {
             if (player.hasPermission("postal.admin")) {
-                Util.perm_inform("Bukkit: postal.admin, " + splayer);
+                Util.perm_inform("Bukkit: postal.admin, " + player);
                 return true;
             }
             if (player.hasPermission(node)) {
-                Util.perm_inform("Bukkit: " + node + ", " + splayer);
+                Util.perm_inform("Bukkit: " + node + ", " + player);
                 return true;
             }
         }
@@ -82,19 +88,15 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
 
         if ((VA_postal.using_towny()) &&
                 (P_Towny.is_towny_admin_by_loc(player))) {
-            Util.perm_inform("Towny admin, " + splayer);
+            Util.perm_inform("Towny admin, " + player);
             return true;
         }
 
-
-        if (splayer.length() > 15) {
-            splayer = splayer.substring(0, 15);
-        }
         if ((stown != null) && (!"null".equals(stown))) {
             if (C_Owner.is_local_po_owner_defined(stown)) {
-                String test = C_Owner.get_owner_local_po(stown);
-                if (test.equalsIgnoreCase(splayer)) {
-                    Util.perm_inform("PO owner, " + splayer + ", " + stown);
+                Player test = C_Owner.get_owner_local_po(stown);
+                if (test == player) {
+                    Util.perm_inform("PO owner, " + player + ", " + stown);
                     return true;
                 }
             }
@@ -102,9 +104,9 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
         if ((stown != null) && (!"null".equals(stown)) &&
                 (saddress != null) && (!"null".equals(saddress))) {
             if (C_Owner.is_address_owner_defined(stown, saddress)) {
-                String test = C_Owner.get_owner_address(stown, saddress);
-                if (test.equalsIgnoreCase(splayer)) {
-                    Util.perm_inform("address owner, " + splayer + ", " + stown + ", " + saddress);
+                Player test = C_Owner.get_owner_address(stown, saddress);
+                if (test == player) {
+                    Util.perm_inform("address owner, " + player + ", " + stown + ", " + saddress);
                     return true;
                 }
             }
@@ -113,8 +115,8 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
 
         if ((stown != null) && (!"null".equals(stown)) &&
                 (VA_postal.using_towny()) &&
-                (P_Towny.is_towny_admin_by_db(splayer, stown))) {
-            Util.perm_inform("Towny ranked assistant, " + splayer + ", " + stown);
+                (P_Towny.is_towny_admin_by_db(player, stown))) {
+            Util.perm_inform("Towny ranked assistant, " + player + ", " + stown);
             return true;
         }
 
@@ -122,8 +124,8 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
         if ((stown != null) && (!"null".equals(stown)) &&
                 (saddress != null) && (!"null".equals(saddress)) &&
                 (VA_postal.using_towny()) &&
-                (P_Towny.is_towny_plot_owner_by_db(splayer, stown, saddress))) {
-            Util.perm_inform("Towny plot owner, " + splayer + stown + saddress);
+                (P_Towny.is_towny_plot_owner_by_db(player, stown, saddress))) {
+            Util.perm_inform("Towny plot owner, " + player + stown + saddress);
             return true;
         }
 
@@ -152,23 +154,23 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
                 return true;
             }
             if (args.length < 2) {
-                Util.pinform(player, "&7&oUsage: &f&r/postal speed <0.5 - 2.0>    &7&oNPC walking speed factor.");
-                Util.pinform(player, "&7&cCurrent speed factor:  " + VA_postal.wtr_speed);
+                Util.pinform(player, "&7&oUsage: &f&r/postal speed <0.5 - 2.0> &7&oNPC walking speed factor.");
+                Util.pinform(player, "&7&cCurrent speed factor: " + VA_postal.wtr_speed);
                 return true;
             }
-            Float result = 1.0F;
+            Float result;
             try {
                 result = new Float(args[1]);
             } catch (NumberFormatException numberFormatException) {
                 Util.pinform(player, "&7&cProblem with the number you used.");
                 return true;
             }
-            if ((result.floatValue() < 0.5F) || (result.floatValue() > 2.0F)) {
+            if ((result < 0.5F) || (result > 2.0F)) {
                 Util.pinform(player, "&7&cSpeed must be 0.5 - 2.0");
                 return true;
             }
-            VA_postal.wtr_speed = result.floatValue();
-            Util.pinform(player, "&7&cSpeed factor set to:  " + VA_postal.wtr_speed);
+            VA_postal.wtr_speed = result;
+            Util.pinform(player, "&7&cSpeed factor set to: " + VA_postal.wtr_speed);
             return true;
         }
         if ("admin".equals(args[0].toLowerCase().trim())) {
@@ -229,18 +231,23 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
                 Util.pinform(player, "Required permission not present.");
                 return true;
             }
-            Util.pinform(player, "Post office chests:     ");
+            Util.pinform(player, "Post office chests:");
             String town = fixed_len("Central", 20, " ");
             String slocation = VA_postal.central_schest_location;
-            Util.pinform(player, "   " + town + slocation);
+            Util.pinform(player, " " + town + slocation);
             for (int i = 0; i < VA_postal.wtr_count; i++) {
                 town = fixed_len(Util.df(VA_postal.wtr_poffice[i]), 20, " ");
                 slocation = VA_postal.wtr_schest_location_postoffice[i];
-                Util.pinform(player, "   " + town + slocation);
+                Util.pinform(player, " " + town + slocation);
             }
             return true;
         }
         if ("test".equals(args[0].toLowerCase().trim())) {
+            String[] xyz1 = args[1].split(",");
+            String[] xyz2 = args[2].split(",");
+            Location one = new Location(player.getWorld(), Double.parseDouble(xyz1[0]), Double.parseDouble(xyz1[1]), Double.parseDouble(xyz1[2]));
+            Location two = new Location(player.getWorld(), Double.parseDouble(xyz2[0]), Double.parseDouble(xyz2[1]), Double.parseDouble(xyz2[2]));
+            Particles.displayLine(one, two, player, ParticleEffect.PORTAL);
             return true;
         }
 
@@ -292,32 +299,28 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
         }
         if ("speed".equals(args[0].toLowerCase().trim())) {
             if (args.length < 2) {
-                Util.con_type("Usage: postal speed <0.5 - 2.0>    NPC walking speed factor.");
-                Util.con_type("Current speed factor:  " + VA_postal.wtr_speed);
+                Util.con_type("Usage: postal speed <0.5 - 2.0> NPC walking speed factor.");
+                Util.con_type("Current speed factor: " + VA_postal.wtr_speed);
                 return true;
             }
-            Float result = Float.valueOf(1.0F);
+            Float result;
             try {
                 result = new Float(args[1]);
             } catch (NumberFormatException numberFormatException) {
                 Util.con_type("Must be a floating point number.");
                 return true;
             }
-            if ((result.floatValue() < 0.5F) || (result.floatValue() > 2.0F)) {
+            if ((result < 0.5F) || (result > 2.0F)) {
                 Util.con_type("Speed factor must be 0.5 - 2.0");
                 return true;
             }
-            VA_postal.wtr_speed = result.floatValue();
-            Util.con_type("Speed factor set to:  " + VA_postal.wtr_speed);
+            VA_postal.wtr_speed = result;
+            Util.con_type("Speed factor set to: " + VA_postal.wtr_speed);
             return true;
         }
         if ("chunks".equals(args[0].toLowerCase().trim())) {
-            if (args.length < 1) {
-                Util.con_type("Usage: 'postal chunks'    route chunks loaded.");
-                return true;
-            }
-            Util.con_type("Requested numer of chunks loaded:  " + VA_postal.chunks_requested);
-            Util.con_type("Actual numer of chunks loaded:     " + VA_postal.chunks_loaded);
+            Util.con_type("Requested numer of chunks loaded: " + VA_postal.chunks_requested);
+            Util.con_type("Actual numer of chunks loaded: " + VA_postal.chunks_loaded);
             return true;
         }
         if ("quiet".equals(args[0].toLowerCase().trim())) {
@@ -422,7 +425,7 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
             return true;
         }
         if ("chests".equals(args[0].toLowerCase().trim())) {
-            Util.con_type("Post office chests:     ");
+            Util.con_type("Post office chests: ");
             String town = fixed_len("Central", 20, " ");
             String slocation = VA_postal.central_schest_location;
             Util.con_type("   " + town + slocation);
@@ -439,12 +442,12 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
                 Util.con_type("  postal mtalk 0               No mail announcements.");
                 Util.con_type("  postal mtalk 1               Recipients only (default).");
                 Util.con_type("  postal mtalk 2               Broadcast all.");
-                Util.con_type("Current mtalk value:  " + VA_postal.mailtalk);
+                Util.con_type("Current mtalk value: " + VA_postal.mailtalk);
                 return true;
             }
-            int result = -1;
+            int result;
             try {
-                result = new Integer(args[1]).intValue();
+                result = new Integer(args[1]);
             } catch (NumberFormatException numberFormatException) {
                 Util.con_type("Must be 0, 1 or 2");
                 return true;
@@ -454,7 +457,7 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
                 return true;
             }
             VA_postal.mailtalk = result;
-            Util.con_type("mtalk changed to:  " + VA_postal.mailtalk);
+            Util.con_type("mtalk changed to: " + VA_postal.mailtalk);
             return true;
         }
         if ("test".equals(args[0].toLowerCase().trim())) {
@@ -526,7 +529,7 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
 
     public static boolean expedite(boolean console, CommandSender sender, String cmd, String[] args) {
         if (args.length < 2) {
-            Util.pinform(player, "&7&oUsage: &f&r/expedite <PostOffice> <Address>    &7&oPush route schedule forward.");
+            Util.pinform(player, "&7&oUsage: &f&r/expedite <PostOffice> <Address> &7&oPush route schedule forward.");
             return true;
         }
         if (!VA_Dispatcher.dispatcher_running) {
@@ -540,7 +543,7 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
             } else {
                 Util.list_postal_tree(player, false, null);
             }
-            Util.pinform(player, "&7&oNeed more letters for town.  See list:");
+            Util.pinform(player, "&7&oNeed more letters for town. See list:");
             return true;
         }
         String saddress = C_Address.addresses_complete(stown, args[1]);
@@ -550,10 +553,10 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
             } else {
                 Util.list_postal_tree(player, true, stown);
             }
-            Util.pinform(player, "&7&oNeed more letters for address.  See list:");
+            Util.pinform(player, "&7&oNeed more letters for address. See list:");
             return true;
         }
-        if ("null".equals(com.vodhanel.minecraft.va_postal.config.C_Queue.get_queue_pair(stown, saddress))) {
+        if ("null".equals(C_Queue.get_queue_pair(stown, saddress))) {
             Util.pinform(player, "&7&oRoute is not active, restart Postal to activate.");
             return true;
         }
@@ -563,7 +566,7 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
         }
 
         if (is_player_comfirmation_registered(player)) {
-            com.vodhanel.minecraft.va_postal.config.C_Dispatcher.promote_schedule(stown, saddress, 6000, true);
+            C_Dispatcher.promote_schedule(stown, saddress, 6000, true);
             Util.pinform(player, "&7&oPushing schedule forward: &r" + Util.df(stown) + ", " + Util.df(saddress));
             deregister_player_comfirmation(player);
         } else {
@@ -577,7 +580,7 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
 
     public static boolean expedite_con(boolean console, CommandSender sender, String cmd, String[] args) {
         if (args.length < 2) {
-            Util.con_type("Usage: /expedite <PostOffice> <Address>    Push route schedule forward.");
+            Util.con_type("Usage: /expedite <PostOffice> <Address> Push route schedule forward.");
             return true;
         }
         if (!VA_Dispatcher.dispatcher_running) {
@@ -591,7 +594,7 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
             } else {
                 Util.list_postal_tree(null, false, null);
             }
-            Util.con_type("Need more letters for town.  See list:");
+            Util.con_type("Need more letters for town. See list:");
             return true;
         }
         String saddress = C_Address.addresses_complete(stown, args[1]);
@@ -601,16 +604,16 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
             } else {
                 Util.list_postal_tree(null, true, stown);
             }
-            Util.con_type("Need more letters for address.  See list:");
+            Util.con_type("Need more letters for address. See list:");
             return true;
         }
-        if ("null".equals(com.vodhanel.minecraft.va_postal.config.C_Queue.get_queue_pair(stown, saddress))) {
+        if ("null".equals(C_Queue.get_queue_pair(stown, saddress))) {
             Util.con_type("Route is not active, restart Postal to activate.");
             return true;
         }
 
         if (is_player_comfirmation_registered(null)) {
-            com.vodhanel.minecraft.va_postal.config.C_Dispatcher.promote_schedule(stown, saddress, 6000, true);
+            C_Dispatcher.promote_schedule(stown, saddress, 6000, true);
             Util.con_type("Pushing schedule forward: " + Util.df(stown) + ", " + Util.df(saddress));
             deregister_player_comfirmation(null);
         } else {
@@ -624,7 +627,7 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
 
     public static boolean closelocal(boolean console, CommandSender sender, String cmd, String[] args) {
         if (args.length < 1) {
-            Util.pinform(player, "&7&oUsage: &f&r/closelocal <PostOffice>    &7&oClose local post office.");
+            Util.pinform(player, "&7&oUsage: &f&r/closelocal <PostOffice> &7&oClose local post office.");
             return true;
         }
         if (!VA_Dispatcher.dispatcher_running) {
@@ -638,7 +641,7 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
             } else {
                 Util.list_postal_tree(player, false, null);
             }
-            Util.pinform(player, "&7&oNeed more letters for post office.  See list:");
+            Util.pinform(player, "&7&oNeed more letters for post office. See list:");
             return true;
         }
         if (!hasPermission_ext(player, "postal.closelocal", stown, "null")) {
@@ -646,7 +649,7 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
             return true;
         }
         if (is_player_comfirmation_registered(player)) {
-            com.vodhanel.minecraft.va_postal.config.C_Dispatcher.open_poffice(stown, false);
+            C_Dispatcher.open_poffice(stown, false);
             Util.pinform(player, "&7&oClosed post office: &9&o" + Util.df(stown));
             deregister_player_comfirmation(player);
         } else {
@@ -660,7 +663,7 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
 
     public static boolean closelocal_con(boolean console, CommandSender sender, String cmd, String[] args) {
         if (args.length < 1) {
-            Util.con_type("Usage: closelocal <PostOffice>    Close a local post office.");
+            Util.con_type("Usage: closelocal <PostOffice> Close a local post office.");
             return true;
         }
         if (!VA_Dispatcher.dispatcher_running) {
@@ -674,11 +677,11 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
             } else {
                 Util.list_postal_tree(null, false, null);
             }
-            Util.con_type("Need more letters for post office.  See list:");
+            Util.con_type("Need more letters for post office. See list:");
             return true;
         }
         if (is_player_comfirmation_registered(null)) {
-            com.vodhanel.minecraft.va_postal.config.C_Dispatcher.open_poffice(stown, false);
+            C_Dispatcher.open_poffice(stown, false);
             Util.con_type("Closed post office: " + Util.df(stown));
             deregister_player_comfirmation(null);
         } else {
@@ -692,7 +695,7 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
 
     public static boolean closeaddr(boolean console, CommandSender sender, String cmd, String[] args) {
         if (args.length < 2) {
-            Util.pinform(player, "&7&oUsage: &f&r/closeaddr <PostOffice> <Address>    &7&oClose local address.");
+            Util.pinform(player, "&7&oUsage: &f&r/closeaddr <PostOffice> <Address> &7&oClose local address.");
             return true;
         }
         if (!VA_Dispatcher.dispatcher_running) {
@@ -706,7 +709,7 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
             } else {
                 Util.list_postal_tree(player, false, null);
             }
-            Util.pinform(player, "&7&oNeed more letters for post office.  See list:");
+            Util.pinform(player, "&7&oNeed more letters for post office. See list:");
             return true;
         }
         String saddress = C_Address.addresses_complete(stown, args[1]);
@@ -716,7 +719,7 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
             } else {
                 Util.list_postal_tree(player, true, stown);
             }
-            Util.pinform(player, "&7&oNeed more letters for address.  See list:");
+            Util.pinform(player, "&7&oNeed more letters for address. See list:");
             return true;
         }
         if (!hasPermission_ext(player, "postal.closeaddr", stown, "null")) {
@@ -724,7 +727,7 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
             return true;
         }
         if (is_player_comfirmation_registered(player)) {
-            com.vodhanel.minecraft.va_postal.config.C_Dispatcher.open_address(stown, saddress, false);
+            C_Dispatcher.open_address(stown, saddress, false);
             Util.pinform(player, "&7&oClosed address: &9&o" + Util.df(stown) + ", " + Util.df(saddress));
             deregister_player_comfirmation(player);
         } else {
@@ -738,7 +741,7 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
 
     public static boolean closeaddr_con(boolean console, CommandSender sender, String cmd, String[] args) {
         if (args.length < 1) {
-            Util.con_type("Usage: closeaddr <PostOffice> <Address>   Close a local address.");
+            Util.con_type("Usage: closeaddr <PostOffice> <Address> Close a local address.");
             return true;
         }
         if (!VA_Dispatcher.dispatcher_running) {
@@ -752,7 +755,7 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
             } else {
                 Util.list_postal_tree(null, false, null);
             }
-            Util.con_type("Need more letters for post office.  See list:");
+            Util.con_type("Need more letters for post office. See list:");
             return true;
         }
         String saddress = C_Address.addresses_complete(stown, args[1]);
@@ -762,11 +765,11 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
             } else {
                 Util.list_postal_tree(null, true, stown);
             }
-            Util.con_type("Need more letters for address.  See list:");
+            Util.con_type("Need more letters for address. See list:");
             return true;
         }
         if (is_player_comfirmation_registered(null)) {
-            com.vodhanel.minecraft.va_postal.config.C_Dispatcher.open_address(stown, saddress, false);
+            C_Dispatcher.open_address(stown, saddress, false);
             Util.con_type("Closed address: " + Util.df(stown) + ", " + Util.df(saddress));
             deregister_player_comfirmation(null);
         } else {
@@ -780,7 +783,7 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
 
     public static boolean openaddr(boolean console, CommandSender sender, String cmd, String[] args) {
         if (args.length < 2) {
-            Util.pinform(player, "&7&oUsage: &f&r/openaddr <PostOffice> <Address>    &7&oOpen local address.");
+            Util.pinform(player, "&7&oUsage: &f&r/openaddr <PostOffice> <Address> &7&oOpen local address.");
             return true;
         }
         if (!VA_Dispatcher.dispatcher_running) {
@@ -794,7 +797,7 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
             } else {
                 Util.list_postal_tree(player, false, null);
             }
-            Util.pinform(player, "&7&oNeed more letters for post office.  See list:");
+            Util.pinform(player, "&7&oNeed more letters for post office. See list:");
             return true;
         }
         String saddress = C_Address.addresses_complete(stown, args[1]);
@@ -804,7 +807,7 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
             } else {
                 Util.list_postal_tree(player, true, stown);
             }
-            Util.pinform(player, "&7&oNeed more letters for address.  See list:");
+            Util.pinform(player, "&7&oNeed more letters for address. See list:");
             return true;
         }
         if (!hasPermission_ext(player, "postal.openaddr", stown, "null")) {
@@ -812,7 +815,7 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
             return true;
         }
         if (is_player_comfirmation_registered(player)) {
-            com.vodhanel.minecraft.va_postal.config.C_Dispatcher.open_address(stown, saddress, true);
+            C_Dispatcher.open_address(stown, saddress, true);
             Util.pinform(player, "&7&oOpened address: &9&o" + Util.df(stown) + ", " + Util.df(saddress));
             deregister_player_comfirmation(player);
         } else {
@@ -826,7 +829,7 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
 
     public static boolean openaddr_con(boolean console, CommandSender sender, String cmd, String[] args) {
         if (args.length < 1) {
-            Util.con_type("Usage: openaddr <PostOffice> <Address>   Open a local address.");
+            Util.con_type("Usage: openaddr <PostOffice> <Address> Open a local address.");
             return true;
         }
         if (!VA_Dispatcher.dispatcher_running) {
@@ -840,7 +843,7 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
             } else {
                 Util.list_postal_tree(null, false, null);
             }
-            Util.con_type("Need more letters for post office.  See list:");
+            Util.con_type("Need more letters for post office. See list:");
             return true;
         }
         String saddress = C_Address.addresses_complete(stown, args[1]);
@@ -850,11 +853,11 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
             } else {
                 Util.list_postal_tree(null, true, stown);
             }
-            Util.con_type("Need more letters for address.  See list:");
+            Util.con_type("Need more letters for address. See list:");
             return true;
         }
         if (is_player_comfirmation_registered(null)) {
-            com.vodhanel.minecraft.va_postal.config.C_Dispatcher.open_address(stown, saddress, true);
+            C_Dispatcher.open_address(stown, saddress, true);
             Util.con_type("Opened address: " + Util.df(stown) + ", " + Util.df(saddress));
             deregister_player_comfirmation(null);
         } else {
@@ -868,7 +871,7 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
 
     public static boolean openlocal(boolean console, CommandSender sender, String cmd, String[] args) {
         if (args.length < 1) {
-            Util.pinform(player, "&7&oUsage: &f&r/openlocal <PostOffice>    &7&oOpen local post office.");
+            Util.pinform(player, "&7&oUsage: &f&r/openlocal <PostOffice> &7&oOpen local post office.");
             return true;
         }
         if (!VA_Dispatcher.dispatcher_running) {
@@ -882,7 +885,7 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
             } else {
                 Util.list_postal_tree(player, false, null);
             }
-            Util.pinform(player, "&7&oNeed more letters for post office.  See list:");
+            Util.pinform(player, "&7&oNeed more letters for post office. See list:");
             return true;
         }
         if (!hasPermission_ext(player, "postal.openlocal", stown, "null")) {
@@ -890,7 +893,7 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
             return true;
         }
         if (is_player_comfirmation_registered(player)) {
-            com.vodhanel.minecraft.va_postal.config.C_Dispatcher.open_poffice(stown, true);
+            C_Dispatcher.open_poffice(stown, true);
             Util.pinform(player, "&7&oOpened post office: &9&o" + Util.df(stown));
             deregister_player_comfirmation(player);
         } else {
@@ -904,7 +907,7 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
 
     public static boolean openlocal_con(boolean console, CommandSender sender, String cmd, String[] args) {
         if (args.length < 1) {
-            Util.con_type("Usage: openlocal <PostOffice>    Open a local post office.");
+            Util.con_type("Usage: openlocal <PostOffice> Open a local post office.");
             return true;
         }
         if (!VA_Dispatcher.dispatcher_running) {
@@ -918,11 +921,11 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
             } else {
                 Util.list_postal_tree(null, false, null);
             }
-            Util.con_type("Need more letters for post office.  See list:");
+            Util.con_type("Need more letters for post office. See list:");
             return true;
         }
         if (is_player_comfirmation_registered(null)) {
-            com.vodhanel.minecraft.va_postal.config.C_Dispatcher.open_poffice(stown, true);
+            C_Dispatcher.open_poffice(stown, true);
             Util.con_type("Opened post office: " + Util.df(stown));
             deregister_player_comfirmation(null);
         } else {
@@ -939,8 +942,8 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
             Util.pinform(player, "&7&oRequired permission not present.");
             return true;
         }
-        if ((args.length >= 1) || ((args.length >= 1) && ("?".equals(args[0])))) {
-            Util.pinform(player, "&7&oUsage: &f&r/setcentral    &7&oSet Central the Post Office.");
+        if (args.length >= 1) {
+            Util.pinform(player, "&7&oUsage: &f&r/setcentral \n&7&oSet Central the Post Office.");
             return true;
         }
 
@@ -952,7 +955,6 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
             deregister_player_comfirmation(player);
         } else {
             Util.pinform(player, "&7&oReady to locate the central post office.");
-
             String scommand = "/setcentral";
             register_player_comfirmation(player, scommand);
         }
@@ -964,14 +966,14 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
             Util.pinform(player, "&7&oRequired permission not present.");
             return true;
         }
-        if ((args.length >= 1) || ((args.length >= 1) && ("?".equals(args[0])))) {
-            Util.pinform(player, "&7&oUsage: &f&r/gotocentral    &7&oTeleport to the Central the Post Office.");
+        if (args.length >= 1) {
+            Util.pinform(player, "&7&oUsage: &f&r/gotocentral &7&oTeleport to the Central the Post Office.");
             return true;
         }
 
         if (is_player_comfirmation_registered(player)) {
             String slocation = C_Postoffice.get_central_po_location();
-            Util.pinform(player, "&7&oTeleporting you to:  &f&r" + slocation);
+            Util.pinform(player, "&7&oTeleporting you to: &f&r" + slocation);
             Util.safe_tps(player, slocation);
             deregister_player_comfirmation(player);
         } else {
@@ -989,10 +991,10 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
             Util.pinform(player, "&7&oRequired permission not present.");
             return true;
         }
-        if ((args.length < 1) || ((args.length >= 1) && ("?".equals(args[0])))) {
-            Util.pinform(player, "&7&oUsage: &f&r/setlocal <PostOffice>    &7&oSet a local Post Office.");
-            Util.pinform(player, "&7&oNote:  at least one address must be defined for a post office.");
-            Util.pinform(player, "&7&oSee &f&r/setaddr &7&oand &f&r/setroute &7&oto define a address.  Postal");
+        if (args.length < 1 || "?".equals(args[0])) {
+            Util.pinform(player, "&7&oUsage: &f&r/setlocal <PostOffice> &7&oSet a local Post Office.");
+            Util.pinform(player, "&7&oNote: at least one address must be defined for a post office.");
+            Util.pinform(player, "&7&oSee &f&r/setaddr &7&oand &f&r/setroute &7&oto define a address. Postal");
             Util.pinform(player, "&7&oneeds a minimum of one address per post office to start");
             return true;
         }
@@ -1011,25 +1013,25 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
         }
 
 
-        org.bukkit.Location new_location = player.getLocation();
-        org.bukkit.Location tlocation = null;
-        String stlocation = "";
-        long distance = 0L;
+        Location new_location = player.getLocation();
+        Location tlocation;
+        String stlocation;
+        long distance;
         long max_dist = 0L;
         String max_addr = "";
-        String display = "";
+        String display;
         String confirm = "&7&oReady to locate local post office: &9&o" + Util.df(stown);
         String[] addr_list = C_Arrays.addresses_list(stown);
 
 
         boolean new_po = false;
-        org.bukkit.block.Block block = com.vodhanel.minecraft.va_postal.mail.ChestManip.getNearestGenericChest_to_player(player, 2);
+        Block block = ChestManip.getNearestGenericChest_to_player(player, 2);
         if ((addr_list != null) && (addr_list.length > 0)) {
             Util.pinform(player, "&7&oAddresses serviced by &f&r" + Util.df(stown));
             for (String anAddr_list : addr_list) {
                 if ((C_Address.is_address_defined(stown, anAddr_list)) &&
-                        (com.vodhanel.minecraft.va_postal.config.C_Route.is_waypoint_defined(stown, anAddr_list, 0))) {
-                    stlocation = com.vodhanel.minecraft.va_postal.config.C_Route.get_waypoint_location(stown, anAddr_list, 0);
+                        (C_Route.is_waypoint_defined(stown, anAddr_list, 0))) {
+                    stlocation = C_Route.get_waypoint_location(stown, anAddr_list, 0);
                     tlocation = Util.str2location(stlocation);
                     distance = (long) new_location.distance(tlocation);
                     if (distance > max_dist) {
@@ -1052,7 +1054,7 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
                 Util.pinform(player, "&6Please place a chest first and stand in front of it.");
                 return true;
             }
-            if (!com.vodhanel.minecraft.va_postal.mail.ChestManip.ok_to_use_chest(block, true)) {
+            if (!ChestManip.ok_to_use_chest(block, true)) {
                 Util.pinform(player, "&6This chest either has a sign on it, or is too close to a sign.");
                 Util.pinform(player, "&6To use this chest, the sign must temporarily be removed.");
                 return true;
@@ -1080,10 +1082,10 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
 
             if ((VA_postal.using_towny()) &&
                     (P_Towny.is_towny_admin_by_loc(player))) {
-                String mayor = P_Towny.towny_mayor_by_loc(player.getLocation());
-                if ((!mayor.equals("not_towny")) && (!mayor.equals("not_mayor"))) {
-                    C_Owner.set_owner_local_po(stown, mayor);
-                    Util.pinform(player, "&7&oTowny mayor: &f&r" + Util.df(mayor));
+                Map.Entry<String, Player> mayor = P_Towny.towny_mayor_by_loc(player.getLocation());
+                if (mayor.getKey().equals("OK")) {
+                    C_Owner.set_owner_local_po(stown, mayor.getValue());
+                    Util.pinform(player, "&7&oTowny mayor: &f&r" + mayor.getValue());
                 }
             }
 
@@ -1103,8 +1105,8 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
             Util.pinform(player, "&7&oRequired permission not present.");
             return true;
         }
-        if ((args.length < 1) || ((args.length >= 1) && ("?".equals(args[0])))) {
-            Util.pinform(player, "&7&oUsage: &f&r/gotolocal <PostOffice>    &7&oTeleport to a local Post Office.");
+        if (args.length < 1 || "?".equals(args[0])) {
+            Util.pinform(player, "&7&oUsage: &f&r/gotolocal <PostOffice> &7&oTeleport to a local Post Office.");
             return true;
         }
         String stown = C_Postoffice.town_complete(args[0]);
@@ -1114,7 +1116,7 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
             } else {
                 Util.list_postal_tree(player, false, null);
             }
-            Util.pinform(player, "&7&oNeed more letters for post office.  See list:");
+            Util.pinform(player, "&7&oNeed more letters for post office. See list:");
             return true;
         }
         if (is_player_comfirmation_registered(player)) {
@@ -1151,7 +1153,7 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
             String[] geo_addr = C_Arrays.geo_addr_list_sorted(player);
             if ((geo_addr != null) && (geo_addr.length > 0)) {
                 String[] parts = geo_addr[0].split(",");
-                if ((parts != null) && (parts.length == 4)) {
+                if (parts.length == 4) {
                     int dist = Util.str2int(parts[0]);
                     int max_dist = VA_postal.allowed_geo_proximity;
                     if (dist > max_dist) {
@@ -1175,7 +1177,7 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
                 } else {
                     Util.list_postal_tree(player, false, null);
                 }
-                Util.pinform(player, "&7&oPost office does not exist.  See list:");
+                Util.pinform(player, "&7&oPost office does not exist. See list:");
                 return true;
             }
             saddress = C_Address.addresses_complete(stown, args[1]);
@@ -1211,7 +1213,7 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
 
     public static boolean setaddress(boolean console, CommandSender sender, String cmd, String[] args) {
         if (args.length == 0) {
-            Util.pinform(player, "&7&oUsage: &f&r/setaddr <PostOffice> <Address>   &7&oto set a postal address");
+            Util.pinform(player, "&7&oUsage: &f&r/setaddr <PostOffice> <Address> &7&oto set a postal address");
             Util.pinform(player, "&7&oThis command must be followed by the &f&r/setroute &7&ocommand to");
             Util.pinform(player, "&7&odefine the route to the post office.");
             return true;
@@ -1233,7 +1235,7 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
             String[] geo_addr = C_Arrays.geo_po_list_sorted(player);
             if ((geo_addr != null) && (geo_addr.length > 0)) {
                 String[] parts = geo_addr[0].split(",");
-                if ((parts != null) && (parts.length == 3)) {
+                if (parts.length == 3) {
                     int dist = Util.str2int(parts[0]);
                     if (dist > 500) {
                         Util.pinform(player, "&7&oThere is no post office within 500 blocks.");
@@ -1257,7 +1259,7 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
                 } else {
                     Util.list_postal_tree(player, false, null);
                 }
-                Util.pinform(player, "&7&oPost office does not exist.  See list:");
+                Util.pinform(player, "&7&oPost office does not exist. See list:");
                 return true;
             }
         }
@@ -1289,8 +1291,8 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
 
 
         if (C_Address.is_address_defined(stown, saddress)) {
-            Util.pinform(player, "&7&oAddress has been defined for:  " + Util.df(stown) + ", " + Util.df(saddress));
-            Util.pinform(player, "&7&oUse &f&r/setroute   &7&oto modify it");
+            Util.pinform(player, "&7&oAddress has been defined for: " + Util.df(stown) + ", " + Util.df(saddress));
+            Util.pinform(player, "&7&oUse &f&r/setroute &7&oto modify it");
             Util.pinform(player, "&7&oUse &f&r/deleteaddr &7&oto delete it");
             Util.pinform(player, "&7&oUse &f&r/gotoaddr &7&oto go to it");
             return true;
@@ -1322,11 +1324,11 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
             return true;
         }
         if ((args.length < 2) || ("?".equals(args[0]))) {
-            Util.pinform(player, "&7&oUsage: &f&r/addr <PostOffice> <Address> [player]  &7&oto address book in your hand");
+            Util.pinform(player, "&7&oUsage: &f&r/addr <PostOffice> <Address> [player] &7&oto address book in your hand");
             return true;
         }
-        org.bukkit.inventory.ItemStack stack = player.getItemInHand();
-        if ((stack == null) || (stack.getType() != org.bukkit.Material.WRITTEN_BOOK)) {
+        ItemStack stack = player.getItemOnCursor();
+        if ((stack == null) || (stack.getType() != Material.WRITTEN_BOOK)) {
             Util.pinform(player, "&7&oYou must have a signed book in your hand.");
             return true;
         }
@@ -1337,7 +1339,7 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
             } else {
                 Util.list_postal_tree(player, false, null);
             }
-            Util.pinform(player, "&7&oNeed more letters for post office.  See list:");
+            Util.pinform(player, "&7&oNeed more letters for post office. See list:");
             return true;
         }
         double price = 0.0D;
@@ -1355,21 +1357,23 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
             } else {
                 Util.list_postal_tree(player, true, stown);
             }
-            Util.pinform(player, "&7&oNeed more letters for address.  See list:");
+            Util.pinform(player, "&7&oNeed more letters for address. See list:");
             return true;
         }
 
         String attention = "[Resident]";
+        Player originalAttention = null;
         if (args.length == 3) {
-            String splayer = Util.player_complete(args[2]);
-            if (!"null".equals(splayer)) {
-                attention = splayer;
+            Player player = Util.player_complete(args[2]);
+            if (player != null) {
+                attention = player.getDisplayName();
+                originalAttention = player;
             }
         }
 
 
         if (is_player_comfirmation_registered(player)) {
-            Cmd_static.addr_worker(player, null, stack, attention, stown, saddress);
+            Cmd_static.addr_worker(player, null, stack, attention, originalAttention, stown, saddress);
             deregister_player_comfirmation(player);
         } else {
             Util.pinform(player, "&7&oReady to address to: &9&o" + Util.df(stown) + ", " + Util.df(saddress) + ", " + Util.df(attention));
@@ -1394,8 +1398,8 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
             Util.pinform(player, "&7&oTo distrubute the book in your hand to Postal addresses");
             return true;
         }
-        org.bukkit.inventory.ItemStack stack = player.getItemInHand();
-        if ((stack == null) || (stack.getType() != org.bukkit.Material.WRITTEN_BOOK)) {
+        ItemStack stack = player.getItemOnCursor();
+        if ((stack == null) || (stack.getType() != Material.WRITTEN_BOOK)) {
             Util.pinform(player, "&7&oYou must have a signed book in your hand.");
             return true;
         }
@@ -1466,13 +1470,12 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
     }
 
     public static boolean accept(boolean console, CommandSender sender, String cmd, String[] args) {
-        String splayer = player.getName().trim();
         if ((!hasPermission(player, "postal.accept")) && (VA_postal.using_towny()) && (!P_Towny.is_towny_resident_by_tvrs(player))) {
             Util.pinform(player, "&7&oRequired permission not present.");
             return true;
         }
 
-        ItemStack stack = player.getItemInHand();
+        ItemStack stack = player.getItemOnCursor();
         if (!BookManip.holding_valid_shipper(player, stack, true)) {
             Util.pinform(player, "&7&oYou must have a valid shipping label in your hand.");
             return true;
@@ -1480,7 +1483,7 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
 
         double price = Cmd_static.cod_amount(stack);
         if ((price > 0.0D) &&
-                (!P_Economy.does_player_have_amount(splayer, price))) {
+                (!P_Economy.does_player_have_amount(player, price))) {
             Util.pinform(player, "&7&oYou don't have enough money to pay for this COD.");
             return true;
         }
@@ -1535,15 +1538,15 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
         }
 
 
-        org.bukkit.inventory.Inventory inventory = BookManip.parcel_fill_chest(block, stack);
+        Inventory inventory = BookManip.parcel_fill_chest(block, stack);
         if (inventory == null) {
             Util.pinform(player, "&7&oUnable to complete shipment return.");
             return true;
         }
 
 
-        org.bukkit.inventory.ItemStack stamped = BookManip.stamp_parcel_statement(player, stack, false);
-        player.setItemInHand(null);
+        ItemStack stamped = BookManip.stamp_parcel_statement(player, stack, false);
+        player.setItemOnCursor(null);
         BookManip.parcel_stmnt_to_chest(inventory, stamped, block, 4);
         Util.pinform(player, "&7&oShipment has been returned to sender.");
 
@@ -1556,10 +1559,10 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
             return true;
         }
         if ((args.length < 2) || ("?".equals(args[0]))) {
-            Util.pinform(player, "&7&oUsage: &f&r/package <PostOffice> <Address> [player]  &7&oto package a chest in front of you");
+            Util.pinform(player, "&7&oUsage: &f&r/package <PostOffice> <Address> [player] &7&oto package a chest in front of you");
             return true;
         }
-        org.bukkit.block.Block block = ChestManip.at_chest(player);
+        Block block = ChestManip.at_chest(player);
         if (block == null) {
             Util.pinform(player, "&7&oStand next to the chest you want to ship.");
             return true;
@@ -1588,7 +1591,7 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
             } else {
                 Util.list_postal_tree(player, false, null);
             }
-            Util.pinform(player, "&7&oNeed more letters for post office.  See list:");
+            Util.pinform(player, "&7&oNeed more letters for post office. See list:");
             return true;
         }
         double price = 0.0D;
@@ -1606,20 +1609,21 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
             } else {
                 Util.list_postal_tree(player, true, stown);
             }
-            Util.pinform(player, "&7&oNeed more letters for address.  See list:");
+            Util.pinform(player, "&7&oNeed more letters for address. See list:");
             return true;
         }
 
         String attention = "[Resident]";
+        Player Attention = null;
         if (args.length == 3) {
-            String splayer = Util.player_complete(args[2]);
-            if (!"null".equals(splayer)) {
-                attention = Util.df(splayer);
+            Attention = Util.player_complete(args[2]);
+            if (Attention != null) {
+                attention = Attention.getDisplayName();
             }
         }
 
         if (is_player_comfirmation_registered(player)) {
-            if (Cmd_static.parcel_worker(player, attention, stown, saddress)) {
+            if (Cmd_static.parcel_worker(player, attention, Attention, stown, saddress)) {
                 Util.pinform(player, "&f&rThe shipping label is now in your hand.");
                 Util.pinform(player, "&7&oMail this shipping label when you are ready to ship.");
             }
@@ -1651,7 +1655,7 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
             return true;
         }
 
-        ItemStack stack = player.getItemInHand();
+        ItemStack stack = player.getItemOnCursor();
         if (!BookManip.holding_valid_shipper(player, stack, false)) {
             Util.pinform(player, "&7&oYou must have a valid shipping label in your hand.");
             return true;
@@ -1685,30 +1689,32 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
             return true;
         }
         if ((args.length >= 1) && ("?".equals(args[0]))) {
-            Util.pinform(player, "&7&oUsage: &f&r/att [player]  &7&oto set 'Attention to:' using a book in your hand");
+            Util.pinform(player, "&7&oUsage: &f&r/att [player] &7&oto set 'Attention to:' using a book in your hand");
             Util.pinform(player, "&7&oNo parameter resets book to &f&r'[Resident]'");
             return true;
         }
-        org.bukkit.inventory.ItemStack stack = player.getItemInHand();
-        if ((stack == null) || (stack.getType() != org.bukkit.Material.WRITTEN_BOOK)) {
+        ItemStack stack = player.getItemOnCursor();
+        if ((stack == null) || (stack.getType() != Material.WRITTEN_BOOK)) {
             Util.pinform(player, "&7&oYou must have the book you want to address in your hand.");
             return true;
         }
 
         String attention = "[Resident]";
+        Player original = null;
         if (args.length >= 1) {
-            String splayer = Util.player_complete(args[0]);
-            if (!"null".equals(splayer)) {
-                attention = Util.df(splayer);
+            Player player = Util.player_complete(args[0]);
+            if (player != null) {
+                attention = player.getDisplayName();
+                original = player;
             }
         }
 
-        if (!Cmd_static.att_worker(false, player, stack, attention)) {
+        if (!Cmd_static.att_worker(false, player, stack, attention, original)) {
             return true;
         }
 
         if (is_player_comfirmation_registered(player)) {
-            Cmd_static.att_worker(true, player, stack, attention);
+            Cmd_static.att_worker(true, player, stack, attention, original);
             deregister_player_comfirmation(player);
         } else {
             Util.pinform(player, "&7&oReady to set attention to: &9&o" + Util.df(attention));
@@ -1721,7 +1727,7 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
 
     public static boolean gotoaddress(boolean console, CommandSender sender, String cmd, String[] args) {
         if ((args.length < 2) || ("?".equals(args[0]))) {
-            Util.pinform(player, "&7&oUsage: &f&r/gotoaddr <PostOffice> <Address>   &7&oto teleport to a postal address");
+            Util.pinform(player, "&7&oUsage: &f&r/gotoaddr <PostOffice> <Address> &7&oto teleport to a postal address");
             return true;
         }
         String stown = C_Postoffice.town_complete(args[0]);
@@ -1731,7 +1737,7 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
             } else {
                 Util.list_postal_tree(player, false, null);
             }
-            Util.pinform(player, "&7&oNeed more letters for post office.  See list:");
+            Util.pinform(player, "&7&oNeed more letters for post office. See list:");
             return true;
         }
         String saddress = C_Address.addresses_complete(stown, args[1]);
@@ -1741,7 +1747,7 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
             } else {
                 Util.list_postal_tree(player, true, stown);
             }
-            Util.pinform(player, "&7&oNeed more letters for address.  See list:");
+            Util.pinform(player, "&7&oNeed more letters for address. See list:");
             return true;
         }
         if (!hasPermission_ext(player, "postal.gotoaddr", stown, saddress)) {
@@ -1766,14 +1772,14 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
 
     public static boolean gps(boolean console, CommandSender sender, String cmd, String[] args) {
         if ((args.length == 1) && ("?".equals(args[0]))) {
-            Util.pinform(player, "&7&oUsage: &f&r/gps <PostOffice> [Address]   &7&oto set your compass");
+            Util.pinform(player, "&7&oUsage: &f&r/gps <PostOffice> [Address] &7&oto set your compass");
             return true;
         }
         if (args.length == 0) {
             String[] g_list = C_Arrays.geo_list_sorted(player);
 
             Util.pinform(player, "");
-            Util.pinform(player, "&7&oUsage: &f&r/gps <PostOffice> [Address]   &7&oto set your compass");
+            Util.pinform(player, "&7&oUsage: &f&r/gps <PostOffice> [Address] &7&oto set your compass");
             Util.pinform(player, "");
             Util.pinform(player, "&7Dist Cmp  Post-Office--  Address------- Qwner--------");
             for (int i = 0; i < g_list.length; i++) {
@@ -1786,10 +1792,10 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
                     if (saddr.equalsIgnoreCase("post_office")) {
                         is_po = true;
                         if (C_Owner.is_local_po_owner_defined(stown)) {
-                            sownr = Util.df(C_Owner.get_owner_local_po(stown));
+                            sownr = Util.df(C_Owner.get_owner_local_po(stown).getDisplayName());
                         }
                     } else if (C_Owner.is_address_owner_defined(stown, saddr)) {
-                        sownr = Util.df(C_Owner.get_owner_address(stown, saddr));
+                        sownr = Util.df(C_Owner.get_owner_address(stown, saddr).getDisplayName());
                     }
 
                     sownr = fixed_len(Util.df(sownr), 14, "-");
@@ -1813,7 +1819,7 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
         }
 
         String stown = "null";
-        if ((args.length >= 1) && (!args[0].equals("null"))) {
+        if (!args[0].equals("null")) {
             stown = C_Postoffice.town_complete(args[0]);
             if ("null".equals(stown)) {
                 if ((VA_postal.using_towny()) && (P_Towny.is_this_a_town_by_loc(player))) {
@@ -1821,7 +1827,7 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
                 } else {
                     Util.list_postal_tree(player, false, null);
                 }
-                Util.pinform(player, "&7&oNeed more letters for post office.  See list:");
+                Util.pinform(player, "&7&oNeed more letters for post office. See list:");
                 return true;
             }
         }
@@ -1834,7 +1840,7 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
                 } else {
                     Util.list_postal_tree(player, true, stown);
                 }
-                Util.pinform(player, "&7&oNeed more letters for address.  See list:");
+                Util.pinform(player, "&7&oNeed more letters for address. See list:");
                 return true;
             }
         }
@@ -1845,7 +1851,7 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
         if (is_player_comfirmation_registered(player)) {
             if (saddress.equals("null")) {
                 String slocation = C_Postoffice.get_local_po_location_by_name(stown);
-                org.bukkit.Location location = Util.str2location(slocation);
+                Location location = Util.str2location(slocation);
                 if (player.getWorld() == location.getWorld()) {
                     player.setCompassTarget(location);
                     Util.pinform(player, "&7&oYour compass has been set to: &r" + Util.df(stown));
@@ -1854,7 +1860,7 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
                 }
             } else {
                 String slocation = C_Address.get_address_location(stown, saddress);
-                org.bukkit.Location location = Util.str2location(slocation);
+                Location location = Util.str2location(slocation);
                 if (player.getWorld() == location.getWorld()) {
                     player.setCompassTarget(location);
                     Util.pinform(player, "&7&oYour compass has been set to: &r" + Util.df(stown) + ", " + Util.df(saddress));
@@ -1882,6 +1888,7 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
             Util.pinform(player, "&7&oUsage: &f&r/owneraddr <PostOffice> <Address> [player/none] &7&oto to set address owner");
             return true;
         }
+
         String stown = C_Postoffice.town_complete(args[0]);
         if ("null".equals(stown)) {
             if ((VA_postal.using_towny()) && (P_Towny.is_this_a_town_by_loc(player))) {
@@ -1889,9 +1896,10 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
             } else {
                 Util.list_postal_tree(player, false, null);
             }
-            Util.pinform(player, "&7&oNeed more letters for post office.  See list:");
+            Util.pinform(player, "&7&oNeed more letters for post office. See list:");
             return true;
         }
+
         String saddress = C_Address.addresses_complete(stown, args[1]);
         if ("null".equals(saddress)) {
             if ((VA_postal.using_towny()) && (P_Towny.is_this_a_town_by_loc(player))) {
@@ -1899,17 +1907,21 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
             } else {
                 Util.list_postal_tree(player, true, stown);
             }
-            Util.pinform(player, "&7&oNeed more letters for address.  See list:");
+            Util.pinform(player, "&7&oNeed more letters for address. See list:");
             return true;
         }
+
         String subject = "none";
+        Player psubject = null;
         if ((args.length != 2) && (!"none".equals(args[2].toLowerCase().trim()))) {
-            subject = Util.player_complete(args[2]);
-            if ("null".equals(subject)) {
-                Util.pinform(player, "Need more letters for player.  See list:");
+            psubject = Util.player_complete(args[2]);
+            if (psubject == null) {
+                Util.dinform("owneraddr: " + AnsiColor.GREEN + "console " + AnsiColor.WHITE + "= [" + AnsiColor.YELLOW + console + AnsiColor.WHITE + "], " + AnsiColor.GREEN + "sender " + AnsiColor.WHITE + "= [" + AnsiColor.YELLOW + sender + AnsiColor.WHITE + "], " + AnsiColor.GREEN + "cmd " + AnsiColor.WHITE + "= [" + AnsiColor.YELLOW + cmd + AnsiColor.WHITE + "], " + AnsiColor.GREEN + "args " + AnsiColor.WHITE + "= [" + AnsiColor.YELLOW + args + AnsiColor.WHITE + "]");
+                Util.pinform(player, "Need more letters for player. See list:");
                 Util.player_list_match(player, args[2]);
                 return true;
             }
+            subject = psubject.getDisplayName();
         }
 
 
@@ -1920,9 +1932,9 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
         }
 
         double price = 0.0D;
-        if (!subject.equalsIgnoreCase("none")) {
+        if (psubject != null) {
             if (VA_postal.economy_configured) {
-                price = P_Economy.has_price_of_address(subject);
+                price = P_Economy.has_price_of_address(psubject);
                 if (price < 0.0D) {
                     Util.pinform(player, "&f&o" + Util.df(subject) + "&7&o does not have enough money to cover the purchase price.");
                     return true;
@@ -1937,7 +1949,7 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
 
 
         if (is_player_comfirmation_registered(player)) {
-            Cmd_static.owneraddr_worker(player, stown, subject, saddress);
+            Cmd_static.owneraddr_worker(player, stown, psubject, saddress);
             deregister_player_comfirmation(player);
         } else {
             Util.pinform(player, "Ready to make " + Util.df(subject) + " the address owner of " + Util.df(stown) + ", " + Util.df(saddress));
@@ -1966,7 +1978,7 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
             } else {
                 Util.list_postal_tree(null, false, null);
             }
-            Util.con_type("Need more letters for post office.  See list:");
+            Util.con_type("Need more letters for post office. See list:");
             return true;
         }
         String saddress = C_Address.addresses_complete(stown, args[1]);
@@ -1976,24 +1988,25 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
             } else {
                 Util.list_postal_tree(player, true, stown);
             }
-            Util.con_type("Need more letters for address.  See list:");
+            Util.con_type("Need more letters for address. See list:");
             return true;
         }
-        String subject = "none";
+        Player subject = null;
         if ((args.length != 2) && (!"none".equals(args[2].toLowerCase().trim()))) {
             subject = Util.player_complete(args[2]);
-            if ("null".equals(subject)) {
-                Util.con_type("Need more letters for player.  See list:");
+            if (subject == null) {
+                Util.con_type("Need more letters for player. See list:");
                 Util.player_list_match_con(args[2]);
                 return true;
             }
         }
+
         double price = 0.0D;
-        if (!subject.equalsIgnoreCase("none")) {
+        if (subject != null) {
             if (VA_postal.economy_configured) {
                 price = P_Economy.has_price_of_address(subject);
                 if (price < 0.0D) {
-                    Util.con_type(Util.df(subject) + " does not have enough money to cover the purchase price.");
+                    Util.con_type(subject + " does not have enough money to cover the purchase price.");
                     return true;
                 }
             }
@@ -2010,11 +2023,8 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
             deregister_player_comfirmation(null);
         } else {
             Util.con_type("Ready to make " + subject + " the address owner of " + Util.df(stown) + ", " + Util.df(saddress));
-            if ((!subject.equalsIgnoreCase("none")) &&
-                    (price > 0.0D)) {
-                Util.con_type(Util.df(subject) + " will be charged " + ef(price));
-            }
-
+            if ((subject != null) && (price > 0.0D))
+                Util.con_type(subject + " will be charged " + ef(price));
 
             String scommand = "owneraddr " + stown + " " + saddress + " " + subject;
             register_player_comfirmation(null, scommand);
@@ -2035,14 +2045,15 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
             } else {
                 Util.list_postal_tree(player, false, null);
             }
-            Util.pinform(player, "&7&oNeed more letters for post office.  See list:");
+            Util.pinform(player, "&7&oNeed more letters for post office. See list:");
             return true;
         }
-        String subject = "none";
+
+        Player subject = null;
         if ((args.length != 1) && (!"none".equals(args[1].toLowerCase().trim()))) {
             subject = Util.player_complete(args[1]);
-            if ("null".equals(subject)) {
-                Util.pinform(player, "Need more letters for player.  See list:");
+            if (subject == null && !Objects.equals(args[1].toLowerCase(), "server")) {
+                Util.pinform(player, "Need more letters for player. See list:");
                 Util.player_list_match(player, args[1]);
                 return true;
             }
@@ -2056,11 +2067,11 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
         }
 
         double price = 0.0D;
-        if (!subject.equalsIgnoreCase("none")) {
+        if (subject != null) {
             if (VA_postal.economy_configured) {
                 price = P_Economy.has_price_of_postoffice(subject);
                 if (price < 0.0D) {
-                    Util.pinform(player, "&f&o" + Util.df(subject) + "&7&o does not have enough money to cover the purchase price.");
+                    Util.pinform(player, "&f&o" + subject + "&7&o does not have enough money to cover the purchase price.");
                     return true;
                 }
             }
@@ -2076,17 +2087,16 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
             Cmd_static.ownerlocal_worker(player, stown, subject);
             deregister_player_comfirmation(player);
         } else {
-            Util.pinform(player, "Ready to make " + Util.df(subject) + " the post office owner of " + Util.df(stown));
-            if ((!subject.equalsIgnoreCase("none")) &&
+            Util.pinform(player, "Ready to make " + (subject != null ? subject.getDisplayName() : "the Server") + " the post office owner of " + Util.df(stown));
+            if ((subject != null) &&
                     (price > 0.0D)) {
-                Util.pinform(player, "&f&o" + Util.df(subject) + "&7&o will be charged &f&o" + ef(price));
+                Util.pinform(player, "&f&o" + subject + "&7&o will be charged &f&o" + ef(price));
             }
 
 
-            String scommand = "/ownerlocal " + stown + " " + subject;
+            String scommand = "/ownerlocal " + stown + " " + (subject != null ? subject.getDisplayName() : "server");
             register_player_comfirmation(player, scommand);
         }
-
         return true;
     }
 
@@ -2102,24 +2112,25 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
             } else {
                 Util.list_postal_tree(null, false, null);
             }
-            Util.con_type("Need more letters for post office.  See list:");
+            Util.con_type("Need more letters for post office. See list:");
             return true;
         }
-        String subject = "none";
+
+        Player subject = null;
         if ((args.length != 1) && (!"none".equals(args[1].toLowerCase().trim()))) {
             subject = Util.player_complete(args[1]);
-            if ("null".equals(subject)) {
-                Util.con_type("Need more letters for player.  See list:");
+            if (subject == null) {
+                Util.con_type("Need more letters for player. See list:");
                 Util.player_list_match_con(args[1]);
                 return true;
             }
         }
         double price = 0.0D;
-        if (!subject.equalsIgnoreCase("none")) {
+        if (subject != null) {
             if (VA_postal.economy_configured) {
                 price = P_Economy.has_price_of_postoffice(subject);
                 if (price < 0.0D) {
-                    Util.con_type(Util.df(subject) + " does not have enough money to cover the purchase price.");
+                    Util.con_type(subject + " does not have enough money to cover the purchase price.");
                     return true;
                 }
             }
@@ -2135,10 +2146,9 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
             Cmd_static.ownerlocal_worker(null, stown, subject);
             deregister_player_comfirmation(null);
         } else {
-            Util.con_type("Ready to make " + Util.df(subject) + " the post office owner of " + Util.df(stown));
-            if ((!subject.equalsIgnoreCase("none")) &&
-                    (price > 0.0D)) {
-                Util.con_type(Util.df(subject) + " will be charged " + ef(price));
+            Util.con_type("Ready to make " + subject + " the post office owner of " + Util.df(stown));
+            if ((subject != null) && (price > 0.0D)) {
+                Util.con_type(subject + " will be charged " + ef(price));
             }
 
 
@@ -2155,7 +2165,7 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
             return true;
         }
         if ((args.length < 1) || ("?".equals(args[0]))) {
-            Util.pinform(player, "&7&oUsage: &f&r/deletelocal <PostOffice>   &7&oto delete an existing post office");
+            Util.pinform(player, "&7&oUsage: &f&r/deletelocal <PostOffice> &7&oto delete an existing post office");
             Util.pinform(player, "&7&oAll addresses using this post office will be deleted.");
             return true;
         }
@@ -2166,7 +2176,7 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
             } else {
                 Util.list_postal_tree(player, false, null);
             }
-            Util.pinform(player, "&7&oNeed more letters for post office.  See list:");
+            Util.pinform(player, "&7&oNeed more letters for post office. See list:");
             return true;
         }
 
@@ -2185,7 +2195,7 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
 
     public static boolean deletelocal_con(boolean console, CommandSender sender, String cmd, String[] args) {
         if ((args.length < 1) || ("?".equals(args[0]))) {
-            Util.con_type("Usage: deletelocal <PostOffice>   to delete an existing post office");
+            Util.con_type("Usage: deletelocal <PostOffice> to delete an existing post office");
             Util.con_type("All addresses using this post office will be deleted.");
             return true;
         }
@@ -2196,7 +2206,7 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
             } else {
                 Util.list_postal_tree(null, false, null);
             }
-            Util.cinform("Need more letters for post office.  See list:");
+            Util.cinform("Need more letters for post office. See list:");
             return true;
         }
 
@@ -2219,7 +2229,7 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
             return true;
         }
         if ((args.length < 2) || ("?".equals(args[0]))) {
-            Util.pinform(player, "&7&oUsage: &f&r/deleteaddr <PostOffice> <Address>   &7&oto delete an existing address");
+            Util.pinform(player, "&7&oUsage: &f&r/deleteaddr <PostOffice> <Address> &7&oto delete an existing address");
             return true;
         }
 
@@ -2230,7 +2240,7 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
             } else {
                 Util.list_postal_tree(player, false, null);
             }
-            Util.pinform(player, "&7&oNeed more letters for post office.  See list:");
+            Util.pinform(player, "&7&oNeed more letters for post office. See list:");
             return true;
         }
         String saddress = C_Address.addresses_complete(stown, args[1]);
@@ -2240,7 +2250,7 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
             } else {
                 Util.list_postal_tree(player, true, stown);
             }
-            Util.pinform(player, "&7&oNeed more letters for address.  See list:");
+            Util.pinform(player, "&7&oNeed more letters for address. See list:");
             return true;
         }
 
@@ -2261,7 +2271,7 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
 
     public static boolean deleteaddr_con(boolean console, CommandSender sender, String cmd, String[] args) {
         if ((args.length < 2) || ("?".equals(args[0]))) {
-            Util.con_type("Usage: &f&r/deleteaddr <PostOffice> <Address>   &7&oto delete an existing address");
+            Util.con_type("Usage: &f&r/deleteaddr <PostOffice> <Address> &7&oto delete an existing address");
             return true;
         }
 
@@ -2272,7 +2282,7 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
             } else {
                 Util.list_postal_tree(null, false, null);
             }
-            Util.cinform("Need more letters for post office.  See list:");
+            Util.cinform("Need more letters for post office. See list:");
             return true;
         }
 
@@ -2283,7 +2293,7 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
             } else {
                 Util.list_postal_tree(null, true, stown);
             }
-            Util.con_type("Need more letters for address.  See list:");
+            Util.con_type("Need more letters for address. See list:");
             return true;
         }
 
@@ -2325,11 +2335,11 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
         if ((VA_postal.using_towny()) && (P_Towny.is_this_a_town_by_loc(player))) {
             P_Towny.list_towny_tree(player, true, srch_param, true);
             Util.pinform(player, "");
-            Util.pinform(player, "&7&oTowns matching search:  &f&r" + Util.df(srch_param));
+            Util.pinform(player, "&7&oTowns matching search: &f&r" + Util.df(srch_param));
         } else {
             Util.list_postal_tree(player, true, srch_param);
             Util.pinform(player, "");
-            Util.pinform(player, "&7&oPost offices matching search:  &f&r" + Util.df(srch_param));
+            Util.pinform(player, "&7&oPost offices matching search: &f&r" + Util.df(srch_param));
         }
 
         return true;
@@ -2353,7 +2363,7 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
         String srch_param = args[0].toLowerCase().trim();
         Util.list_postal_tree(null, true, srch_param);
         Util.con_type("");
-        Util.con_type("Post offices matching search:  " + Util.df(srch_param));
+        Util.con_type("Post offices matching search: " + Util.df(srch_param));
 
         return true;
     }
@@ -2364,10 +2374,10 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
             return true;
         }
         if ((args.length == 1) && ("?".equals(args[0]))) {
-            Util.pinform(player, "&7&oUsage: &f&r/alist <PostOffice>   &7&oto list post office addresses.");
+            Util.pinform(player, "&7&oUsage: &f&r/alist <PostOffice> &7&oto list post office addresses.");
             return true;
         }
-        String stown = "";
+        String stown;
         String heading = "";
         if (args.length == 1) {
             stown = C_Postoffice.town_complete(args[0]);
@@ -2377,7 +2387,7 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
                 stown = "null";
             } else {
                 String[] parts = list[0].split(",");
-                if ((parts != null) && (parts.length == 3)) {
+                if (parts.length == 3) {
                     stown = parts[1].toLowerCase().trim();
                     String blocks = Util.int2str(Util.str2int(parts[0]));
                     heading = "&f&r" + Util.df(stown) + "&7&o is &f&r" + blocks + "&7&o blocks away, heading: &f&r" + parts[2];
@@ -2392,7 +2402,7 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
             } else {
                 Util.list_postal_tree(player, false, null);
             }
-            Util.pinform(player, "&7&oNeed more letters for post office.  See list:");
+            Util.pinform(player, "&7&oNeed more letters for post office. See list:");
             return true;
         }
         Util.pinform(player, "");
@@ -2408,7 +2418,7 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
 
     public static boolean alist_con(boolean console, CommandSender sender, String cmd, String[] args) {
         if ((args.length < 1) || ("?".equals(args[0]))) {
-            Util.con_type("Usage: alist <PostOffice>   to list post office addresses.");
+            Util.con_type("Usage: alist <PostOffice> to list post office addresses.");
             return true;
         }
         String stown = C_Postoffice.town_complete(args[0]);
@@ -2418,11 +2428,11 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
             } else {
                 Util.list_postal_tree(null, false, null);
             }
-            Util.con_type(" Need more letters for post office.  See list:");
+            Util.con_type(" Need more letters for post office. See list:");
             return true;
         }
         Util.con_type("Addresses for " + Util.df(stown) + ":");
-        com.vodhanel.minecraft.va_postal.config.C_List.list_addresses_con(stown);
+        C_List.list_addresses_con(stown);
         return true;
     }
 
@@ -2432,7 +2442,7 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
             return true;
         }
         if ((args.length == 1) && (("help".equalsIgnoreCase(args[0])) || ("?".equals(args[0])))) {
-            Util.pinform(player, "&7&oUsage: &f&r/plist <string match>   &7&oto list player ownerships.");
+            Util.pinform(player, "&7&oUsage: &f&r/plist <string match> &7&oto list player ownerships.");
             return true;
         }
 
@@ -2478,11 +2488,11 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
             return true;
         }
 
-        String splayer = "null";
-        if (args.length > 0) {
-            splayer = Util.player_complete(args[0]);
-        }
-        if ("null".equals(splayer)) {
+        Player arg_player = null;
+
+        arg_player = Util.player_complete(args[0]);
+
+        if (arg_player == null) {
             String search_string = args[0].toLowerCase().trim();
             Util.player_list_match(player, search_string);
             Util.pinform(player, "&7&oUse: '/plist <player>' to find player addreses");
@@ -2492,22 +2502,22 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
 
         int a_hits = 0;
         int p_hits = 0;
-        String srch_param = splayer.toLowerCase().trim();
+        Player srch_param = arg_player;
         Util.pinform(player, "");
-        Util.pinform(player, "&f&l" + Util.df(splayer));
+        Util.pinform(player, "&f&l" + arg_player);
         String[] town_list = C_Arrays.town_list();
         if (town_list == null) {
             return true;
         }
         for (String stown : town_list) {
-            String sworld = com.vodhanel.minecraft.va_postal.config.C_List.get_world(C_Postoffice.get_local_po_location_by_name(stown));
+            String sworld = C_List.get_world(C_Postoffice.get_local_po_location_by_name(stown));
             String dstown = fixed_len(Util.df(stown), 15, "-");
             sworld = Util.df(sworld);
-            String po_owner = "Server";
+            Player po_owner;
             String saddress = fixed_len("Post-Office", 15, "-");
             if (C_Owner.is_local_po_owner_defined(stown)) {
-                po_owner = C_Owner.get_owner_local_po(stown).toLowerCase().trim();
-                if (po_owner.equals(srch_param)) {
+                po_owner = C_Owner.get_owner_local_po(stown);
+                if (po_owner == srch_param) {
                     Util.pinform(player, "    &6&o" + dstown + "  &6&o" + saddress + "  &f&o" + sworld);
                     p_hits++;
                 }
@@ -2518,8 +2528,8 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
                 for (String anAddr_list : addr_list) {
                     saddress = anAddr_list;
                     if (C_Owner.is_address_owner_defined(stown, saddress)) {
-                        String addr_owner = C_Owner.get_owner_address(stown, saddress).toLowerCase().trim();
-                        if (addr_owner.equals(srch_param)) {
+                        Player addr_owner = C_Owner.get_owner_address(stown, saddress);
+                        if (addr_owner == srch_param) {
                             saddress = fixed_len(Util.df(saddress), 15, "-");
                             Util.pinform(player, "    &a&o" + dstown + "  &a&o" + saddress + "  &f&o" + sworld);
                             a_hits++;
@@ -2534,14 +2544,12 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
 
     public static boolean plist_con(boolean console, CommandSender sender, String cmd, String[] args) {
         if ((args.length == 0) || ((args.length == 1) && ("help".equalsIgnoreCase(args[0]))) || ("?".equals(args[0]))) {
-            Util.con_type("Usage: /plist <string match>   to list player ownerships.");
+            Util.con_type("Usage: /plist <string match> to list player ownerships.");
             return true;
         }
-        String splayer = "null";
-        if (args.length > 0) {
-            splayer = Util.player_complete(args[0]);
-        }
-        if ("null".equals(splayer)) {
+        Player arg_player;
+        arg_player = Util.player_complete(args[0]);
+        if (arg_player == null) {
             String search_string = args[0].toLowerCase().trim();
             Util.player_list_match_con(search_string);
             Util.con_type("Use: '/plist <player>' to find player addreses");
@@ -2551,22 +2559,22 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
 
         int a_hits = 0;
         int p_hits = 0;
-        String srch_param = splayer.toLowerCase().trim();
+        Player srch_param = arg_player;
         Util.con_type("");
-        Util.con_type(Util.df(splayer));
+        Util.con_type(arg_player.toString());
         String[] town_list = C_Arrays.town_list();
         if (town_list == null) {
             return true;
         }
         for (String stown : town_list) {
-            String sworld = com.vodhanel.minecraft.va_postal.config.C_List.get_world(C_Postoffice.get_local_po_location_by_name(stown));
+            String sworld = C_List.get_world(C_Postoffice.get_local_po_location_by_name(stown));
             String dstown = fixed_len(Util.df(stown), 15, "-");
             sworld = Util.df(sworld);
-            String po_owner = "Server";
+            Player po_owner;
             String saddress = fixed_len("Post-Office", 15, "-");
             if (C_Owner.is_local_po_owner_defined(stown)) {
-                po_owner = C_Owner.get_owner_local_po(stown).toLowerCase().trim();
-                if (po_owner.equals(srch_param)) {
+                po_owner = C_Owner.get_owner_local_po(stown);
+                if (po_owner == srch_param) {
                     Util.con_type("\033[0;33m    " + dstown + "  " + saddress + "  " + sworld);
                     p_hits++;
                 }
@@ -2577,8 +2585,8 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
                 for (String anAddr_list : addr_list) {
                     saddress = anAddr_list;
                     if (C_Owner.is_address_owner_defined(stown, saddress)) {
-                        String addr_owner = C_Owner.get_owner_address(stown, saddress).toLowerCase().trim();
-                        if (addr_owner.equals(srch_param)) {
+                        Player addr_owner = C_Owner.get_owner_address(stown, saddress);
+                        if (addr_owner == srch_param) {
                             saddress = fixed_len(Util.df(saddress), 15, "-");
                             Util.con_type("\033[0;32m    " + dstown + "  " + saddress + "  " + sworld);
                             a_hits++;
@@ -2598,7 +2606,7 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
             return true;
         }
         if ((args.length == 1) && ("?".equals(args[0]))) {
-            Util.pinform(player, "&7&oUsage: &f&r/showroute <PostOffice> <Address>   &7&oto highlite waypoints on a route");
+            Util.pinform(player, "&7&oUsage: &f&r/showroute <PostOffice> <Address> &7&oto highlite waypoints on a route");
             return true;
         }
         String stown = "";
@@ -2608,7 +2616,7 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
             String[] geo_addr = C_Arrays.geo_addr_list_sorted(player);
             if ((geo_addr != null) && (geo_addr.length > 0)) {
                 String[] parts = geo_addr[0].split(",");
-                if ((parts != null) && (parts.length == 4)) {
+                if (parts.length == 4) {
                     int dist = Util.str2int(parts[0]);
                     int max_dist = VA_postal.allowed_geo_proximity;
                     if (dist > max_dist) {
@@ -2632,7 +2640,7 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
                 } else {
                     Util.list_postal_tree(player, false, null);
                 }
-                Util.pinform(player, "&7&oPost office does not exist.  See list:");
+                Util.pinform(player, "&7&oPost office does not exist. See list:");
                 return true;
             }
             saddress = C_Address.addresses_complete(stown, args[1]);
@@ -2655,13 +2663,13 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
 
 
         if (is_player_comfirmation_registered(player)) {
-            com.vodhanel.minecraft.va_postal.listeners.RouteEditor.place_route_markers(stown, saddress);
-            Util.pinform(player, "Waypoints have been highlighted for:  " + Util.df(stown) + ", " + Util.df(saddress));
+            RouteEditor.place_route_markers(stown, saddress);
+            Util.pinform(player, "Waypoints have been highlighted for: " + Util.df(stown) + ", " + Util.df(saddress));
 
-            com.vodhanel.minecraft.va_postal.common.VA_Timers.hideroute(stown, saddress);
+            VA_Timers.hideroute();
             deregister_player_comfirmation(player);
         } else {
-            Util.pinform(player, "Ready to highlighted waypoints for:  " + Util.df(stown) + ", " + Util.df(saddress));
+            Util.pinform(player, "Ready to highlighted waypoints for: " + Util.df(stown) + ", " + Util.df(saddress));
             String scommand = "/showroute " + stown + " " + saddress;
             register_player_comfirmation(player, scommand);
         }
@@ -2680,7 +2688,7 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
             } else {
                 Util.list_postal_tree(null, false, null);
             }
-            Util.con_type("Need more letters for post office.  See list:");
+            Util.con_type("Need more letters for post office. See list:");
             return true;
         }
         String saddress = C_Address.addresses_complete(stown, args[1]);
@@ -2690,19 +2698,19 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
             } else {
                 Util.list_postal_tree(null, true, stown);
             }
-            Util.con_type("Need more letters for address.  See list:");
+            Util.con_type("Need more letters for address. See list:");
             return true;
         }
 
 
         if (is_player_comfirmation_registered(null)) {
             RouteEditor.place_route_markers(stown, saddress);
-            Util.con_type("Waypoints have been highlighted for:  " + Util.df(stown) + ", " + Util.df(saddress));
+            Util.con_type("Waypoints have been highlighted for: " + Util.df(stown) + ", " + Util.df(saddress));
 
-            VA_Timers.hideroute(stown, saddress);
+            VA_Timers.hideroute();
             deregister_player_comfirmation(null);
         } else {
-            Util.cinform("Ready to highlight waypoints for:  " + Util.df(stown) + ", " + Util.df(saddress));
+            Util.cinform("Ready to highlight waypoints for: " + Util.df(stown) + ", " + Util.df(saddress));
             String scommand = "showroute " + stown + " " + saddress;
             register_player_comfirmation(null, scommand);
         }
@@ -2711,7 +2719,7 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
     }
 
     public static boolean is_player_comfirmation_registered(Player player) {
-        String splayer = null;
+        String splayer;
         if (player != null) {
             splayer = player.getName();
         } else {
@@ -2729,7 +2737,7 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
     }
 
     public static String get_registered_comfirmation_cmd(Player player) {
-        String splayer = null;
+        String splayer;
         if (player != null) {
             splayer = player.getName();
         } else {
@@ -2745,7 +2753,7 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
     }
 
     public static void deregister_player_comfirmation(Player player) {
-        String splayer = null;
+        String splayer;
         if (player != null) {
             splayer = player.getName();
         } else {
@@ -2760,7 +2768,7 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
     }
 
     public static void register_player_comfirmation(Player player, String scommand) {
-        String splayer = null;
+        String splayer;
         if (player != null) {
             splayer = player.getName();
         } else {
@@ -2784,9 +2792,9 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
     }
 
     public static void age_confirm_queue() {
-        int elapsed = -1;
-        String splayer = "";
-        String scommand = "";
+        int elapsed;
+        String splayer;
+        String scommand;
         if (confirm_queue_dirty) {
             for (int i = 0; i < command_confirm.length; i++) {
                 splayer = command_confirm[i][0];
@@ -2796,7 +2804,7 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
                         scommand = command_confirm[i][1];
                         clear_row(i);
                         if (!"console".equals(splayer)) {
-                            Util.spinform(splayer, "&e&oConfirm timeout: &r&o" + scommand);
+                            Util.spinform(Util.str2player(splayer), "&e&oConfirm timeout: &r&o" + scommand);
                         } else {
                             Util.cinform("\033[0;33mConfirm timeout: \033[0;37m" + scommand);
                         }
@@ -2823,14 +2831,14 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
         try {
             long time = System.currentTimeMillis() / 1000L;
             return Long.toString(time);
-        } catch (Exception e) {
+        } catch (Exception ignored) {
         }
         return "null";
     }
 
     public static int elapse_seconds(String stime) {
-        long current_time = -1L;
-        long saved_time = -1L;
+        long current_time;
+        long saved_time;
         try {
             saved_time = Long.parseLong(stime);
         } catch (NumberFormatException numberFormatException) {
@@ -2870,16 +2878,18 @@ public class Cmdexecutor implements org.bukkit.command.CommandExecutor {
                 return input.substring(0, len);
             }
 
-            while (input.length() < len) {
-                input = input + filler;
+            StringBuilder inputBuilder = new StringBuilder(input);
+            while (inputBuilder.length() < len) {
+                inputBuilder.append(filler);
             }
+            input = inputBuilder.toString();
             return input;
         } catch (Exception e) {
-            String blank = "";
+            StringBuilder blank = new StringBuilder();
             for (int i = 0; i < len; i++) {
-                blank = blank + filler;
+                blank.append(filler);
             }
-            return blank;
+            return blank.toString();
         }
     }
 

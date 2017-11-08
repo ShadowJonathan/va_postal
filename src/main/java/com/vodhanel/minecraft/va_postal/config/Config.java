@@ -114,9 +114,9 @@ public class Config {
         VA_postal.plugin.getConfig().addDefault(path40, "true");
         VA_postal.plugin.getConfig().addDefault(path41, "0");
         VA_postal.plugin.getConfig().addDefault(path42, "false");
-        VA_postal.plugin.getConfig().addDefault(path43, "&9I wish I had time to chat, but gotto do my rounds.  By!");
-        VA_postal.plugin.getConfig().addDefault(path44, "&9I don't have any mail for you,&b %player% &9maybe next time.");
-        VA_postal.plugin.getConfig().addDefault(path45, "&9Pardon me.  That was awful clumsy of me.");
+        VA_postal.plugin.getConfig().addDefault(path43, "&9I wish I had time to chat, but gotto do my rounds. Bye!");
+        VA_postal.plugin.getConfig().addDefault(path44, "&9I don't have any mail for you, &b%player% &9maybe next time.");
+        VA_postal.plugin.getConfig().addDefault(path45, "&9Pardon me. That was awful clumsy of me.");
         VA_postal.plugin.getConfig().addDefault(path46, "&aType '/postal' for post office commands.");
         VA_postal.plugin.getConfig().addDefault(path47, "152");
         VA_postal.plugin.getConfig().addDefault(path48, "true");

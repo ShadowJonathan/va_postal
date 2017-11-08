@@ -5,6 +5,7 @@ import com.vodhanel.minecraft.va_postal.common.AnsiColor;
 import com.vodhanel.minecraft.va_postal.common.P_Dynmap;
 import com.vodhanel.minecraft.va_postal.common.Util;
 import com.vodhanel.minecraft.va_postal.common.VA_Dispatcher;
+import com.vodhanel.minecraft.va_postal.navigation.ID_WTR;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 
@@ -69,7 +70,7 @@ public class C_Postoffice {
     public static synchronized void delete_npc(String queue) {
         if (C_Queue.npc_exist_for_queue_pair(queue)) {
             int id = C_Queue.npc_id_for_queue_pair(queue);
-            com.vodhanel.minecraft.va_postal.navigation.ID_WTR.clear_goal(id);
+            ID_WTR.clear_goal(id);
             if (VA_postal.wtr_npc[id] != null) {
                 VA_postal.wtr_npc[id].destroy();
                 VA_postal.wtr_npc[id] = null;

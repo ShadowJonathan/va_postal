@@ -119,9 +119,6 @@ public class Goal_WTR implements Goal {
 
     public boolean shouldExecute(GoalSelector selector) {
         VA_postal.wtr_goalselector[id] = selector;
-        if (ID_WTR.npc_should_run(id)) {
-            return true;
-        }
-        return false;
+        return ID_WTR.npc_should_run(id);
     }
 }

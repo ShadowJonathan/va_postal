@@ -4,7 +4,7 @@ description: Postal system manager.
 author: Vodhanel
 main: com.vodhanel.minecraft.va_postal.VA_postal
 depend: [Citizens]
-softdepend: [Vault, dynmap, WorldGuard, Towny]
+softdepend: [Vault, dynmap, WorldGuard, Towny, ParticleLIB]
 commands:
   postal:
     description: Administration and general help.

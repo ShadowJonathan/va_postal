@@ -1,7 +1,9 @@
 package com.vodhanel.minecraft.va_postal.mail;
 
 import com.vodhanel.minecraft.va_postal.VA_postal;
+import com.vodhanel.minecraft.va_postal.common.Util;
 import org.bukkit.Material;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BookMeta;
 
@@ -40,8 +42,6 @@ public class Book {
             for (int i = 0; i < sPages.length; i++) {
                 pages[i] = sPages[i].toString();
             }
-            lpages = null;
-            sPages = null;
         }
     }
 
@@ -52,29 +52,24 @@ public class Book {
         this.pages = pages;
     }
 
-    public boolean is_valid() {
-        if (!valid_book) {
-            return false;
-        }
-        if (title == null) {
-            return false;
-        }
-        if (title.isEmpty()) {
-            return false;
-        }
-        if (author == null) {
-            return false;
-        }
-        if (author.isEmpty()) {
-            return false;
-        }
-        if (pages == null) {
-            return false;
-        }
-        if (pages.length == 0) {
-            return false;
-        }
-        return true;
+    public static String makeFirstMailPage(String town, String address, String attention, String mf1, String mf2, String author, String title, String fdate, Player Author, Player Attention) {
+        String spage = "";
+        spage += "§7§oTo:\n";
+        spage += "§c  " + town + "\n";
+        spage += "§9  " + address + "\n";
+        spage += "§7§oAttention:\n";
+        spage += "§2  " + attention + "\n";
+        spage += "§7§oMailed from:\n";
+        spage += "§7  " + (mf1 == null || mf1.isEmpty() ? "[not-processed]" : mf1) + "\n";
+        spage += "§7  " + (mf2 == null || mf2.isEmpty() ? "[not-processed]" : mf2) + "\n";
+        spage += "§7§oWritten by:\n";
+        spage += "§8  " + author + "\n";
+        spage += "§8  " + title + "\n";
+        spage += "\n";
+        spage += "§7" + fdate + "\n";
+        spage += (Author != null ? Author.getUniqueId() : "") + "\n";
+        spage += (Attention != null ? Attention.getUniqueId() : "") + "\n";
+        return spage;
     }
 
     public String getAuthor() {
@@ -156,6 +151,37 @@ public class Book {
         return "null";
     }
 
+    public static String makeFirstLogPage(String sworld, String slocation_mod, String saddress, String sowner, Player owner) {
+        String p1 = sworld + "\n";
+        p1 += slocation_mod + "\n";
+        p1 += saddress + "\n";
+        p1 += sowner + "\n";
+        p1 += "§2" + "[" + Util.stime_stamp() + "]\n";
+        p1 += "\n\n\n\n\n\n\n\n" + (owner != null ? owner.getUniqueId() : "");
+        return p1;
+    }
+
+    public boolean is_valid() {
+        if (!valid_book) {
+            return false;
+        }
+        if (title == null) {
+            return false;
+        }
+        if (title.isEmpty()) {
+            return false;
+        }
+        if (author == null) {
+            return false;
+        }
+        if (author.isEmpty()) {
+            return false;
+        }
+        if (pages == null) {
+            return false;
+        }
+        return pages.length != 0;
+    }
 
     public boolean setPage(int page, String text) {
         int index = page;
@@ -171,7 +197,7 @@ public class Book {
                 } else {
                     sPages[i] = " ";
                     if (!new_itemstack) {
-                        bookData.addPage(new String[]{" "});
+                        bookData.addPage(" ");
                     }
                 }
             }
@@ -197,9 +223,29 @@ public class Book {
         newBookData.setAuthor(author);
         newBookData.setTitle(title);
         for (int i = 0; i < pages.length; i++) {
-            newBookData.addPage(new String[]{pages[i]});
+            newBookData.addPage(pages[i]);
         }
         newbook.setItemMeta(newBookData);
         return newbook;
+    }
+
+    public Player extractEmbeddedAuthor() {
+        String[] parts = getPage(1).split("\n");
+        if (parts.length > 13) {
+            return Util.UUID2Player(parts[14].trim());
+        }
+        return null;
+    }
+
+    public Player extractEmbeddedOwner() {
+        return extractEmbeddedAuthor();
+    }
+
+    public Player extractEmbeddedReceipient() {
+        String[] parts = getPage(1).split("\n");
+        if (parts.length > 14) {
+            return Util.UUID2Player(parts[15].trim());
+        }
+        return null;
     }
 }

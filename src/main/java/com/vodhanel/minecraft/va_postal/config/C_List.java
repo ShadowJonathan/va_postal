@@ -33,8 +33,8 @@ public class C_List {
     public static synchronized void list_local_po(Player player, String path) {
         path = GetConfig.path_format(path);
 
-        String town = "";
-        String slocation = "";
+        String town;
+        String slocation;
         ConfigurationSection cs = VA_postal.configsettings.getConfigurationSection(path);
         if (cs != null) {
             Set<String> child_keys = cs.getKeys(false);
@@ -66,10 +66,11 @@ public class C_List {
     }
 
     public static synchronized void list_addresses_con(String spoffice) {
-        String saddress = "";
-        String sowner = "";
-        String sinterval = "";
-        String display = "";
+        String saddress;
+        String sowner;
+        Player owner;
+        String sinterval;
+        String display;
         String path = GetConfig.path_format("address." + spoffice);
         ConfigurationSection cs = VA_postal.configsettings.getConfigurationSection(path);
         if (cs != null) {
@@ -81,30 +82,33 @@ public class C_List {
                 try {
                     for (Object a_child_key : a_child_keys) {
                         saddress = a_child_key.toString().trim();
-                        sowner = C_Owner.get_owner_address(spoffice, saddress);
+                        owner = C_Owner.get_owner_address(spoffice, saddress);
                         sinterval = C_Address.get_addr_interval(spoffice, saddress);
                         total += Integer.parseInt(sinterval);
                         sinterval = "Seconds: " + sinterval;
                         saddress = fixed_len(Util.df(saddress), 20, " ");
-                        if ("null".equals(sowner)) {
+                        if (owner == null || owner == VA_postal.SERVER) {
                             sowner = "Server";
+                        } else {
+                            sowner = owner.getDisplayName();
                         }
                         sowner = fixed_len(sowner, 20, " ");
                         display = saddress + sowner + sinterval;
                         Util.cinform("    " + display);
                     }
-                } catch (NumberFormatException numberFormatException) {
+                } catch (NumberFormatException ignored) {
                 }
-                Util.cinform("Total of all routes in seconds:  " + total);
+                Util.cinform("Total of all routes in seconds: " + total);
             }
         }
     }
 
     public static synchronized void list_towns(Player player) {
-        String stown = "";
-        String sowner = "";
-        String sworld = "";
-        String display = "";
+        String stown;
+        String sowner;
+        Player owner;
+        String sworld;
+        String display;
         String path = GetConfig.path_format("postoffice.local");
         ConfigurationSection cs = VA_postal.configsettings.getConfigurationSection(path);
         if (cs != null) {
@@ -115,11 +119,11 @@ public class C_List {
                 Arrays.sort(a_child_keys);
                 for (Object a_child_key : a_child_keys) {
                     stown = a_child_key.toString().trim();
-                    sowner = C_Owner.get_owner_local_po(stown);
-                    if ("null".equals(sowner)) {
+                    owner = C_Owner.get_owner_local_po(stown);
+                    if (owner == null || owner == VA_postal.SERVER) {
                         sowner = "&7&oServer";
                     } else {
-                        sowner = "&f&r" + sowner;
+                        sowner = "&f&r" + owner.getDisplayName();
                     }
                     sowner = fixed_len(sowner + "&7&o", 28, "-");
                     sworld = "&7&o" + get_world(C_Postoffice.get_local_po_location_by_name(stown));
@@ -129,15 +133,16 @@ public class C_List {
                     hits++;
                 }
             }
-            Util.pinform(player, "&7&oHits:  &f&r" + hits);
+            Util.pinform(player, "&7&oHits: &f&r" + hits);
         }
     }
 
     public static synchronized void list_towns_con() {
-        String stown = "";
-        String sowner = "";
-        String sworld = "";
-        String display = "";
+        String stown;
+        String sowner;
+        Player owner;
+        String sworld;
+        String display;
         String path = GetConfig.path_format("postoffice.local");
         ConfigurationSection cs = VA_postal.configsettings.getConfigurationSection(path);
         if (cs != null) {
@@ -148,9 +153,11 @@ public class C_List {
                 Arrays.sort(a_child_keys);
                 for (Object a_child_key : a_child_keys) {
                     stown = fixed_len(Util.df(a_child_key.toString()), 20, " ");
-                    sowner = C_Owner.get_owner_local_po(stown);
-                    if ("null".equals(sowner)) {
-                        sowner = "Server";
+                    owner = C_Owner.get_owner_local_po(stown);
+                    if (owner == null || owner == VA_postal.SERVER) {
+                        sowner = "&7&oServer";
+                    } else {
+                        sowner = "&f&r" + owner.getDisplayName();
                     }
                     sowner = fixed_len(sowner, 20, " ");
                     sworld = get_world(C_Postoffice.get_local_po_location_by_name(stown));
@@ -159,7 +166,7 @@ public class C_List {
                     hits++;
                 }
             }
-            Util.cinform("Hits:  " + hits);
+            Util.cinform("Hits: " + hits);
         }
     }
 
@@ -186,7 +193,7 @@ public class C_List {
 
     public static synchronized String get_world(String slocation) {
         try {
-            String[] parts = new String[4];
+            String[] parts;
             parts = slocation.split(",");
             return GetConfig.proper(parts[0]).trim();
         } catch (Exception e) {

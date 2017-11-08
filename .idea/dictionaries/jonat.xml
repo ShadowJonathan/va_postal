@@ -2,6 +2,9 @@
   <dictionary name="jonat">
     <words>
       <w>bukkit</w>
+      <w>npcs</w>
+      <w>splayer</w>
+      <w>stown</w>
     </words>
   </dictionary>
 </component>

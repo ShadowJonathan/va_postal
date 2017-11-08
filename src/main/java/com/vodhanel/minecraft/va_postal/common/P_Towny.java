@@ -2,15 +2,15 @@ package com.vodhanel.minecraft.va_postal.common;
 
 import com.palmergames.bukkit.towny.exceptions.NotRegisteredException;
 import com.palmergames.bukkit.towny.object.*;
+import com.palmergames.bukkit.towny.utils.PlayerCacheUtil;
 import com.vodhanel.minecraft.va_postal.VA_postal;
-import com.vodhanel.minecraft.va_postal.config.C_Postoffice;
-import com.vodhanel.minecraft.va_postal.config.C_Towny;
+import com.vodhanel.minecraft.va_postal.commands.Cmdexecutor;
+import com.vodhanel.minecraft.va_postal.config.*;
 import org.bukkit.Location;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 
-import java.util.Enumeration;
-import java.util.Hashtable;
-import java.util.List;
+import java.util.*;
 
 public class P_Towny {
     VA_postal plugin;
@@ -24,23 +24,23 @@ public class P_Towny {
             String sloc = VA_postal.wtr_schest_location_postoffice[id];
             Location loc = Util.str2location(sloc);
             update_town_by_loc(stown, loc);
-            String name = towny_mayor_by_loc(loc);
-            if (!name.equals("not_towny")) {
-                if (name.equals("not_mayor")) {
-                    if (com.vodhanel.minecraft.va_postal.config.C_Owner.is_local_po_owner_defined(stown)) {
-                        com.vodhanel.minecraft.va_postal.config.C_Owner.del_owner_local_po(stown);
-                        Util.cinform("Towny override: mayer removed from:  " + Util.df(stown));
+            Map.Entry<String, Player> mayor = towny_mayor_by_loc(loc);
+            if (!mayor.getKey().equals("not_towny")) {
+                if (mayor.getKey().equals("not_mayor")) {
+                    if (C_Owner.is_local_po_owner_defined(stown)) {
+                        C_Owner.del_owner_local_po(stown);
+                        Util.cinform("Towny override: mayer removed from: " + Util.df(stown));
                     }
 
-                } else if (com.vodhanel.minecraft.va_postal.config.C_Owner.is_local_po_owner_defined(stown)) {
-                    String tname = com.vodhanel.minecraft.va_postal.config.C_Owner.get_owner_local_po(stown);
-                    if (!tname.equalsIgnoreCase(name)) {
-                        com.vodhanel.minecraft.va_postal.config.C_Owner.set_owner_local_po(stown, name);
-                        Util.cinform("Towny override: New mayer:  " + Util.df(stown));
+                } else if (C_Owner.is_local_po_owner_defined(stown)) {
+                    Player local_po_owner = C_Owner.get_owner_local_po(stown);
+                    if (local_po_owner != mayor.getValue()) {
+                        C_Owner.set_owner_local_po(stown, mayor.getValue());
+                        Util.cinform("Towny override: New mayor: " + Util.df(stown));
                     }
                 } else {
-                    com.vodhanel.minecraft.va_postal.config.C_Owner.set_owner_local_po(stown, name);
-                    Util.cinform("Towny override: New mayer:  " + Util.df(stown));
+                    C_Owner.set_owner_local_po(stown, mayor.getValue());
+                    Util.cinform("Towny override: New mayor: " + Util.df(stown));
                 }
             }
         }
@@ -50,8 +50,8 @@ public class P_Towny {
     public static void update_town_by_loc(String postal_town, Location location) {
         if ((VA_postal.towny_configured) && (VA_postal.towny_opt_in)) {
             WorldCoord wc = WorldCoord.parseWorldCoord(location);
-            com.palmergames.bukkit.towny.object.Coord coord = wc.getCoord();
-            TownyWorld tworld = null;
+            Coord coord = wc.getCoord();
+            TownyWorld tworld;
             try {
                 tworld = wc.getTownyWorld();
             } catch (NotRegisteredException e) {
@@ -61,8 +61,8 @@ public class P_Towny {
                 return;
             }
             if (tworld.hasTownBlock(coord)) {
-                TownBlock tblock = null;
-                Town town = null;
+                TownBlock tblock;
+                Town town;
                 try {
                     tblock = wc.getTownBlock();
                 } catch (NotRegisteredException e) {
@@ -169,7 +169,7 @@ public class P_Towny {
     public static boolean is_waypoint_limit(Player player, String postal_town, String saddress) {
         if ((VA_postal.towny_configured) && (VA_postal.towny_opt_in) &&
                 (is_this_a_town_by_loc(player))) {
-            int last_waypoint = com.vodhanel.minecraft.va_postal.config.C_Route.get_last_waypoint_position(postal_town, saddress);
+            int last_waypoint = C_Route.get_last_waypoint_position(postal_town, saddress);
             int allowed_points = C_Towny.wypnts_per_addr();
             if (last_waypoint >= allowed_points) {
                 Util.pinform(player, "&e&oYou have reached your waypoint count limit");
@@ -194,9 +194,8 @@ public class P_Towny {
             return true;
         }
 
-        if (com.vodhanel.minecraft.va_postal.config.C_Route.is_waypoint_defined(postal_town, saddress, 0)) {
-            String splayer = player.getName().toLowerCase().trim();
-            String slocation = com.vodhanel.minecraft.va_postal.config.C_Route.get_waypoint_location(postal_town, saddress, 0);
+        if (C_Route.is_waypoint_defined(postal_town, saddress, 0)) {
+            String slocation = C_Route.get_waypoint_location(postal_town, saddress, 0);
             Location way_loc = Util.str2location(slocation);
             String wp_town = get_town_name_by_loc(way_loc);
             slocation = C_Postoffice.get_local_po_location_by_name(postal_town);
@@ -204,16 +203,16 @@ public class P_Towny {
             String po_town = get_town_name_by_loc(po_loc);
             int dist_allowed = VA_postal.search_distance;
             if ((way_loc.distance(po_loc) <= dist_allowed) && (wp_town.equalsIgnoreCase(po_town))) {
-                slocation = com.vodhanel.minecraft.va_postal.config.C_Route.get_last_waypoint_location(postal_town, saddress);
+                slocation = C_Route.get_last_waypoint_location(postal_town, saddress);
                 way_loc = Util.str2location(slocation);
                 wp_town = get_town_name_by_loc(way_loc);
-                if (is_towny_admin_by_db(splayer, postal_town)) {
+                if (is_towny_admin_by_db(player, postal_town)) {
                     if (wp_town.equalsIgnoreCase(po_town)) {
                         return true;
                     }
                 } else {
-                    String plot_owner = towny_addr_owner_by_loc(way_loc);
-                    if (plot_owner.equalsIgnoreCase(player.getName())) {
+                    Player plot_owner = towny_addr_owner_by_loc(way_loc).getValue();
+                    if (plot_owner == player) {
                         return true;
                     }
                 }
@@ -226,41 +225,42 @@ public class P_Towny {
             Util.pinform(player, "&6&oOP override, you may continue.");
             return true;
         }
-        com.vodhanel.minecraft.va_postal.config.C_Dispatcher.open_address(postal_town, saddress, false);
+        C_Dispatcher.open_address(postal_town, saddress, false);
         return false;
     }
 
 
     public static void list_towny_locals(Player player) {
-        String stown = "";
-        String sowner = "";
-        String sworld = "";
-        String display = "";
-        String path = com.vodhanel.minecraft.va_postal.config.GetConfig.path_format("postoffice.local");
-        org.bukkit.configuration.ConfigurationSection cs = VA_postal.configsettings.getConfigurationSection(path);
+        String stown;
+        Player owner;
+        String sowner;
+        String sworld;
+        String display;
+        String path = GetConfig.path_format("postoffice.local");
+        ConfigurationSection cs = VA_postal.configsettings.getConfigurationSection(path);
         if (cs != null) {
             int hits = 0;
-            java.util.Set<String> child_keys = cs.getKeys(false);
+            Set<String> child_keys = cs.getKeys(false);
             if (child_keys.size() > 0) {
                 Object[] a_child_keys = child_keys.toArray();
-                java.util.Arrays.sort(a_child_keys);
+                Arrays.sort(a_child_keys);
                 for (Object a_child_key : a_child_keys) {
                     stown = a_child_key.toString().trim();
                     if (C_Towny.is_towny_town_defined(stown)) {
                         if (hits == 0) {
                             Util.pinform(player, "&7&oTowny Post Offices: ");
                         }
-                        sowner = com.vodhanel.minecraft.va_postal.config.C_Owner.get_owner_local_po(stown);
-                        if ("null".equals(sowner)) {
+                        owner = C_Owner.get_owner_local_po(stown);
+                        if (owner != null) {
                             sowner = "&7&oServer";
                         } else {
-                            sowner = "&f&r" + sowner;
+                            sowner = "&f&r" + owner.getDisplayName();
                         }
                         sowner = fixed_len(sowner + "&7&o", 28, "-");
                         sworld = "&7&o" + get_world(C_Postoffice.get_local_po_location_by_name(stown));
                         stown = fixed_len("&f&r" + Util.df(stown) + "&7&o", 28, "-");
                         display = stown + sowner + sworld;
-                        Util.pinform(player, "  " + display);
+                        Util.pinform(player, " " + display);
                         hits++;
                     }
                 }
@@ -272,13 +272,14 @@ public class P_Towny {
     }
 
     public static void list_towny_addr(Player player, String spoffice) {
-        String saddress = "";
-        String sowner = "";
-        String sinterval = "";
+        String saddress;
+        String sowner;
+        Player owner;
+        String sinterval;
         String sworld = "";
-        String display = "";
-        String path = com.vodhanel.minecraft.va_postal.config.GetConfig.path_format("address." + spoffice);
-        org.bukkit.configuration.ConfigurationSection cs = VA_postal.configsettings.getConfigurationSection(path);
+        String display;
+        String path = GetConfig.path_format("address." + spoffice);
+        ConfigurationSection cs = VA_postal.configsettings.getConfigurationSection(path);
         if (cs != null) {
             if (C_Towny.is_towny_town_defined(spoffice)) {
                 String towny_town = C_Towny.get_towny_town(spoffice);
@@ -287,32 +288,32 @@ public class P_Towny {
                 Util.pinform(player, "&7&oPost Office for Postal town: " + Util.df(spoffice));
             }
 
-            java.util.Set<String> child_keys = cs.getKeys(false);
+            Set<String> child_keys = cs.getKeys(false);
             if (child_keys.size() > 0) {
                 Object[] a_child_keys = child_keys.toArray();
-                java.util.Arrays.sort(a_child_keys);
+                Arrays.sort(a_child_keys);
                 int total = 0;
                 try {
                     for (Object a_child_key : a_child_keys) {
                         saddress = a_child_key.toString().trim();
-                        sowner = com.vodhanel.minecraft.va_postal.config.C_Owner.get_owner_address(spoffice, saddress);
-                        sinterval = com.vodhanel.minecraft.va_postal.config.C_Address.get_addr_interval(spoffice, saddress);
+                        sinterval = C_Address.get_addr_interval(spoffice, saddress);
                         total += Integer.parseInt(sinterval);
                         sinterval = "&7&oSeconds: &f&r" + sinterval;
                         saddress = fixed_len(Util.df(saddress) + "&7&o", 24, "-");
-                        if ("null".equals(sowner)) {
+                        owner = C_Owner.get_owner_address(spoffice, saddress);
+                        if (owner != null) {
                             sowner = "&7&oServer";
                         } else {
-                            sowner = "&f&r" + sowner;
+                            sowner = "&f&r" + owner.getDisplayName();
                         }
                         sowner = fixed_len(sowner + "&7&o", 28, "-");
                         display = saddress + sowner + sinterval;
-                        Util.pinform(player, "    " + display);
+                        Util.pinform(player, " " + display);
                     }
                 } catch (Exception e) {
                     return;
                 }
-                Util.pinform(player, "&7&oTotal of all routes in seconds:  &f&r" + total);
+                Util.pinform(player, "&7&oTotal of all routes in seconds: &f&r" + total);
             }
         }
     }
@@ -321,7 +322,7 @@ public class P_Towny {
         if (p_poffice != null) {
             p_poffice = p_poffice.toLowerCase().trim();
         }
-        String[] list = com.vodhanel.minecraft.va_postal.config.C_Arrays.towny_list_sorted();
+        String[] list = C_Arrays.towny_list_sorted();
         if (list == null) {
             return;
         }
@@ -343,19 +344,22 @@ public class P_Towny {
             fmt_fill = ".";
         }
 
-        String town = "";
-        String poffice = "";
-        String address = "";
+        String town;
+        String poffice;
+        String address;
         String l_town = "";
         String l_poffice = "";
-        String owner = "";
-        String mayor = "";
-        String slocation = "";
-        Location location = null;
-        String disp = "";
-        String sworld = "";
-        String distance = "";
-        String heading = "";
+        String sowner;
+        Player owner;
+        String smayor;
+        Player mayor;
+        Map.Entry<String, Player> m_entry;
+        String slocation;
+        Location location;
+        String disp;
+        String sworld;
+        String distance;
+        String heading;
 
         if (player != null) {
             Util.pinform(player, "");
@@ -364,19 +368,14 @@ public class P_Towny {
 
         for (int i = 0; i < list.length; i++) {
             String[] parts = list[i].split(",");
-            if ((parts != null) && (parts.length == 3)) {
+            if (parts.length == 3) {
                 town = parts[0];
                 poffice = parts[1];
                 address = parts[2];
 
 
-                srch_by_tny = false;
-
-
                 if (srch_by_tny ?
                         (p_poffice != null) && (!town.contains(p_poffice)) :
-
-
                         (p_poffice == null) || (poffice.contains(p_poffice))) {
 
 
@@ -385,8 +384,7 @@ public class P_Towny {
 
                     if (!town.equals(l_town)) {
                         first_towny = true;
-                        String dtown = "";
-                        disp = "";
+                        String dtown;
                         if (town.equals("postal")) {
                             dtown = "Postal Post Offices";
                         } else {
@@ -394,12 +392,14 @@ public class P_Towny {
                         }
                         slocation = C_Postoffice.get_local_po_location_by_name(poffice);
                         location = Util.str2location(slocation);
-                        mayor = towny_mayor_by_loc(location);
-                        if (mayor.contains("not_")) {
-                            mayor = "";
+                        m_entry = towny_mayor_by_loc(location);
+                        if (!Objects.equals(m_entry.getKey(), "OK")) {
+                            smayor = "";
+                        } else {
+                            smayor = m_entry.getValue().getDisplayName();
                         }
                         disp = fmt_tny + fixed_len(dtown.toUpperCase(), 19, fmt_fill);
-                        disp = disp + " " + fmt_myr + mayor.toUpperCase();
+                        disp = disp + " " + fmt_myr + smayor.toUpperCase();
                         if (player == null) {
                             if (i != 0) {
                                 Util.cinform("");
@@ -415,12 +415,11 @@ public class P_Towny {
 
 
                     if (!poffice.equals(l_poffice)) {
-                        disp = "";
-                        owner = "Server";
-                        if (com.vodhanel.minecraft.va_postal.config.C_Owner.is_local_po_owner_defined(poffice)) {
-                            owner = Util.df(com.vodhanel.minecraft.va_postal.config.C_Owner.get_owner_local_po(poffice));
+                        owner = VA_postal.SERVER;
+                        if (C_Owner.is_local_po_owner_defined(poffice)) {
+                            owner = C_Owner.get_owner_local_po(poffice);
                         }
-                        sworld = com.vodhanel.minecraft.va_postal.config.C_List.get_world(C_Postoffice.get_local_po_location_by_name(poffice));
+                        sworld = C_List.get_world(C_Postoffice.get_local_po_location_by_name(poffice));
                         disp = fmt_po + fixed_len(poffice.toUpperCase(), 17, fmt_fill);
                         disp = disp + " " + fmt_ownr + owner + " " + fmt_wrld + Util.df(sworld);
                         if (player == null) {
@@ -438,13 +437,12 @@ public class P_Towny {
 
 
                     if (detail) {
-                        disp = "";
-                        owner = " server";
-                        if (com.vodhanel.minecraft.va_postal.config.C_Owner.is_address_owner_defined(poffice, address)) {
-                            owner = " " + com.vodhanel.minecraft.va_postal.config.C_Owner.get_owner_address(poffice, address).toLowerCase();
+                        sowner = " server";
+                        if (C_Owner.is_address_owner_defined(poffice, address)) {
+                            sowner = " " + C_Owner.get_owner_address(poffice, address).getDisplayName().toLowerCase();
                         }
                         disp = fmt_addr + fixed_len(Util.df(address), 16, fmt_fill);
-                        disp = disp + fmt_ownr + owner;
+                        disp = disp + fmt_ownr + sowner;
                         if (player == null) {
                             Util.cinform("    " + disp);
                         } else {
@@ -457,26 +455,25 @@ public class P_Towny {
                 }
             }
         }
-        list = null;
 
 
         if (player != null) {
             Util.pinform(player, "");
             Util.pinform(player, "&7&oClose to your position:");
-            list = com.vodhanel.minecraft.va_postal.config.C_Arrays.geo_po_list_sorted(player);
+            list = C_Arrays.geo_po_list_sorted(player);
             if (list == null) {
                 return;
             }
             for (int i = 0; i < list.length; i++) {
                 String[] parts = list[i].split(",");
-                if ((parts != null) && (parts.length == 3)) {
+                if (parts.length == 3) {
                     distance = Util.int2str(Util.str2int(parts[0]));
                     poffice = fixed_len(parts[1].toUpperCase(), 16, fmt_fill);
                     heading = parts[2];
 
 
                     if (i >= 3) break;
-                    disp = fmt_po + poffice + "&f&l " + heading + "&a&o  " + distance + "&a&o  blocks away";
+                    disp = fmt_po + poffice + "&f&l " + heading + "&a&o " + distance + "&a&o blocks away";
                     Util.pinform(player, disp);
                 }
             }
@@ -491,15 +488,15 @@ public class P_Towny {
     public static String get_town_name_by_loc(Location location) {
         if ((VA_postal.towny_configured) && (VA_postal.towny_opt_in)) {
             WorldCoord wc = WorldCoord.parseWorldCoord(location);
-            com.palmergames.bukkit.towny.object.Coord coord = wc.getCoord();
-            TownyWorld tworld = null;
+            Coord coord = wc.getCoord();
+            TownyWorld tworld;
             try {
                 tworld = wc.getTownyWorld();
             } catch (NotRegisteredException e) {
                 return "null";
             }
             if (tworld.hasTownBlock(coord)) {
-                TownBlock tblock = null;
+                TownBlock tblock;
                 try {
                     tblock = wc.getTownBlock();
                 } catch (NotRegisteredException e) {
@@ -520,15 +517,15 @@ public class P_Towny {
     public static String get_town_uid_by_loc(Location location) {
         if ((VA_postal.towny_configured) && (VA_postal.towny_opt_in)) {
             WorldCoord wc = WorldCoord.parseWorldCoord(location);
-            com.palmergames.bukkit.towny.object.Coord coord = wc.getCoord();
-            TownyWorld tworld = null;
+            Coord coord = wc.getCoord();
+            TownyWorld tworld;
             try {
                 tworld = wc.getTownyWorld();
             } catch (NotRegisteredException e) {
                 return null;
             }
             if (tworld.hasTownBlock(coord)) {
-                TownBlock tblock = null;
+                TownBlock tblock;
                 try {
                     tblock = wc.getTownBlock();
                 } catch (NotRegisteredException e) {
@@ -536,7 +533,7 @@ public class P_Towny {
                 }
                 if (tblock.hasTown()) {
                     try {
-                        int uid = tblock.getTown().getUID().intValue();
+                        int uid = tblock.getTown().getUID();
                         return Integer.toHexString(uid);
                     } catch (NotRegisteredException e) {
                         return null;
@@ -547,44 +544,44 @@ public class P_Towny {
         return null;
     }
 
-    public static String towny_addr_owner_by_loc(Location location) {
+    public static Map.Entry<String, Player> towny_addr_owner_by_loc(Location location) {
         if ((VA_postal.towny_configured) && (VA_postal.towny_opt_in)) {
             WorldCoord wc = WorldCoord.parseWorldCoord(location);
-            com.palmergames.bukkit.towny.object.Coord coord = wc.getCoord();
-            TownyWorld tworld = null;
+            Coord coord = wc.getCoord();
+            TownyWorld tworld;
             try {
                 tworld = wc.getTownyWorld();
             } catch (NotRegisteredException e) {
-                return "not_towny";
+                return entry("not_towny", null);
             }
             if (tworld.hasTownBlock(coord)) {
-                TownBlock tblock = null;
-                Resident resident = null;
+                TownBlock tblock;
+                Resident resident;
                 try {
                     tblock = wc.getTownBlock();
                 } catch (NotRegisteredException e) {
-                    return "not_towny";
+                    return entry("not_towny", null);
                 }
                 try {
                     resident = tblock.getResident();
                 } catch (NotRegisteredException e) {
-                    return "un_owned_plot";
+                    return entry("un_owned_plot", null);
                 }
-                com.palmergames.bukkit.towny.object.TownBlockOwner towner = resident;
+                TownBlockOwner towner = resident;
                 if (tblock.isOwner(towner)) {
-                    return resident.getName();
+                    return entry("OK", (Player) resident);
                 }
-                return "un_owned_plot";
+                return entry("un_owned_plot", null);
             }
         }
 
-        return "not_towny";
+        return entry("not_towny", null);
     }
 
     public static boolean is_towny_plot_owner_by_loc(Player player) {
         if ((VA_postal.towny_configured) && (VA_postal.towny_opt_in)) {
-            String splayer = towny_addr_owner_by_loc(player.getLocation());
-            if (splayer.equalsIgnoreCase(player.getName())) {
+            Player nplayer = towny_addr_owner_by_loc(player.getLocation()).getValue();
+            if (nplayer != null) {
                 return true;
             }
         }
@@ -597,16 +594,16 @@ public class P_Towny {
             splayer = player.getName();
             Location location = player.getLocation();
             WorldCoord wc = WorldCoord.parseWorldCoord(location);
-            com.palmergames.bukkit.towny.object.Coord coord = wc.getCoord();
-            TownyWorld tworld = null;
+            Coord coord = wc.getCoord();
+            TownyWorld tworld;
             try {
                 tworld = wc.getTownyWorld();
             } catch (NotRegisteredException e) {
                 return false;
             }
             if (tworld.hasTownBlock(coord)) {
-                TownBlock tblock = null;
-                Town town = null;
+                TownBlock tblock;
+                Town town;
                 try {
                     tblock = wc.getTownBlock();
                 } catch (NotRegisteredException e) {
@@ -646,15 +643,15 @@ public class P_Towny {
     public static boolean is_this_a_town_by_loc(Location location) {
         if ((VA_postal.towny_configured) && (VA_postal.towny_opt_in)) {
             WorldCoord wc = WorldCoord.parseWorldCoord(location);
-            com.palmergames.bukkit.towny.object.Coord coord = wc.getCoord();
-            TownyWorld tworld = null;
+            Coord coord = wc.getCoord();
+            TownyWorld tworld;
             try {
                 tworld = wc.getTownyWorld();
             } catch (NotRegisteredException e) {
                 return false;
             }
             if (tworld.hasTownBlock(coord)) {
-                TownBlock tblock = null;
+                TownBlock tblock;
                 Town town = null;
                 try {
                     tblock = wc.getTownBlock();
@@ -669,43 +666,43 @@ public class P_Towny {
         return false;
     }
 
-    public static String towny_mayor_by_loc(Location location) {
+    public static Map.Entry<String, Player> towny_mayor_by_loc(Location location) {
         if ((VA_postal.towny_configured) && (VA_postal.towny_opt_in)) {
             WorldCoord wc = WorldCoord.parseWorldCoord(location);
-            com.palmergames.bukkit.towny.object.Coord coord = wc.getCoord();
-            TownyWorld tworld = null;
+            Coord coord = wc.getCoord();
+            TownyWorld tworld;
             try {
                 tworld = wc.getTownyWorld();
             } catch (NotRegisteredException e) {
-                return "not_towny";
+                return new AbstractMap.SimpleEntry<>("not_towny", null);
             }
             if (tworld.hasTownBlock(coord)) {
-                TownBlock tblock = null;
-                Town town = null;
-                Resident resident = null;
+                TownBlock tblock;
+                Town town;
+                Resident resident;
                 try {
                     tblock = wc.getTownBlock();
                 } catch (NotRegisteredException e) {
-                    return "not_towny";
+                    return new AbstractMap.SimpleEntry<>("not_towny", null);
                 }
                 try {
                     town = tblock.getTown();
                 } catch (NotRegisteredException e) {
-                    return "not_mayor";
+                    return new AbstractMap.SimpleEntry<>("not_mayor", null);
                 }
                 try {
                     resident = town.getMayor();
                 } catch (Exception e) {
-                    return "not_mayor";
+                    return new AbstractMap.SimpleEntry<>("not_mayor", null);
                 }
                 if (resident != null) {
-                    return resident.getName();
+                    return new AbstractMap.SimpleEntry<>("OK", (Player) resident);
                 }
-                return "not_mayor";
+                return new AbstractMap.SimpleEntry<>("not_mayor", null);
             }
         }
 
-        return "not_towny";
+        return new AbstractMap.SimpleEntry<>("not_towny", null);
     }
 
 
@@ -715,16 +712,16 @@ public class P_Towny {
                 String slocation = C_Postoffice.get_local_po_location_by_name(postal_town);
                 Location location = Util.str2location(slocation);
                 WorldCoord wc = WorldCoord.parseWorldCoord(location);
-                com.palmergames.bukkit.towny.object.Coord coord = wc.getCoord();
-                TownyWorld tworld = null;
+                Coord coord = wc.getCoord();
+                TownyWorld tworld;
                 try {
                     tworld = wc.getTownyWorld();
                 } catch (NotRegisteredException e) {
                     return -1;
                 }
                 if (tworld.hasTownBlock(coord)) {
-                    TownBlock tblock = null;
-                    Town town = null;
+                    TownBlock tblock;
+                    Town town;
                     try {
                         tblock = wc.getTownBlock();
                     } catch (NotRegisteredException e) {
@@ -750,16 +747,16 @@ public class P_Towny {
                 String slocation = C_Postoffice.get_local_po_location_by_name(postal_town);
                 Location location = Util.str2location(slocation);
                 WorldCoord wc = WorldCoord.parseWorldCoord(location);
-                com.palmergames.bukkit.towny.object.Coord coord = wc.getCoord();
-                TownyWorld tworld = null;
+                Coord coord = wc.getCoord();
+                TownyWorld tworld;
                 try {
                     tworld = wc.getTownyWorld();
                 } catch (NotRegisteredException e) {
                     return "null";
                 }
                 if (tworld.hasTownBlock(coord)) {
-                    TownBlock tblock = null;
-                    Town town = null;
+                    TownBlock tblock;
+                    Town town;
                     try {
                         tblock = wc.getTownBlock();
                     } catch (NotRegisteredException e) {
@@ -785,23 +782,22 @@ public class P_Towny {
                 String slocation = C_Postoffice.get_local_po_location_by_name(postal_town);
                 Location location = Util.str2location(slocation);
                 WorldCoord wc = WorldCoord.parseWorldCoord(location);
-                com.palmergames.bukkit.towny.object.Coord coord = wc.getCoord();
-                TownyWorld tworld = null;
+                Coord coord = wc.getCoord();
+                TownyWorld tworld;
                 try {
                     tworld = wc.getTownyWorld();
                 } catch (NotRegisteredException e) {
                     return false;
                 }
                 if (tworld.hasTownBlock(coord)) {
-                    TownBlock tblock = null;
-                    Town town = null;
+                    TownBlock tblock;
                     try {
                         tblock = wc.getTownBlock();
                     } catch (NotRegisteredException e) {
                         return false;
                     }
                     try {
-                        town = tblock.getTown();
+                        tblock.getTown();
                     } catch (NotRegisteredException e) {
                         return false;
                     }
@@ -814,38 +810,36 @@ public class P_Towny {
         return false;
     }
 
-    public static boolean is_towny_plot_owner_by_db(String splayer, String postal_town, String saddress) {
+    public static boolean is_towny_plot_owner_by_db(Player player, String postal_town, String saddress) {
         if ((VA_postal.towny_configured) && (VA_postal.towny_opt_in)) {
-            if (com.vodhanel.minecraft.va_postal.config.C_Address.is_address_defined(postal_town, saddress)) {
-                String slocation = com.vodhanel.minecraft.va_postal.config.C_Address.get_address_location(postal_town, saddress);
+            if (C_Address.is_address_defined(postal_town, saddress)) {
+                String slocation = C_Address.get_address_location(postal_town, saddress);
                 Location location = Util.str2location(slocation);
-                String plot_owner = towny_addr_owner_by_loc(location);
-                if (splayer.equalsIgnoreCase(plot_owner)) {
+                Player plot_owner = towny_addr_owner_by_loc(location).getValue();
+                if (player == plot_owner) {
                     return true;
                 }
-            } else {
-                return false;
             }
         }
         return false;
     }
 
-    public static boolean is_towny_admin_by_db(String splayer, String postal_town) {
+    public static boolean is_towny_admin_by_db(Player player, String postal_town) {
         if ((VA_postal.towny_configured) && (VA_postal.towny_opt_in)) {
             if (C_Postoffice.is_local_po_name_defined(postal_town)) {
                 String slocation = C_Postoffice.get_local_po_location_by_name(postal_town);
                 Location location = Util.str2location(slocation);
                 WorldCoord wc = WorldCoord.parseWorldCoord(location);
-                com.palmergames.bukkit.towny.object.Coord coord = wc.getCoord();
-                TownyWorld tworld = null;
+                Coord coord = wc.getCoord();
+                TownyWorld tworld;
                 try {
                     tworld = wc.getTownyWorld();
                 } catch (NotRegisteredException e) {
                     return false;
                 }
                 if (tworld.hasTownBlock(coord)) {
-                    TownBlock tblock = null;
-                    Town town = null;
+                    TownBlock tblock;
+                    Town town;
                     try {
                         tblock = wc.getTownBlock();
                     } catch (NotRegisteredException e) {
@@ -856,13 +850,13 @@ public class P_Towny {
                     } catch (NotRegisteredException e) {
                         return false;
                     }
-                    String mayor = town.getMayor().getName();
-                    if (mayor.equalsIgnoreCase(splayer)) {
+                    Player mayor = (Player) town.getMayor();
+                    if (mayor == player) {
                         return true;
                     }
 
                     for (Resident resident_i : town.getAssistants()) {
-                        if (resident_i.getName().equalsIgnoreCase(splayer)) {
+                        if (resident_i == player) {
                             if (resident_i.hasTownRank("postal")) {
                                 return true;
                             }
@@ -888,7 +882,7 @@ public class P_Towny {
             Hashtable<String, Resident> table = tverse.getResidentMap();
             Enumeration<Resident> residents = table.elements();
             while (residents.hasMoreElements()) {
-                Resident resident = (Resident) residents.nextElement();
+                Resident resident = residents.nextElement();
                 String sresident = resident.getName();
                 if ((resident.hasTown()) && (sresident.equalsIgnoreCase(splayer))) {
                     return true;
@@ -905,9 +899,9 @@ public class P_Towny {
             Enumeration<Resident> residents = table.elements();
             int hits = 0;
             while (residents.hasMoreElements()) {
-                Resident resident = (Resident) residents.nextElement();
+                Resident resident = residents.nextElement();
                 if (resident.hasTown()) {
-                    Town town = null;
+                    Town town;
                     try {
                         town = resident.getTown();
                     } catch (NotRegisteredException e) {
@@ -931,7 +925,7 @@ public class P_Towny {
             Enumeration<Resident> residents = table.elements();
             int hits = 0;
             while (residents.hasMoreElements()) {
-                Resident resident = (Resident) residents.nextElement();
+                Resident resident = residents.nextElement();
                 if (resident.hasTown()) {
                     hits++;
                 }
@@ -946,11 +940,11 @@ public class P_Towny {
             TownyUniverse tverse = VA_postal.towny.getTownyUniverse();
             Hashtable<String, Resident> table = tverse.getResidentMap();
             Enumeration<Resident> residents = table.elements();
-            List<String> list = new java.util.ArrayList();
+            List<String> list = new ArrayList<>();
             while (residents.hasMoreElements()) {
-                Resident resident = (Resident) residents.nextElement();
+                Resident resident = residents.nextElement();
                 if (resident.hasTown()) {
-                    Town town = null;
+                    Town town;
                     try {
                         town = resident.getTown();
                     } catch (NotRegisteredException e) {
@@ -964,7 +958,7 @@ public class P_Towny {
             }
             String[] result = new String[list.size()];
             for (int i = 0; i < list.size(); i++) {
-                result[i] = ((String) list.get(i));
+                result[i] = list.get(i);
             }
             return result;
         }
@@ -976,16 +970,16 @@ public class P_Towny {
             TownyUniverse tverse = VA_postal.towny.getTownyUniverse();
             Hashtable<String, Resident> table = tverse.getResidentMap();
             Enumeration<Resident> residents = table.elements();
-            List<String> list = new java.util.ArrayList();
+            List<String> list = new ArrayList<>();
             while (residents.hasMoreElements()) {
-                Resident resident = (Resident) residents.nextElement();
+                Resident resident = residents.nextElement();
                 if (resident.hasTown()) {
                     list.add(resident.getName());
                 }
             }
             String[] result = new String[list.size()];
             for (int i = 0; i < list.size(); i++) {
-                result[i] = ((String) list.get(i));
+                result[i] = list.get(i);
             }
             return result;
         }
@@ -997,14 +991,14 @@ public class P_Towny {
             TownyUniverse tverse = VA_postal.towny.getTownyUniverse();
             Hashtable<String, Town> table = tverse.getTownsMap();
             Enumeration<Town> towns = table.elements();
-            List<String> list = new java.util.ArrayList();
+            List<String> list = new ArrayList<>();
             while (towns.hasMoreElements()) {
-                Town town = (Town) towns.nextElement();
+                Town town = towns.nextElement();
                 list.add(town.getName());
             }
             String[] result = new String[list.size()];
             for (int i = 0; i < list.size(); i++) {
-                result[i] = ((String) list.get(i));
+                result[i] = list.get(i);
             }
             return result;
         }
@@ -1017,7 +1011,7 @@ public class P_Towny {
             Hashtable<String, Town> table = tverse.getTownsMap();
             Enumeration<Town> towns = table.elements();
             while (towns.hasMoreElements()) {
-                Town town = (Town) towns.nextElement();
+                Town town = towns.nextElement();
                 if (town.getName().equalsIgnoreCase(towny_town)) {
                     return town.getTotalBlocks();
                 }
@@ -1026,32 +1020,29 @@ public class P_Towny {
         return -1;
     }
 
-
     public static boolean ok_to_build_towny(Player player) {
         if (VA_postal.towny_configured) {
-            if (com.vodhanel.minecraft.va_postal.commands.Cmdexecutor.hasPermission(player, "postal.accept.bypass")) {
+            if (Cmdexecutor.hasPermission(player, "postal.accept.bypass")) {
                 return true;
             }
             Location location = player.getLocation();
 
-            if (com.palmergames.bukkit.towny.utils.PlayerCacheUtil.getCachePermission(player, location, Integer.valueOf(player.getWorld().getBlockTypeIdAt(location)), (byte) 0, com.palmergames.bukkit.towny.object.TownyPermission.ActionType.BUILD)) {
-
-
-                return true;
-            }
-            return false;
+            return PlayerCacheUtil.getCachePermission(player, location, player.getWorld().getBlockAt(location).getType(), TownyPermission.ActionType.BUILD);
         }
 
         return true;
     }
 
+    private static Map.Entry<String, Player> entry(String s, Player p) {
+        return new AbstractMap.SimpleEntry<>(s, p);
+    }
 
     public static synchronized String get_world(String slocation) {
         try {
-            String[] parts = new String[4];
+            String[] parts;
             parts = slocation.split(",");
             return proper(parts[0]).trim();
-        } catch (Exception e) {
+        } catch (Exception ignored) {
         }
         return "null";
     }
@@ -1075,16 +1066,18 @@ public class P_Towny {
                 return input.substring(0, len);
             }
 
-            while (input.length() < len) {
-                input = input + filler;
+            StringBuilder inputBuilder = new StringBuilder(input);
+            while (inputBuilder.length() < len) {
+                inputBuilder.append(filler);
             }
+            input = inputBuilder.toString();
             return input;
         } catch (Exception e) {
-            String blank = "";
+            StringBuilder blank = new StringBuilder();
             for (int i = 0; i < len; i++) {
-                blank = blank + filler;
+                blank.append(filler);
             }
-            return blank;
+            return blank.toString();
         }
     }
 }

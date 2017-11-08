@@ -4,6 +4,7 @@ import com.vodhanel.minecraft.va_postal.VA_postal;
 import com.vodhanel.minecraft.va_postal.common.AnsiColor;
 import com.vodhanel.minecraft.va_postal.common.P_Dynmap;
 import com.vodhanel.minecraft.va_postal.common.Util;
+import com.vodhanel.minecraft.va_postal.common.VA_Dispatcher;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 
@@ -38,7 +39,7 @@ public class C_Address {
     public static synchronized void delete_address(Player player, String town, String address) {
         if (is_address_defined(town, address)) {
             C_Dispatcher.open_address(town, address, false);
-            if (!com.vodhanel.minecraft.va_postal.common.VA_Dispatcher.dispatcher_running) {
+            if (!VA_Dispatcher.dispatcher_running) {
                 delete_address_worker(player, town, address);
                 return;
             }
@@ -197,11 +198,11 @@ public class C_Address {
     }
 
     public static synchronized void list_addresses(Player player, String spoffice) {
-        String saddress = "";
-        String sowner = "";
-        String sinterval = "";
+        String saddress;
+        Player owner;
+        String sinterval;
         String sworld = "";
-        String display = "";
+        String display;
         String path = GetConfig.path_format("address." + spoffice);
         ConfigurationSection cs = VA_postal.configsettings.getConfigurationSection(path);
         if (cs != null) {
@@ -213,20 +214,20 @@ public class C_Address {
                 try {
                     for (Object a_child_key : a_child_keys) {
                         saddress = a_child_key.toString().trim();
-                        sowner = C_Owner.get_owner_address(spoffice, saddress);
+                        owner = C_Owner.get_owner_address(spoffice, saddress);
                         sinterval = get_addr_interval(spoffice, saddress);
                         total += Util.str2int(sinterval);
                         saddress = C_List.fixed_len(Util.df(saddress), 15, "-");
-                        if ("null".equals(sowner)) {
-                            sowner = "Server";
+                        if (owner == null) {
+                            owner = VA_postal.SERVER;
                         }
-                        sowner = C_List.fixed_len(Util.df(sowner), 15, "-");
+                        String sowner = C_List.fixed_len(Util.df(owner.getName().trim()), 15, "-");
                         display = saddress + " &7&o" + sowner + " &f&o" + sinterval;
                         Util.pinform(player, "    &a&l" + display);
                     }
                 } catch (Exception e) {
                 }
-                Util.pinform(player, "&7&oTotal post man walk time for all routes in seconds:  &f&r" + total);
+                Util.pinform(player, "&7&oTotal post man walk time for all routes in seconds: &f&r" + total);
             }
         }
     }
@@ -251,7 +252,7 @@ public class C_Address {
             return "null";
         }
         String result = "null";
-        ConfigurationSection cs = null;
+        ConfigurationSection cs;
         try {
             String path = GetConfig.path_format("address." + spoffice);
             cs = VA_postal.configsettings.getConfigurationSection(path);
@@ -261,7 +262,7 @@ public class C_Address {
         if (cs != null) {
             Set<String> addr = cs.getKeys(false);
             if (addr.size() > 0) {
-                Object[] addr_k = null;
+                Object[] addr_k;
                 try {
                     addr_k = addr.toArray();
                     Arrays.sort(addr_k);
@@ -269,7 +270,7 @@ public class C_Address {
                     return "null";
                 }
                 String saddr = saddress.toLowerCase().trim();
-                String kaddr = "";
+                String kaddr;
                 int hit = 0;
 
                 for (Object anAddr_k : addr_k) {
@@ -311,7 +312,7 @@ public class C_Address {
         if (("null".equals(stown)) || ("null".equals(saddress))) {
             return false;
         }
-        String sresult = "false";
+        String sresult;
         boolean result = false;
         try {
             String spath = GetConfig.path_format("address." + stown + "." + saddress + ".owner.newmail");

@@ -4,6 +4,7 @@ import com.vodhanel.minecraft.va_postal.VA_postal;
 import com.vodhanel.minecraft.va_postal.common.AnsiColor;
 import com.vodhanel.minecraft.va_postal.common.P_Dynmap;
 import com.vodhanel.minecraft.va_postal.common.Util;
+import com.vodhanel.minecraft.va_postal.common.VA_Dispatcher;
 import org.bukkit.configuration.ConfigurationSection;
 
 import java.util.Arrays;
@@ -19,7 +20,7 @@ public class C_Queue {
 
 
     public static String get_next_queue_task() {
-        if (!com.vodhanel.minecraft.va_postal.common.VA_Dispatcher.dispatcher_running) {
+        if (!VA_Dispatcher.dispatcher_running) {
             return "BZY";
         }
         String result = "";
@@ -217,7 +218,7 @@ public class C_Queue {
             return "null";
         }
         while (itr_queue_list_keys.hasNext()) {
-            queue = ((String) itr_queue_list_keys.next()).trim();
+            queue = itr_queue_list_keys.next().trim();
             String tpath = GetConfig.path_format("dispatcher.queue." + queue + ".task");
             ConfigurationSection task_list = null;
             try {
@@ -233,7 +234,7 @@ public class C_Queue {
                 return "null";
             }
             while (itr_task_list_keys.hasNext()) {
-                task = ((String) itr_task_list_keys.next()).trim();
+                task = itr_task_list_keys.next().trim();
                 qpair = queue + "," + task;
                 try {
                     t_town = queue_pair_get_town(qpair);
@@ -267,7 +268,7 @@ public class C_Queue {
             return "null";
         }
         while (itr_queue_list_keys.hasNext()) {
-            queue = ((String) itr_queue_list_keys.next()).trim();
+            queue = itr_queue_list_keys.next().trim();
             String tpath = GetConfig.path_format("dispatcher.queue." + queue + ".name");
             t_town = VA_postal.plugin.getConfig().getString(tpath);
             if (town.equalsIgnoreCase(t_town)) {
