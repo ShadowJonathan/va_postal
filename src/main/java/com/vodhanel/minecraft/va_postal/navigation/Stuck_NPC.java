@@ -62,7 +62,7 @@ public class Stuck_NPC implements StuckAction {
 
             if ((VA_postal.wtr_last_stuck_action[id] != null) && (VA_postal.wtr_last_stuck_action[id].equals(stuck_action))) {
                 ID_WTR.report_recovery(id, "Route Navigation, Teleport Reset");
-                ID_WTR.tp_npc(npc, VA_postal.wtr_waypoint[id]);
+                ID_WTR.tp_npc(npc, VA_postal.wtr_waypoint[id].clone().add(0.5, 0, 0.5));
                 VA_postal.wtr_last_stuck_action[id] = "";
                 ID_WTR.invoke_next_waypoint(id);
                 VA_postal.wtr_last_stuck_stamp[id] = System.currentTimeMillis();
@@ -79,7 +79,7 @@ public class Stuck_NPC implements StuckAction {
             }
 
 
-            ID_WTR.tp_npc(npc, VA_postal.wtr_waypoint[id]);
+            ID_WTR.tp_npc(npc, VA_postal.wtr_waypoint[id].clone().add(0.5, 0, 0.5));
             VA_postal.wtr_last_stuck_action[id] = "";
             ID_WTR.invoke_next_waypoint(id);
             VA_postal.wtr_last_stuck_stamp[id] = System.currentTimeMillis();
@@ -109,7 +109,7 @@ public class Stuck_NPC implements StuckAction {
         target = Util.str2location(starget);
 
 
-        ID_WTR.tp_npc(npc, target);
+        ID_WTR.tp_npc(npc, target.clone().add(0.5, 0, 0.5));
 
 
         VA_postal.wtr_nav[id].getDefaultParameters().speedModifier(0.7F);

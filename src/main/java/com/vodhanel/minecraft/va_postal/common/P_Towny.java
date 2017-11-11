@@ -874,7 +874,6 @@ public class P_Towny {
         return false;
     }
 
-
     public static boolean is_towny_resident_by_tvrs(Player player) {
         if ((VA_postal.towny_configured) && (VA_postal.towny_opt_in)) {
             String splayer = player.getName();

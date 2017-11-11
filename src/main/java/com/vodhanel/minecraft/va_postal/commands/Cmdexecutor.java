@@ -242,6 +242,34 @@ public class Cmdexecutor implements CommandExecutor {
             }
             return true;
         }
+        if ("reload".equals(args[0].toLowerCase().trim())) {
+            if (!hasPermission(player, "postal.admin")) {
+                Util.pinform(player, "Required permission not present.");
+                return true;
+            }
+
+            VA_postal.plugin.reloadConfig();
+
+            VA_postal.mailtalk = 1;
+            VA_postal.debug = GetConfig.debug();
+            VA_postal.lossy_pathfinding = GetConfig.lossy_pathfinding();
+            VA_postal.check_new_mail_secs = GetConfig.new_mail_secs();
+            VA_postal.private_mailboxes = GetConfig.private_mailboxes();
+            VA_postal.strict_door_nav = GetConfig.strict_door_nav();
+            VA_postal.wtr_concurrent = GetConfig.is_wtr_concurrent();
+            VA_postal.lookclose_on_route = GetConfig.lookclose_on_route();
+            VA_postal.search_distance = GetConfig.search_distance();
+            VA_postal.allowed_geo_proximity = GetConfig.allowed_geo_proximity();
+            VA_postal.allowed_reditor_afk = GetConfig.allowed_reditor_afk();
+            VA_postal.towny_opt_in = GetConfig.towny_opt_in();
+            VA_postal.showroute_PE = GetConfig.showroute_PE();
+            VA_postal.showroute_COL = GetConfig.showroute_COLOR();
+
+            Config.LoadConfiguration();
+
+            Util.pinform(player, "&a&oConfig reloaded.");
+            return true;
+        }
         if ("test".equals(args[0].toLowerCase().trim())) {
             String[] xyz1 = args[1].split(",");
             String[] xyz2 = args[2].split(",");
@@ -2662,17 +2690,12 @@ public class Cmdexecutor implements CommandExecutor {
         }
 
 
-        if (is_player_comfirmation_registered(player)) {
-            RouteEditor.place_route_markers(stown, saddress);
-            Util.pinform(player, "Waypoints have been highlighted for: " + Util.df(stown) + ", " + Util.df(saddress));
+        RouteEditor.startHighlighter(player, stown, saddress);
+        RouteEditor.place_route_markers(stown, saddress);
+        Util.pinform(player, "Waypoints have been highlighted for: " + Util.df(stown) + ", " + Util.df(saddress));
 
-            VA_Timers.hideroute();
-            deregister_player_comfirmation(player);
-        } else {
-            Util.pinform(player, "Ready to highlighted waypoints for: " + Util.df(stown) + ", " + Util.df(saddress));
-            String scommand = "/showroute " + stown + " " + saddress;
-            register_player_comfirmation(player, scommand);
-        }
+        VA_Timers.hideroute(player);
+        deregister_player_comfirmation(player);
         return true;
     }
 
@@ -2707,7 +2730,7 @@ public class Cmdexecutor implements CommandExecutor {
             RouteEditor.place_route_markers(stown, saddress);
             Util.con_type("Waypoints have been highlighted for: " + Util.df(stown) + ", " + Util.df(saddress));
 
-            VA_Timers.hideroute();
+            VA_Timers.hideroute(VA_postal.plistener_player);
             deregister_player_comfirmation(null);
         } else {
             Util.cinform("Ready to highlight waypoints for: " + Util.df(stown) + ", " + Util.df(saddress));

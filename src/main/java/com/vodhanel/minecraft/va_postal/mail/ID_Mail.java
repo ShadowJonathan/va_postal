@@ -18,6 +18,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.ListIterator;
 
 public class ID_Mail {
@@ -399,13 +401,12 @@ public class ID_Mail {
             sowner = owner.getDisplayName();
         }
 
-        String page1 = log_book.getPage(1);
-        String[] input_lines = page1.split("\n");
+        ArrayList<String> input_lines = new ArrayList<>(Arrays.asList(log_book.getPage(1).split("\n")));
         String[] final_lines = Book.makeFirstLogPage(sworld, slocation_mod, saddr, sowner, owner).split("\n");
 
         for (int i = 5; i < 14; i++) {
-            if ((i - 1 < input_lines.length) && (input_lines[(i - 1)] != null)) {
-                final_lines[i] = input_lines[(i - 1)].trim();
+            if ((i - 1 < final_lines.length) && (input_lines.get(i - 1) != null)) {
+                final_lines[i] = input_lines.get(i - 1).trim();
             } else {
                 final_lines[i] = "";
             }
@@ -456,9 +457,7 @@ public class ID_Mail {
             return false;
         }
         Inventory chest_inv = chest.getInventory();
-        ListIterator<ItemStack> item_itr = chest_inv.iterator();
-        while (item_itr.hasNext()) {
-            ItemStack ind_item = item_itr.next();
+        for (ItemStack ind_item : chest_inv) {
             if ((ind_item != null) && (ind_item.getType() == Material.WRITTEN_BOOK)) {
                 Book book;
                 try {
@@ -466,8 +465,7 @@ public class ID_Mail {
                 } catch (Exception e) {
                     return false;
                 }
-                if (!book.is_valid()) {
-                } else {
+                if (book.is_valid()) {
                     try {
                         String mail_address = book.getAuthor().toLowerCase().trim();
                         String this_address = VA_postal.wtr_address[id].toLowerCase().trim();
@@ -477,8 +475,7 @@ public class ID_Mail {
                             Util.dinform("Found outgoing mail");
                             return true;
                         }
-                    } catch (Exception e) {
-                        continue;
+                    } catch (Exception ignored) {
                     }
 
                 }
@@ -505,8 +502,7 @@ public class ID_Mail {
             ItemStack ind_item = item_itr.next();
             if ((ind_item != null) && (ind_item.getType() == Material.WRITTEN_BOOK)) {
                 Book book = new Book(ind_item);
-                if (!book.is_valid()) {
-                } else {
+                if (book.is_valid()) {
                     try {
                         String mail_address = book.getAuthor().toLowerCase().trim();
                         String mail_title = book.getTitle().toLowerCase().trim();
@@ -519,9 +515,9 @@ public class ID_Mail {
                                 continue;
                             }
                         }
+
                         String this_address = VA_postal.wtr_address[id].toLowerCase().trim();
-                        String[] spage = book.getPages();
-                        String page1 = spage[0].toLowerCase();
+                        String page1 = book.getPages()[0].toLowerCase();
                         if (page1.contains("[not-processed]")) {
                             mail_found = true;
                             if (!mail_address.equals(this_address)) {
@@ -536,30 +532,27 @@ public class ID_Mail {
                                 item_itr.set(null);
                             }
                         }
-                    } catch (IllegalArgumentException illegalArgumentException) {
-                        continue;
+                    } catch (IllegalArgumentException ignored) {
                     }
-
                 }
             }
         }
-        if ((mail_found) &&
-                (VA_postal.mailtalk == 2)) {
+
+        if ((mail_found) && (VA_postal.mailtalk == 2)) {
             Util.binform("&9&o" + Util.df(VA_postal.wtr_poffice[id]) + " &7&oPostMan picked up mail from &9&o" + Util.df(VA_postal.wtr_address[id]));
         }
 
-
         if (shipper_found) {
-            ItemStack in_hand = new ItemStack(54);
+            ItemStack in_hand = new ItemStack(Material.CHEST);
             VA_postal.wtr_npc_player[id] = ((Player) VA_postal.wtr_npc[id].getEntity());
-            VA_postal.wtr_npc_player[id].setItemInHand(in_hand);
+            VA_postal.wtr_npc_player[id].setItemOnCursor(in_hand);
         } else if (mail_found) {
-            ItemStack in_hand = new ItemStack(340);
+            ItemStack in_hand = new ItemStack(Material.BOOK);
             VA_postal.wtr_npc_player[id] = ((Player) VA_postal.wtr_npc[id].getEntity());
-            VA_postal.wtr_npc_player[id].setItemInHand(in_hand);
+            VA_postal.wtr_npc_player[id].setItemOnCursor(in_hand);
         } else {
             VA_postal.wtr_npc_player[id] = ((Player) VA_postal.wtr_npc[id].getEntity());
-            VA_postal.wtr_npc_player[id].setItemInHand(null);
+            VA_postal.wtr_npc_player[id].setItemOnCursor(null);
         }
     }
 
@@ -640,16 +633,16 @@ public class ID_Mail {
 
 
         if (shipper_found) {
-            ItemStack in_hand = new ItemStack(54);
+            ItemStack in_hand = new ItemStack(Material.CHEST);
             VA_postal.wtr_npc_player[id] = ((Player) VA_postal.wtr_npc[id].getEntity());
-            VA_postal.wtr_npc_player[id].setItemInHand(in_hand);
+            VA_postal.wtr_npc_player[id].setItemOnCursor(in_hand);
         } else if (mail_found) {
-            ItemStack in_hand = new ItemStack(340);
+            ItemStack in_hand = new ItemStack(Material.BOOK);
             VA_postal.wtr_npc_player[id] = ((Player) VA_postal.wtr_npc[id].getEntity());
-            VA_postal.wtr_npc_player[id].setItemInHand(in_hand);
+            VA_postal.wtr_npc_player[id].setItemOnCursor(in_hand);
         } else {
             VA_postal.wtr_npc_player[id] = ((Player) VA_postal.wtr_npc[id].getEntity());
-            VA_postal.wtr_npc_player[id].setItemInHand(null);
+            VA_postal.wtr_npc_player[id].setItemOnCursor(null);
         }
     }
 
@@ -683,7 +676,6 @@ public class ID_Mail {
     }
 
     public static synchronized void npc_deliver_mail(int id) {
-        boolean result = false;
         if (VA_postal.wtr_inventory_postoffice[id] == null) {
             Util.dinform(AnsiColor.RED + "[npc_deliver_mail] indicates bad post office chest");
             return;
@@ -711,28 +703,25 @@ public class ID_Mail {
                             item_itr.set(null);
 
                             VA_postal.wtr_npc_player[id] = ((Player) VA_postal.wtr_npc[id].getEntity());
-                            VA_postal.wtr_npc_player[id].setItemInHand(null);
+                            VA_postal.wtr_npc_player[id].setItemOnCursor(null);
                             mail_delivered = true;
                             C_Address.set_address_newmail(stown, this_address, true);
                         }
                         mail_found = true;
-                        result = true;
                     }
                 }
             }
         }
-        if (mail_delivered) {
-            place_new_mail_marker(id);
-        }
-        if (VA_postal.mailtalk == 2) {
+
+        if (mail_delivered) place_new_mail_marker(id);
+
+        if (VA_postal.mailtalk == 2)
             if ((mail_found) && (mail_delivered)) {
                 Util.binform("&9&o" + Util.df(VA_postal.wtr_poffice[id]) + " &7&oPostMan delivered mail to &9&o" + Util.df(VA_postal.wtr_address[id]));
-            }
-            if ((mail_found) && (!mail_delivered)) {
+            } else if (mail_found) {
                 Util.binform("&9&o" + Util.df(VA_postal.wtr_poffice[id]) + " &7&oUndeliverable (full chest) &9&o" + Util.df(VA_postal.wtr_address[id]));
                 Util.binform("&7&oMail is stored at the &9&o" + Util.df(VA_postal.wtr_poffice[id] + " post office."));
             }
-        }
     }
 
     public static synchronized ItemStack stamp_deliver(int id, ItemStack ind_item) {
@@ -916,7 +905,6 @@ public class ID_Mail {
 
         return stamped_book.generateItemStack();
     }
-
 
     public static synchronized void SetPostoffice_Chest_nTP_point(int id) {
         String stown;
@@ -1149,22 +1137,15 @@ public class ID_Mail {
                                 }
                             }
                         }
-                        if (done) {
-                            break;
-                        }
+                        if (done) break;
                     }
-                    if (done) {
-                        break;
-                    }
+                    if (done) break;
                 }
-                if (done) {
-                    break;
-                }
+                if (done) break;
             }
-            if (done) {
-                break;
-            }
+            if (done) break;
         }
+
         if ("null".equals(result)) {
             result = first_hit;
             if (VA_postal.cstalk) {
@@ -1187,6 +1168,7 @@ public class ID_Mail {
 
     public static synchronized void create_addr_sign(int id) {
         Location location = Util.str2location(VA_postal.wtr_schest_location[id]);
+        assert location != null;
         World w = location.getWorld();
         Block block = w.getBlockAt(location);
         String stown = VA_postal.wtr_poffice[id];

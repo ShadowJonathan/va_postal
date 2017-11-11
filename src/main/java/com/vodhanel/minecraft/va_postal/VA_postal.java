@@ -3,10 +3,7 @@ package com.vodhanel.minecraft.va_postal;
 import com.palmergames.bukkit.towny.Towny;
 import com.sk89q.worldguard.bukkit.WorldGuardPlugin;
 import com.vodhanel.minecraft.va_postal.commands.Cmdexecutor;
-import com.vodhanel.minecraft.va_postal.common.Init_Towny;
-import com.vodhanel.minecraft.va_postal.common.P_Economy;
-import com.vodhanel.minecraft.va_postal.common.Util;
-import com.vodhanel.minecraft.va_postal.common.VA_Dispatcher;
+import com.vodhanel.minecraft.va_postal.common.*;
 import com.vodhanel.minecraft.va_postal.config.Config;
 import com.vodhanel.minecraft.va_postal.config.GetConfig;
 import com.vodhanel.minecraft.va_postal.listeners.BukkitListener;
@@ -24,6 +21,7 @@ import net.citizensnpcs.api.npc.NPCRegistry;
 import net.milkbowl.vault.economy.Economy;
 import net.milkbowl.vault.permission.Permission;
 import org.bukkit.Bukkit;
+import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.block.BlockState;
 import org.bukkit.configuration.Configuration;
@@ -59,6 +57,8 @@ public class VA_postal extends JavaPlugin {
     public static boolean plistener_cooling = false;
     public static boolean plistener_newroute = false;
     public static ItemStack[] plistener_quickbar = null;
+    public static int showroute_PE = 0;
+    public static Color showroute_COL = null;
 
     public static ScoreboardManager plistener_sb_manager = null;
     public static boolean plistener_using_scoreboard = false;
@@ -286,7 +286,7 @@ public class VA_postal extends JavaPlugin {
             return;
         }
 
-        SERVER = getServer().getPlayer(SERVER_ID);
+        SERVER = new ServerPlayer(SERVER_ID);
 
         plugin = this;
         admin_overide = false;
@@ -307,6 +307,8 @@ public class VA_postal extends JavaPlugin {
         allowed_geo_proximity = GetConfig.allowed_geo_proximity();
         allowed_reditor_afk = GetConfig.allowed_reditor_afk();
         towny_opt_in = GetConfig.towny_opt_in();
+        showroute_PE = GetConfig.showroute_PE();
+        showroute_COL = GetConfig.showroute_COLOR();
         npcRegistry = CitizensAPI.getNPCRegistry();
         RouteMngr.npc_delete_all(true);
         wtr_stuck_npc = new Stuck_NPC();
@@ -401,7 +403,7 @@ public class VA_postal extends JavaPlugin {
             }
             econ = rsp.getProvider();
             if (econ == null) {
-                Util.cinform("[Postal] No economy service providor via Vault.");
+                Util.cinform("[Postal] No economy service provider via Vault.");
                 return;
             }
             if (econ.hasBankSupport()) {

@@ -80,10 +80,8 @@ public class C_Arrays {
                     String saddress = anAddr_list.trim();
                     list.add(towny + "," + postal + "," + saddress);
                 }
-                addr_list = null;
             }
         }
-        town_list = null;
 
 
         if (list.size() <= 0) {
@@ -95,7 +93,6 @@ public class C_Arrays {
         for (int i = 0; i < list.size(); i++) {
             result[i] = list.get(i).toLowerCase().trim();
         }
-        list = null;
 
 
         if (result.length > 0) {
@@ -136,10 +133,8 @@ public class C_Arrays {
                     String saddress = anAddr_list.trim();
                     list.add(postal + "," + saddress);
                 }
-                addr_list = null;
             }
         }
-        town_list = null;
 
 
         String[] result;
@@ -148,7 +143,6 @@ public class C_Arrays {
             for (int i = 0; i < list.size(); i++) {
                 result[i] = list.get(i).toLowerCase().trim();
             }
-            list = null;
         } else {
             return null;
         }
@@ -194,13 +188,11 @@ public class C_Arrays {
             }
         }
 
-        town_list = null;
         if (list.size() > 0) {
             String[] result = new String[list.size()];
             for (int i = 0; i < list.size(); i++) {
                 result[i] = list.get(i).trim();
             }
-            list = null;
 
 
             if (result.length > 0) {
@@ -223,7 +215,7 @@ public class C_Arrays {
             return null;
         }
         Util.calibrate_compass(player);
-        List<String> list = new ArrayList();
+        List<String> list = new ArrayList<>();
         Location location = player.getLocation();
         if (location == null) {
             return null;
@@ -251,17 +243,13 @@ public class C_Arrays {
                         }
                     }
                 }
-
-                addr_list = null;
             }
         }
-        town_list = null;
         if (list.size() > 0) {
             String[] result = new String[list.size()];
             for (int i = 0; i < list.size(); i++) {
                 result[i] = list.get(i).trim();
             }
-            list = null;
 
 
             if (result.length > 0) {
@@ -308,7 +296,6 @@ public class C_Arrays {
                 }
                 master_i++;
             }
-            po_list = null;
         }
         if ((addr_list != null) && (addr_list.length > 0)) {
             for (String anAddr_list : addr_list) {
@@ -319,7 +306,6 @@ public class C_Arrays {
                 }
                 master_i++;
             }
-            addr_list = null;
         }
 
         if (consolidated.length > 0) {
@@ -387,7 +373,7 @@ public class C_Arrays {
             return null;
         }
         String[] result = null;
-        ConfigurationSection cs = null;
+        ConfigurationSection cs;
         try {
             String path = GetConfig.path_format("address." + spoffice);
             cs = VA_postal.configsettings.getConfigurationSection(path);

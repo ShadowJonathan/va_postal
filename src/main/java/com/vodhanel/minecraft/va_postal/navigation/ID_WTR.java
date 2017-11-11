@@ -18,6 +18,7 @@ import org.bukkit.Sound;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.entity.Player;
+import org.bukkit.material.Door;
 import org.bukkit.material.Gate;
 
 import java.util.Map;
@@ -43,7 +44,7 @@ public class ID_WTR {
             try {
                 VA_postal.wtr_npc_player[id] = ((Player) VA_postal.wtr_npc[id].getEntity());
                 VA_postal.wtr_npc_player[id].closeInventory();
-            } catch (Exception e) {
+            } catch (Exception ignored) {
             }
         } else {
             Util.binform("&f&o" + df(spostoffice) + " &c&odoes not have a mail chest in the post office.");
@@ -89,7 +90,6 @@ public class ID_WTR {
 
         ID_Mail.set_address_chest_inv(id);
 
-
         String slocation = Util.put_point_on_ground(VA_postal.wtr_slocation_address_spawn[id], false);
         Location target = Util.str2location(slocation);
         if (VA_postal.wtr_npc[id].getEntity().getLocation() != target) {
@@ -119,9 +119,7 @@ public class ID_WTR {
 
             ID_Mail.npc_deliver_mail(id);
 
-
             ID_Mail.npc_pickup_mail(id);
-
 
             if (ID_Mail.chest_contains_postal_log(id)) {
                 Util.dinform(AnsiColor.CYAN + "Postal log exists");
@@ -147,7 +145,7 @@ public class ID_WTR {
         if (VA_postal.wtr_inventory_postoffice[id] != null) {
             try {
                 VA_postal.wtr_npc_player[id].openInventory(VA_postal.wtr_inventory_postoffice[id]);
-            } catch (Exception e) {
+            } catch (Exception ignored) {
             }
             ID_Mail.npc_post_office_return_from_route(id);
         }
@@ -387,7 +385,7 @@ public class ID_WTR {
             result = result + Double.toString(x) + ",";
             double z = (int) Math.floor(loc.getZ());
             return result + Double.toString(z);
-        } catch (Exception e) {
+        } catch (Exception ignored) {
         }
 
 
@@ -406,7 +404,7 @@ public class ID_WTR {
             return;
         }
         if (!VA_postal.wtr_door_nav_enter[id]) {
-            open_door(id, true, false);
+            //open_door(id, true, false);
             VA_postal.wtr_door_nav_enter[id] = true;
             return;
         }
@@ -418,6 +416,7 @@ public class ID_WTR {
 
     public static void open_door(int id, boolean open, boolean quiet) {
         Util.dinform("open_door: " + AnsiColor.GREEN + "id " + AnsiColor.WHITE + "= [" + AnsiColor.YELLOW + id + AnsiColor.WHITE + "], " + AnsiColor.GREEN + "open " + AnsiColor.WHITE + "= [" + AnsiColor.YELLOW + open + AnsiColor.WHITE + "], " + AnsiColor.GREEN + "quiet " + AnsiColor.WHITE + "= [" + AnsiColor.YELLOW + quiet + AnsiColor.WHITE + "]");
+        /*
         int m_id = -1;
         boolean twodoors = false;
         Location reference_loc = Util.str2location(VA_postal.wtr_sdoor_location[id]);
@@ -445,12 +444,13 @@ public class ID_WTR {
             if ((m_id == 64) || (m_id == 71)) {
                 twodoors = true;
             }
-        }
+        }*/
 
         Block door1 = Util.str2location(VA_postal.wtr_sdoor_location[id]).getBlock();
         if (door1 != null) {
             if (open) {
                 openDoor(id, door1, quiet);
+                /*
                 if (twodoors) {
                     Block door2 = reference_loc.getBlock();
                     if (door2 != null) {
@@ -459,8 +459,10 @@ public class ID_WTR {
                         Util.cinform(AnsiColor.CYAN + "Double door found, but came up null (open)");
                     }
                 }
+                */
             } else {
                 closeDoor(id, door1, quiet);
+                /*
                 if (twodoors) {
                     Block door2 = reference_loc.getBlock();
                     if (door2 != null) {
@@ -469,6 +471,7 @@ public class ID_WTR {
                         Util.cinform(AnsiColor.CYAN + "Double door found, but came up null (close)");
                     }
                 }
+                */
             }
         } else {
             Util.cinform(AnsiColor.CYAN + "Reference door came up null");
@@ -476,7 +479,6 @@ public class ID_WTR {
     }
 
     private static void openDoor(int id, Block block, boolean quiet) {
-        Util.dinform("openDoor: " + AnsiColor.GREEN + "id " + AnsiColor.WHITE + "= [" + AnsiColor.YELLOW + id + AnsiColor.WHITE + "], " + AnsiColor.GREEN + "block " + AnsiColor.WHITE + "= [" + AnsiColor.YELLOW + block + AnsiColor.WHITE + "], " + AnsiColor.GREEN + "quiet " + AnsiColor.WHITE + "= [" + AnsiColor.YELLOW + quiet + AnsiColor.WHITE + "]");
         if (block != null) {
             if (block.getType() == Material.FENCE_GATE) {
                 BlockState state = block.getState();
@@ -488,11 +490,9 @@ public class ID_WTR {
                 }
             } else if ((block.getType() == Material.IRON_DOOR_BLOCK) || (block.getType() == Material.WOODEN_DOOR)) {
                 BlockState state = block.getState();
-                byte the_byte = block.getData();
-
-                int bit = 2;
-                the_byte = (byte) (the_byte | 1 << bit);
-                state.setRawData(the_byte);
+                Door data = (Door) state.getData();
+                data.setOpen(true);
+                state.setData(data);
                 state.update();
                 if (!quiet) {
                     block.getWorld().playSound(block.getLocation(), Sound.BLOCK_WOODEN_DOOR_OPEN, 1.0F, 0.0F);
@@ -509,18 +509,16 @@ public class ID_WTR {
                 gate.setOpen(false);
                 state.update();
                 if (!quiet) {
-                    block.getWorld().playSound(block.getLocation(), Sound.BLOCK_FENCE_GATE_CLOSE, 1.0F, 0.0F);
+                    block.getWorld().playSound(block.getLocation(), Sound.BLOCK_FENCE_GATE_CLOSE, 1F, 1F);
                 }
             } else if ((block.getType() == Material.IRON_DOOR_BLOCK) || (block.getType() == Material.WOODEN_DOOR)) {
                 BlockState state = block.getState();
-                byte the_byte = block.getData();
-
-                int bit = 2;
-                the_byte = (byte) (the_byte & (~1 << bit));
-                state.setRawData(the_byte);
+                Door data = (Door) state.getData();
+                data.setOpen(false);
+                state.setData(data);
                 state.update();
                 if (!quiet) {
-                    block.getWorld().playSound(block.getLocation(), Sound.BLOCK_WOODEN_DOOR_CLOSE, 1.0F, 0.0F);
+                    block.getWorld().playSound(block.getLocation(), Sound.BLOCK_WOODEN_DOOR_CLOSE, 1F, 1F);
                 }
             }
         }
@@ -540,7 +538,7 @@ public class ID_WTR {
 
 
         Location test_loc = Util.offset_from_ref(door_base, 1, 0, 0);
-        Location save_loc = null;
+        Location save_loc;
         if (open) {
             save_loc = Util.simplified_copy(test_loc);
         } else {
@@ -588,7 +586,7 @@ public class ID_WTR {
 
     public static void door_navigator(int id, boolean open) {
         Util.dinform("DOOR NAV CALLED");
-        Location target = null;
+        Location target;
         if (open) {
             target = Util.str2location(VA_postal.wtr_swaypoint_next[id]);
         } else {
@@ -614,23 +612,14 @@ public class ID_WTR {
                 walk_to(id, f_door_loc, 0.5F);
             }
         } else {
-            VA_postal.plugin.getServer().getScheduler().runTaskLater(VA_postal.plugin, new Runnable() {
-                public void run() {
-                    ID_WTR.walk_to(id, f_door_loc, 0.5F);
-                    VA_postal.plugin.getServer().getScheduler().runTaskLater(VA_postal.plugin, new Runnable() {
-                        public void run() {
-                            faceLocation(VA_postal.wtr_npc[id].getEntity(), f_target);
-                            if (VA_postal.lookclose_on_route) {
-                                VA_postal.plugin.getServer().getScheduler().runTaskLater(VA_postal.plugin, new Runnable() {
-
-                                    public void run() {
-                                        VA_postal.wtr_npc[id].getTrait(LookClose.class).lookClose(true);
-                                    }
-                                }, 40L);
-                            }
-                        }
-                    }, 20L);
-                }
+            VA_postal.plugin.getServer().getScheduler().runTaskLater(VA_postal.plugin, () -> {
+                ID_WTR.walk_to(id, f_door_loc, 0.5F);
+                VA_postal.plugin.getServer().getScheduler().runTaskLater(VA_postal.plugin, () -> {
+                    faceLocation(VA_postal.wtr_npc[id].getEntity(), f_target);
+                    if (VA_postal.lookclose_on_route) {
+                        VA_postal.plugin.getServer().getScheduler().runTaskLater(VA_postal.plugin, () -> VA_postal.wtr_npc[id].getTrait(LookClose.class).lookClose(true), 40L);
+                    }
+                }, 20L);
             }, 60L);
         }
     }
@@ -655,38 +644,6 @@ public class ID_WTR {
                 Util.dinform(AnsiColor.GREEN + "WT: New target for " + id + " " + AnsiColor.L_YELLOW + target);
                 VA_postal.wtr_nav[id].setTarget(target);
             }
-        }
-    }
-
-    public static void show_location(Location target, int h_typ, boolean carpet) {
-        if (target != null) {
-            Location ground = null;
-            if (carpet) {
-                ground = Util.str2location(Util.put_point_on_ground(Util.location2str(target), false));
-            } else {
-                ground = Util.str2location(Util.put_point_on_ground(Util.location2str(target), true));
-            }
-
-            Block block = ground.getBlock();
-            final int type = block.getTypeId();
-            final byte data = block.getData();
-            try {
-                if (carpet) {
-                    block.setTypeId(171);
-                } else {
-                    block.setTypeId(h_typ);
-                }
-            } catch (Exception e) {
-                return;
-            }
-            VA_postal.plugin.getServer().getScheduler().runTaskLater(VA_postal.plugin, new Runnable() {
-                public void run() {
-                    try {
-                        block.setTypeIdAndData(type, data, false);
-                    } catch (Exception e) {
-                    }
-                }
-            }, 40L);
         }
     }
 
@@ -821,7 +778,7 @@ public class ID_WTR {
         double zt = (int) Math.floor(target.getZ());
         double xdif = Math.abs(xs - xt);
         double zdif = Math.abs(zs - zt);
-        int dist = 3;
+        int dist;
 
 
         if (VA_postal.strict_door_nav) {
@@ -869,19 +826,18 @@ public class ID_WTR {
 
         Location test_loc = Util.offset_from_ref(door, 0, -1, 0);
         Block test_block = test_loc.getBlock();
-        int m_id = test_block.getTypeId();
-        if ((m_id == 64) || (m_id == 71) || (m_id == 107)) {
+        Material m_id = test_block.getType();
+        if ((m_id == Material.WOODEN_DOOR) || (m_id == Material.IRON_DOOR_BLOCK) || (m_id == Material.FENCE_GATE)) {
             return test_loc;
         }
 
         return door;
     }
 
-
     private static Location scan_x_axis_for_door(Location location, boolean add, int dist) {
         //Util.dinform("scan_x_axis_for_door: " + AnsiColor.GREEN + "location " + AnsiColor.WHITE + "= [" + AnsiColor.YELLOW + location + AnsiColor.WHITE + "], " + AnsiColor.GREEN + "add " + AnsiColor.WHITE + "= [" + AnsiColor.YELLOW + add + AnsiColor.WHITE + "], " + AnsiColor.GREEN + "dist " + AnsiColor.WHITE + "= [" + AnsiColor.YELLOW + dist + AnsiColor.WHITE + "]");
         Location test_loc = Util.simplified_copy(location);
-        Location result = null;
+        Location result;
         result = scan_x_elevation_for_door(test_loc, add, dist);
         if (result != null) {
             return result;
@@ -953,7 +909,7 @@ public class ID_WTR {
     private static Location scan_z_axis_for_door(Location location, boolean add, int dist) {
         //Util.dinform("scan_z_axis_for_door: " + AnsiColor.GREEN + "location " + AnsiColor.WHITE + "= [" + AnsiColor.YELLOW + location + AnsiColor.WHITE + "], " + AnsiColor.GREEN + "add " + AnsiColor.WHITE + "= [" + AnsiColor.YELLOW + add + AnsiColor.WHITE + "], " + AnsiColor.GREEN + "dist " + AnsiColor.WHITE + "= [" + AnsiColor.YELLOW + dist + AnsiColor.WHITE + "]");
         Location test_loc = Util.simplified_copy(location);
-        Location result = null;
+        Location result;
         result = scan_z_elevation_for_door(test_loc, add, dist);
         if (result != null) {
             return result;
@@ -1037,7 +993,7 @@ public class ID_WTR {
             if (string.length() > 0) {
                 return string.substring(0, 1).toUpperCase() + string.substring(1).toLowerCase().trim();
             }
-        } catch (Exception e) {
+        } catch (Exception ignored) {
         }
 
         return "";
@@ -1051,16 +1007,18 @@ public class ID_WTR {
                 return input.substring(0, len);
             }
 
-            while (input.length() < len) {
-                input = input + filler;
+            StringBuilder inputBuilder = new StringBuilder(input);
+            while (inputBuilder.length() < len) {
+                inputBuilder.append(filler);
             }
+            input = inputBuilder.toString();
             return input;
         } catch (Exception e) {
-            String blank = "";
+            StringBuilder blank = new StringBuilder();
             for (int i = 0; i < len; i++) {
-                blank = blank + filler;
+                blank.append(filler);
             }
-            return blank;
+            return blank.toString();
         }
     }
 }

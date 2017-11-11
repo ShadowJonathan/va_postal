@@ -3,6 +3,7 @@ package com.vodhanel.minecraft.va_postal.config;
 import com.vodhanel.minecraft.va_postal.VA_postal;
 import com.vodhanel.minecraft.va_postal.common.Util;
 import com.vodhanel.minecraft.va_postal.common.VA_Timers;
+import org.bukkit.Color;
 import org.bukkit.configuration.ConfigurationSection;
 
 import java.util.Set;
@@ -104,13 +105,13 @@ public class GetConfig {
 
     public static synchronized boolean lossy_pathfinding() {
         String spath = path_format("settings.allow_lossy_pathfinding");
-        String str;
+        boolean result;
         try {
-            str = VA_postal.plugin.getConfig().getString(spath);
+            result = VA_postal.plugin.getConfig().getBoolean(spath);
         } catch (Exception e) {
             return false;
         }
-        return "true".equalsIgnoreCase(str);
+        return result;
     }
 
     public static synchronized boolean dynmap() {
@@ -400,6 +401,28 @@ public class GetConfig {
             return false;
         }
         return "true".equals(sbool.toLowerCase().trim());
+    }
+
+    public static synchronized Color showroute_COLOR() {
+        String spath = path_format("settings.showroute_col");
+        try {
+            return (Color) VA_postal.plugin.getConfig().get(spath);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return Color.WHITE;
+    }
+
+    public static synchronized int showroute_PE() {
+        String spath = path_format("settings.showroute_pe");
+        try {
+            return VA_postal.plugin.getConfig().getInt(spath);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return 0;
     }
 
     public static synchronized int chunk_overlap() {

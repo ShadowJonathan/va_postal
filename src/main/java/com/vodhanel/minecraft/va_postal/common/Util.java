@@ -193,9 +193,10 @@ public class Util {
             double y = (int) Math.floor(ref_loc.getY());
             double z = (int) Math.floor(ref_loc.getZ());
             return new Location(ref_loc.getWorld(), x, y, z, 0.0F, 0.0F);
+        } else {
+            Util.dinform(AnsiColor.RED + "simplified_copy RETURNS NULL");
+            return ref_loc;
         }
-        Util.dinform(AnsiColor.RED + "simplified_copy RETURNS NULL");
-        return null;
     }
 
     public static Location simplified_copy(String slocation) {
@@ -1380,6 +1381,9 @@ public class Util {
     }
 
     public static Player UUID2Player(UUID UUID) {
-        return VA_postal.plugin.getServer().getPlayer(UUID);
+        if (UUID == VA_postal.SERVER_ID)
+            return VA_postal.SERVER;
+        else
+            return VA_postal.plugin.getServer().getPlayer(UUID);
     }
 }

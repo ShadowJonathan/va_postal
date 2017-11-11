@@ -5,10 +5,7 @@ import com.vodhanel.minecraft.va_postal.VA_postal;
 import com.vodhanel.minecraft.va_postal.commands.Cmd_static;
 import com.vodhanel.minecraft.va_postal.common.*;
 import com.vodhanel.minecraft.va_postal.config.*;
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.Location;
-import org.bukkit.World;
+import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -26,16 +23,13 @@ import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.scoreboard.DisplaySlot;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import static com.vodhanel.minecraft.va_postal.common.Util.df;
 
 public class RouteEditor implements Listener {
     public static VA_postal plugin;
     public static BukkitTask plistener_hud_worker = null;
-    public static List<Integer> route_blocks_type = null;
-    public static List<Byte> route_blocks_data = null;
-    public static List<Location> route_blocks_loc = null;
+    public static ArrayList<Location> route_blocks_loc = null;
     public static int wpnt_hilite_id = 152;
     public static boolean process_ground_click = false;
     private static long last_click = 0L;
@@ -47,6 +41,7 @@ public class RouteEditor implements Listener {
     private static int selected_pos = -1;
     private static Location saved_loc = null;
     private static int highlighttask;
+    private static int block_highlighttask;
 
     public RouteEditor(VA_postal plugin) {
         RouteEditor.plugin = plugin;
@@ -313,12 +308,12 @@ public class RouteEditor implements Listener {
                 }
             }
         }
+
         last_click = System.currentTimeMillis();
         last_2dloc = location_2_XZ(block.getLocation());
 
-
-        int ti = block.getTypeId();
-        if ((ti == 64) || (ti == 71) || (ti == 96) || (ti == 63) || (ti == 68) || (ti == 107)) {
+        Material ti = block.getType();
+        if ((ti == Material.WOODEN_DOOR) || (ti == Material.IRON_DOOR_BLOCK) || (ti == Material.TRAP_DOOR) || (ti == Material.SIGN_POST) || (ti == Material.WALL_SIGN) || (ti == Material.FENCE_GATE)) {
             return action != Action.RIGHT_CLICK_BLOCK;
         }
 
@@ -620,7 +615,7 @@ public class RouteEditor implements Listener {
                 }
                 int pos1 = -1;
                 int pos2 = -1;
-                double test_dist = -1.0D;
+                double test_dist;
                 double saved_dist = 1000.0D;
 
                 for (int i = 0; i < wypnt_count; i++) {
@@ -839,14 +834,12 @@ public class RouteEditor implements Listener {
     }
 
     public static synchronized void place_route_markers(String stown, String saddress) {
-        if (route_blocks_type != null) {
+        if (route_blocks_loc != null) {
             clear_route_markers();
         }
-        route_blocks_type = new ArrayList();
-        route_blocks_data = new ArrayList();
-        route_blocks_loc = new ArrayList();
+        route_blocks_loc = new ArrayList<>();
         wpnt_hilite_id = GetConfig.wpnt_hilite_id();
-        String slocation = "";
+        String slocation;
         if (C_Route.is_route_defined(stown, saddress)) {
             int route_len = C_Route.route_waypoint_count(stown, saddress);
             for (int i = 0; i < route_len; i++) {
@@ -859,23 +852,22 @@ public class RouteEditor implements Listener {
     }
 
     public static synchronized void clear_route_markers() {
-        if ((route_blocks_type != null) && (!route_blocks_type.isEmpty())) {
+        clear_route_markers(VA_postal.plistener_player);
+    }
+
+    public static synchronized void clear_route_markers(Player player) {
+        if ((route_blocks_loc != null) && (!route_blocks_loc.isEmpty())) {
             World w = route_blocks_loc.get(0).getWorld();
             for (int i = 0; i < route_blocks_loc.size(); i++) {
                 Block marker = w.getBlockAt(route_blocks_loc.get(i));
-                int type = route_blocks_type.get(i);
-                byte data = route_blocks_data.get(i);
                 try {
-                    marker.setTypeIdAndData(type, data, false);
+                    player.sendBlockChange(route_blocks_loc.get(i), marker.getType(), marker.getData());
                 } catch (Exception e) {
                     Util.dinform(AnsiColor.RED + "EXCEPTION IN clear_route_markers: " + e);
                     if (VA_postal.debug) e.printStackTrace();
                 }
             }
-            route_blocks_type.clear();
-            route_blocks_type = null;
-            route_blocks_data.clear();
-            route_blocks_data = null;
+            stopHighlighter();
             route_blocks_loc.clear();
             route_blocks_loc = null;
         }
@@ -883,9 +875,9 @@ public class RouteEditor implements Listener {
 
     public static synchronized boolean append_marker(String slocation) {
         Location location = Util.str2location(slocation);
-        location.add(0.0D, 1.0D, 0.0D);
         Block block = Util.valid_waypnt_block(location);
         int count = 0;
+        assert location != null;
         while ((block == null) && (count <= 5)) {
             location.subtract(0.0D, 1.0D, 0.0D);
             block = Util.valid_waypnt_block(location);
@@ -894,18 +886,12 @@ public class RouteEditor implements Listener {
         if (block == null) {
             return false;
         }
-        if (route_blocks_type == null) {
-            route_blocks_type = new ArrayList();
-            route_blocks_data = new ArrayList();
-            route_blocks_loc = new ArrayList();
+        if (route_blocks_loc == null) {
+            route_blocks_loc = new ArrayList<>();
         }
-        int type = block.getTypeId();
-        byte data = block.getData();
-        route_blocks_type.add(type);
-        route_blocks_data.add(data);
         route_blocks_loc.add(location);
         try {
-            block.setTypeId(wpnt_hilite_id);
+            VA_postal.plistener_player.sendBlockChange(location, wpnt_hilite_id, (byte) 0);
         } catch (Exception e) {
             return false;
         }
@@ -913,55 +899,81 @@ public class RouteEditor implements Listener {
     }
 
     public static synchronized void remove_last_marker() {
-        if (route_blocks_type != null) {
-            int index = route_blocks_type.size() - 1;
+        if (route_blocks_loc != null) {
+            int index = route_blocks_loc.size() - 1;
             if (index >= 0) {
                 World w = route_blocks_loc.get(index).getWorld();
                 Block marker = w.getBlockAt(route_blocks_loc.get(index));
-                int type = route_blocks_type.get(index).intValue();
-                byte data = route_blocks_data.get(index).byteValue();
-                try {
-                    marker.setTypeIdAndData(type, data, false);
-                } catch (Exception e) {
-                }
+                VA_postal.plistener_player.sendBlockChange(route_blocks_loc.get(index), marker.getType(), marker.getData());
                 route_blocks_loc.remove(index);
-                route_blocks_type.remove(index);
-                route_blocks_data.remove(index);
             }
         }
+    }
+
+    public static synchronized void startHighlighter(final Player player, final String stown, final String sadress) {
+        highlighttask = Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, () -> highlightWorker(player, stown, sadress), 0L, 10);
+        block_highlighttask = Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, () -> Blockhighlightworker(player, stown, sadress), 0L, 20);
     }
 
     public static synchronized void startHighlighter() {
         highlighttask = Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, RouteEditor::highlightWorker, 0L, 10);
+        block_highlighttask = Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, RouteEditor::Blockhighlightworker, 0L, 20);
     }
 
     public static synchronized void stopHighlighter() {
         Bukkit.getScheduler().cancelTask(highlighttask);
+        Bukkit.getScheduler().cancelTask(block_highlighttask);
+    }
+
+    public static void Blockhighlightworker() {
+        Blockhighlightworker(VA_postal.plistener_player, VA_postal.plistener_local_po, VA_postal.plistener_address);
+    }
+
+    public static void Blockhighlightworker(Player player, String stown, String sadress) {
+        for (Location location : C_Route.get_waypoint_locations(stown, sadress)) {
+            player.sendBlockChange(location, wpnt_hilite_id, (byte) 0);
+        }
     }
 
     public static void highlightWorker() {
+        highlightWorker(VA_postal.plistener_player, VA_postal.plistener_local_po, VA_postal.plistener_address);
+    }
+
+    public static void highlightWorker(Player player, String stown, String sadress) {
         Location latest = null;
-        ArrayList<Location> list = C_Route.get_waypoint_locations(VA_postal.plistener_local_po, VA_postal.plistener_address);
-/*        StringBuilder s = new StringBuilder();
-        for (Location location : list) {
-            s.append(location.toString());
-        }
-        Util.dinform(s.toString());*/
-        int index = 1;
+        ArrayList<Location> list = C_Route.get_waypoint_locations(stown, sadress);
         for (Location l : list) {
-            //Util.dinform("got: " + l);
-            //Util.dinform("at: " + index + "/" + list.size());
             if (latest != null) {
-                //Util.dinform(latest + " -> " + l);
-                Particles.displayLine(latest.clone().add(0.5, 0.5, 0.5), l.clone().add(0.5, 0.5, 0.5), VA_postal.plistener_player, ParticleEffect.PORTAL);
+                Particles.displayLine(latest.clone().add(0.5, 1.5, 0.5), l.clone().add(0.5, 1.5, 0.5), player, getConfiguredPE());
             }
             latest = l;
-            index++;
+        }
+    }
+
+    public static ParticleEffect getConfiguredPE() {
+        switch (VA_postal.showroute_PE) {
+            default:
+            case 0:
+                return ParticleEffect.END_ROD;
+            case 1:
+                return ParticleEffect.PORTAL;
+            case 2:
+                return ParticleEffect.SPELL_INSTANT;
+            case 3:
+                return ParticleEffect.SPELL_MOB;
+            case 4:
+                return ParticleEffect.CRIT;
+            case 5:
+                return ParticleEffect.FOOTSTEP;
+            case 6:
+                return ParticleEffect.REDSTONE;
+            case 7:
+                return ParticleEffect.SPELL_MOB_AMBIENT;
         }
     }
 
     private static String location_2_XZ(Location loc) {
-        String result = "null";
+        String result;
         try {
             result = loc.getWorld().getName() + ",";
             double x = (int) Math.floor(loc.getX());

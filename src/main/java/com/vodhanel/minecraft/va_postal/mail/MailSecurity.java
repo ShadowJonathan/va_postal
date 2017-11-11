@@ -363,8 +363,8 @@ public class MailSecurity {
         if (slot == 0) {
             if (hasPermission(player, "postal.inspector")) {
                 ItemStack holding = player.getItemOnCursor();
-                if (holding.getType() == Material.AIR) {
-                    player.getWorld().dropItemNaturally(player.getLocation(), player.getItemOnCursor());
+                if (holding.getType() != Material.AIR) {
+                    player.getWorld().dropItemNaturally(player.getLocation(), holding);
                     Util.pinform(player, "&9The item you were holding has been dropped.");
                 }
                 ItemStack clone = stack.clone();

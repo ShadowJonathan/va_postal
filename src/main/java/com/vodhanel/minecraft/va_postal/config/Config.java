@@ -1,6 +1,7 @@
 package com.vodhanel.minecraft.va_postal.config;
 
 import com.vodhanel.minecraft.va_postal.VA_postal;
+import org.bukkit.Color;
 
 
 public class Config {
@@ -71,6 +72,8 @@ public class Config {
         String path58 = path_format("economy.postage.distribution");
 
         String lossy = path_format("settings.allow_lossy_pathfinding");
+        String src = path_format("settings.showroute_col");
+        String srp = path_format("settings.showroute_pe");
 
         VA_postal.plugin.getConfig().addDefault(path1, "1.0");
         VA_postal.plugin.getConfig().addDefault(path2, "300");
@@ -131,7 +134,9 @@ public class Config {
         VA_postal.plugin.getConfig().addDefault(path57, "10");
         VA_postal.plugin.getConfig().addDefault(path58, "2");
 
-        VA_postal.plugin.getConfig().addDefault(lossy, "true");
+        VA_postal.plugin.getConfig().addDefault(lossy, true);
+        VA_postal.plugin.getConfig().addDefault(src, Color.WHITE);
+        VA_postal.plugin.getConfig().addDefault(srp, 0);
 
         VA_postal.plugin.getConfig().options().copyDefaults(true);
         VA_postal.plugin.saveConfig();

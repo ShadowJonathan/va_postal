@@ -99,12 +99,8 @@ public class VA_Timers {
         }, 10L);
     }
 
-    public static synchronized void hideroute() {
-        VA_postal.plugin.getServer().getScheduler().scheduleSyncDelayedTask(VA_postal.plugin, () -> {
-            if (VA_postal.plistener_player == null) {
-                RouteEditor.clear_route_markers();
-            }
-        }, 1000L);
+    public static synchronized void hideroute(final Player p) {
+        VA_postal.plugin.getServer().getScheduler().scheduleSyncDelayedTask(VA_postal.plugin, () -> RouteEditor.clear_route_markers(p), 1000L);
     }
 
     public static void report_newmail_all() {

@@ -1435,7 +1435,7 @@ public enum ParticleEffect {
      * @author DarkBlade12
      * @since 1.7
      */
-    private static final class ParticleColorException extends RuntimeException {
+    public static final class ParticleColorException extends RuntimeException {
 
         private static final long serialVersionUID = 3203085387160737484L;
 
