@@ -1,4 +1,9 @@
 package com.vodhanel.minecraft.va_postal.mail;
 
-public class Stress {
+final public class Stress {
+    public static boolean enabled;
+
+    public static boolean should_delete() {
+        return false;
+    }
 }

@@ -25,38 +25,28 @@ public class VA_Dispatcher {
     }
 
     public static synchronized void dispatcher(Long delay, Long period, boolean check_status) {
-        if ((check_status) && (dispatcher_running)) {
-            return;
-        }
+        if ((check_status) && (dispatcher_running)) return;
         dispatcher_running = true;
-        if (dispatcher_async) {
-            dispatcher_task = VA_postal.plugin.getServer()
-                    .getScheduler()
-                    .runTaskTimerAsynchronously(VA_postal.plugin, VA_Dispatcher::heart_beat, delay, period);
-
-
-        } else {
-
-            dispatcher_task = VA_postal.plugin.getServer()
-                    .getScheduler()
-                    .runTaskTimer(VA_postal.plugin, VA_Dispatcher::heart_beat, delay, period);
-        }
+        if (dispatcher_async) dispatcher_task = VA_postal.plugin.getServer()
+                .getScheduler()
+                .runTaskTimerAsynchronously(VA_postal.plugin, VA_Dispatcher::heart_beat, delay, period);
+        else dispatcher_task = VA_postal.plugin.getServer()
+                .getScheduler()
+                .runTaskTimer(VA_postal.plugin, VA_Dispatcher::heart_beat, delay, period);
     }
 
     public static void heart_beat() {
-        if (!dispatcher_running) {
-            return;
-        }
+        if (!dispatcher_running) return;
+
         dispatcher_id = dispatcher_task.getTaskId();
 
         int elapsed_seconds_since_last_nbc_activity = Util.time_stamp() - VA_postal.wtr_watchdog_sys_ext_stamp;
 
         int wd_delay = VA_postal.wtr_postman_cool;
-        if (wd_delay > 40) {
-            wd_delay += 20;
-        } else {
-            wd_delay = 60;
-        }
+
+        if (wd_delay > 40) wd_delay += 20;
+        else wd_delay = 60;
+
         if (elapsed_seconds_since_last_nbc_activity > wd_delay) {
             VA_postal.wtr_watchdog_sys_ext_stamp = Util.time_stamp();
 
@@ -67,9 +57,7 @@ public class VA_Dispatcher {
 
         String queue_pair = C_Queue.get_next_queue_task();
 
-        if (!"BZY".equals(queue_pair.trim())) {
-            RouteMngr.npc_scheduler(queue_pair);
-        }
+        if (!"BZY".equals(queue_pair.trim())) RouteMngr.npc_scheduler(queue_pair);
 
         Cmdexecutor.age_confirm_queue();
 
@@ -79,18 +67,12 @@ public class VA_Dispatcher {
     }
 
     public static synchronized void cancel_dispatcher(boolean quiet) {
-        if (restarting) {
-            return;
-        }
+        if (restarting) return;
         if (dispatcher_id >= 0) {
             restarting = true;
             dispatcher_running = false;
-            if (VA_postal.dynmap_configured) {
-                P_Dynmap.dynmap_stop();
-            }
-            if (!quiet) {
-                Util.cinform(AnsiColor.RED + "[Stopping VA_postal] \033[0;37mDispatcher stopped.");
-            }
+            if (VA_postal.dynmap_configured) P_Dynmap.dynmap_stop();
+            if (!quiet) Util.cinform(AnsiColor.RED + "[Stopping VA_postal] \033[0;37mDispatcher stopped.");
             VA_postal.plugin.getServer().getScheduler().scheduleSyncDelayedTask(VA_postal.plugin, () -> {
                 if (VA_Dispatcher.dispatcher_id >= 0) {
                     VA_Dispatcher.dispatcher_task.cancel();
@@ -107,7 +89,6 @@ public class VA_Dispatcher {
             }, restart_cool);
         } else Util.dinform("DISPATCHER ID NOT OVER 0");
     }
-
 
     public static synchronized void start_up(boolean quiet) {
         aux_slots = 10;
@@ -139,19 +120,14 @@ public class VA_Dispatcher {
             dispatcher_async = GetConfig.heart_beat_async();
             dispatcher_auto_cal = GetConfig.heart_beat_auto();
             dispatcher(100L, dispatcher_heartbeat, true);
-            if (VA_postal.dynmap_configured) {
-                P_Dynmap.dynmap_start();
-            }
-            if (!quiet) {
+            if (VA_postal.dynmap_configured) P_Dynmap.dynmap_start();
+            if (!quiet)
                 Util.con_type("\033[0;32mVA_Postal started. \033[0;37m'postal talk'\033[0;32m to see activity.");
-            }
         }
     }
 
     public static synchronized void restart(boolean quiet) {
-        if (restarting) {
-            return;
-        }
+        if (restarting) return;
         cancel_dispatcher(quiet);
         long delay = restart_cool + 20L;
         VA_postal.plugin.getServer().getScheduler().scheduleSyncDelayedTask(VA_postal.plugin, () -> VA_Dispatcher.start_up(quiet), delay);

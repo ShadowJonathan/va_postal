@@ -92,17 +92,15 @@ public class Cmdexecutor implements CommandExecutor {
             return true;
         }
 
-        if ((stown != null) && (!"null".equals(stown))) {
-            if (C_Owner.is_local_po_owner_defined(stown)) {
-                Player test = C_Owner.get_owner_local_po(stown);
-                if (test == player) {
-                    Util.perm_inform("PO owner, " + player + ", " + stown);
-                    return true;
-                }
+        if ((stown != null) && (!"null".equals(stown))) if (C_Owner.is_local_po_owner_defined(stown)) {
+            Player test = C_Owner.get_owner_local_po(stown);
+            if (test == player) {
+                Util.perm_inform("PO owner, " + player + ", " + stown);
+                return true;
             }
         }
         if ((stown != null) && (!"null".equals(stown)) &&
-                (saddress != null) && (!"null".equals(saddress))) {
+                (saddress != null) && (!"null".equals(saddress)))
             if (C_Owner.is_address_owner_defined(stown, saddress)) {
                 Player test = C_Owner.get_owner_address(stown, saddress);
                 if (test == player) {
@@ -110,7 +108,6 @@ public class Cmdexecutor implements CommandExecutor {
                     return true;
                 }
             }
-        }
 
 
         if ((stown != null) && (!"null".equals(stown)) &&
@@ -212,9 +209,7 @@ public class Cmdexecutor implements CommandExecutor {
                 return true;
             }
             VA_Dispatcher.start_up(false);
-            if (!VA_postal.needs_configuration) {
-                Util.pinform(player, "VA_postal Started");
-            }
+            if (!VA_postal.needs_configuration) Util.pinform(player, "VA_postal Started");
             return true;
         }
         if ("restart".equals(args[0].toLowerCase().trim())) {
@@ -488,9 +483,7 @@ public class Cmdexecutor implements CommandExecutor {
             Util.con_type("mtalk changed to: " + VA_postal.mailtalk);
             return true;
         }
-        if ("test".equals(args[0].toLowerCase().trim())) {
-            return true;
-        }
+        if ("test".equals(args[0].toLowerCase().trim())) return true;
 
         return true;
     }
@@ -502,15 +495,10 @@ public class Cmdexecutor implements CommandExecutor {
             Util.pinform(player, help_msg);
             return true;
         }
-        if (args.length == 0) {
-            gotocentral(false, player, "gotocentral", args);
-        } else if (args.length == 1) {
-            gotolocal(false, player, "gotolocal", args);
-        } else if (args.length == 2) {
-            gotoaddress(false, player, "gotoaddr", args);
-        } else {
-            Util.pinform(player, help_msg);
-        }
+        if (args.length == 0) gotocentral(false, player, "gotocentral", args);
+        else if (args.length == 1) gotolocal(false, player, "gotolocal", args);
+        else if (args.length == 2) gotoaddress(false, player, "gotoaddr", args);
+        else Util.pinform(player, help_msg);
         return true;
     }
 
@@ -523,16 +511,11 @@ public class Cmdexecutor implements CommandExecutor {
         }
         if ((args.length == 0) || (args.length == 1)) {
             String subject;
-            if (args.length == 0) {
-                subject = "none";
-            } else {
-                subject = args[0];
-            }
+            if (args.length == 0) subject = "none";
+            else subject = args[0];
             int max_dist = VA_postal.allowed_geo_proximity;
             String[] geo_object = Util.proximity_object(player, max_dist);
-            if (geo_object == null) {
-                return true;
-            }
+            if (geo_object == null) return true;
             if (geo_object[1].equals("post_office")) {
                 String[] args_new = new String[2];
                 args_new[0] = geo_object[0];
@@ -545,13 +528,9 @@ public class Cmdexecutor implements CommandExecutor {
                 args_new[2] = subject;
                 owneraddr(false, player, "owneraddr", args_new);
             }
-        } else if (args.length == 2) {
-            ownerlocal(false, player, "ownerlocal", args);
-        } else if (args.length == 3) {
-            owneraddr(false, player, "owneraddr", args);
-        } else {
-            Util.pinform(player, help_msg);
-        }
+        } else if (args.length == 2) ownerlocal(false, player, "ownerlocal", args);
+        else if (args.length == 3) owneraddr(false, player, "owneraddr", args);
+        else Util.pinform(player, help_msg);
         return true;
     }
 
@@ -566,21 +545,17 @@ public class Cmdexecutor implements CommandExecutor {
         }
         String stown = C_Postoffice.town_complete(args[0]);
         if ("null".equals(stown)) {
-            if ((VA_postal.using_towny()) && (P_Towny.is_this_a_town_by_loc(player))) {
+            if ((VA_postal.using_towny()) && (P_Towny.is_this_a_town_by_loc(player)))
                 P_Towny.list_towny_tree(player, false, null, false);
-            } else {
-                Util.list_postal_tree(player, false, null);
-            }
+            else Util.list_postal_tree(player, false, null);
             Util.pinform(player, "&7&oNeed more letters for town. See list:");
             return true;
         }
         String saddress = C_Address.addresses_complete(stown, args[1]);
         if ("null".equals(saddress)) {
-            if ((VA_postal.using_towny()) && (P_Towny.is_this_a_town_by_loc(player))) {
+            if ((VA_postal.using_towny()) && (P_Towny.is_this_a_town_by_loc(player)))
                 P_Towny.list_towny_tree(player, true, stown, false);
-            } else {
-                Util.list_postal_tree(player, true, stown);
-            }
+            else Util.list_postal_tree(player, true, stown);
             Util.pinform(player, "&7&oNeed more letters for address. See list:");
             return true;
         }
@@ -617,21 +592,15 @@ public class Cmdexecutor implements CommandExecutor {
         }
         String stown = C_Postoffice.town_complete(args[0]);
         if ("null".equals(stown)) {
-            if (VA_postal.using_towny()) {
-                P_Towny.list_towny_tree(null, false, null, false);
-            } else {
-                Util.list_postal_tree(null, false, null);
-            }
+            if (VA_postal.using_towny()) P_Towny.list_towny_tree(null, false, null, false);
+            else Util.list_postal_tree(null, false, null);
             Util.con_type("Need more letters for town. See list:");
             return true;
         }
         String saddress = C_Address.addresses_complete(stown, args[1]);
         if ("null".equals(saddress)) {
-            if (VA_postal.using_towny()) {
-                P_Towny.list_towny_tree(null, true, stown, false);
-            } else {
-                Util.list_postal_tree(null, true, stown);
-            }
+            if (VA_postal.using_towny()) P_Towny.list_towny_tree(null, true, stown, false);
+            else Util.list_postal_tree(null, true, stown);
             Util.con_type("Need more letters for address. See list:");
             return true;
         }
@@ -664,11 +633,9 @@ public class Cmdexecutor implements CommandExecutor {
         }
         String stown = C_Postoffice.town_complete(args[0]);
         if ("null".equals(stown)) {
-            if ((VA_postal.using_towny()) && (P_Towny.is_this_a_town_by_loc(player))) {
+            if ((VA_postal.using_towny()) && (P_Towny.is_this_a_town_by_loc(player)))
                 P_Towny.list_towny_tree(player, false, null, false);
-            } else {
-                Util.list_postal_tree(player, false, null);
-            }
+            else Util.list_postal_tree(player, false, null);
             Util.pinform(player, "&7&oNeed more letters for post office. See list:");
             return true;
         }
@@ -700,11 +667,8 @@ public class Cmdexecutor implements CommandExecutor {
         }
         String stown = C_Postoffice.town_complete(args[0]);
         if ("null".equals(stown)) {
-            if (VA_postal.using_towny()) {
-                P_Towny.list_towny_tree(null, false, null, false);
-            } else {
-                Util.list_postal_tree(null, false, null);
-            }
+            if (VA_postal.using_towny()) P_Towny.list_towny_tree(null, false, null, false);
+            else Util.list_postal_tree(null, false, null);
             Util.con_type("Need more letters for post office. See list:");
             return true;
         }
@@ -732,21 +696,17 @@ public class Cmdexecutor implements CommandExecutor {
         }
         String stown = C_Postoffice.town_complete(args[0]);
         if ("null".equals(stown)) {
-            if ((VA_postal.using_towny()) && (P_Towny.is_this_a_town_by_loc(player))) {
+            if ((VA_postal.using_towny()) && (P_Towny.is_this_a_town_by_loc(player)))
                 P_Towny.list_towny_tree(player, false, null, false);
-            } else {
-                Util.list_postal_tree(player, false, null);
-            }
+            else Util.list_postal_tree(player, false, null);
             Util.pinform(player, "&7&oNeed more letters for post office. See list:");
             return true;
         }
         String saddress = C_Address.addresses_complete(stown, args[1]);
         if ("null".equals(saddress)) {
-            if ((VA_postal.using_towny()) && (P_Towny.is_this_a_town_by_loc(player))) {
+            if ((VA_postal.using_towny()) && (P_Towny.is_this_a_town_by_loc(player)))
                 P_Towny.list_towny_tree(player, true, stown, false);
-            } else {
-                Util.list_postal_tree(player, true, stown);
-            }
+            else Util.list_postal_tree(player, true, stown);
             Util.pinform(player, "&7&oNeed more letters for address. See list:");
             return true;
         }
@@ -778,21 +738,15 @@ public class Cmdexecutor implements CommandExecutor {
         }
         String stown = C_Postoffice.town_complete(args[0]);
         if ("null".equals(stown)) {
-            if (VA_postal.using_towny()) {
-                P_Towny.list_towny_tree(null, false, null, false);
-            } else {
-                Util.list_postal_tree(null, false, null);
-            }
+            if (VA_postal.using_towny()) P_Towny.list_towny_tree(null, false, null, false);
+            else Util.list_postal_tree(null, false, null);
             Util.con_type("Need more letters for post office. See list:");
             return true;
         }
         String saddress = C_Address.addresses_complete(stown, args[1]);
         if ("null".equals(saddress)) {
-            if (VA_postal.using_towny()) {
-                P_Towny.list_towny_tree(null, true, stown, false);
-            } else {
-                Util.list_postal_tree(null, true, stown);
-            }
+            if (VA_postal.using_towny()) P_Towny.list_towny_tree(null, true, stown, false);
+            else Util.list_postal_tree(null, true, stown);
             Util.con_type("Need more letters for address. See list:");
             return true;
         }
@@ -820,21 +774,17 @@ public class Cmdexecutor implements CommandExecutor {
         }
         String stown = C_Postoffice.town_complete(args[0]);
         if ("null".equals(stown)) {
-            if ((VA_postal.using_towny()) && (P_Towny.is_this_a_town_by_loc(player))) {
+            if ((VA_postal.using_towny()) && (P_Towny.is_this_a_town_by_loc(player)))
                 P_Towny.list_towny_tree(player, false, null, false);
-            } else {
-                Util.list_postal_tree(player, false, null);
-            }
+            else Util.list_postal_tree(player, false, null);
             Util.pinform(player, "&7&oNeed more letters for post office. See list:");
             return true;
         }
         String saddress = C_Address.addresses_complete(stown, args[1]);
         if ("null".equals(saddress)) {
-            if ((VA_postal.using_towny()) && (P_Towny.is_this_a_town_by_loc(player))) {
+            if ((VA_postal.using_towny()) && (P_Towny.is_this_a_town_by_loc(player)))
                 P_Towny.list_towny_tree(player, true, stown, false);
-            } else {
-                Util.list_postal_tree(player, true, stown);
-            }
+            else Util.list_postal_tree(player, true, stown);
             Util.pinform(player, "&7&oNeed more letters for address. See list:");
             return true;
         }
@@ -866,21 +816,15 @@ public class Cmdexecutor implements CommandExecutor {
         }
         String stown = C_Postoffice.town_complete(args[0]);
         if ("null".equals(stown)) {
-            if (VA_postal.using_towny()) {
-                P_Towny.list_towny_tree(null, false, null, false);
-            } else {
-                Util.list_postal_tree(null, false, null);
-            }
+            if (VA_postal.using_towny()) P_Towny.list_towny_tree(null, false, null, false);
+            else Util.list_postal_tree(null, false, null);
             Util.con_type("Need more letters for post office. See list:");
             return true;
         }
         String saddress = C_Address.addresses_complete(stown, args[1]);
         if ("null".equals(saddress)) {
-            if (VA_postal.using_towny()) {
-                P_Towny.list_towny_tree(null, true, stown, false);
-            } else {
-                Util.list_postal_tree(null, true, stown);
-            }
+            if (VA_postal.using_towny()) P_Towny.list_towny_tree(null, true, stown, false);
+            else Util.list_postal_tree(null, true, stown);
             Util.con_type("Need more letters for address. See list:");
             return true;
         }
@@ -908,11 +852,9 @@ public class Cmdexecutor implements CommandExecutor {
         }
         String stown = C_Postoffice.town_complete(args[0]);
         if ("null".equals(stown)) {
-            if ((VA_postal.using_towny()) && (P_Towny.is_this_a_town_by_loc(player))) {
+            if ((VA_postal.using_towny()) && (P_Towny.is_this_a_town_by_loc(player)))
                 P_Towny.list_towny_tree(player, false, null, false);
-            } else {
-                Util.list_postal_tree(player, false, null);
-            }
+            else Util.list_postal_tree(player, false, null);
             Util.pinform(player, "&7&oNeed more letters for post office. See list:");
             return true;
         }
@@ -944,11 +886,8 @@ public class Cmdexecutor implements CommandExecutor {
         }
         String stown = C_Postoffice.town_complete(args[0]);
         if ("null".equals(stown)) {
-            if (VA_postal.using_towny()) {
-                P_Towny.list_towny_tree(null, false, null, false);
-            } else {
-                Util.list_postal_tree(null, false, null);
-            }
+            if (VA_postal.using_towny()) P_Towny.list_towny_tree(null, false, null, false);
+            else Util.list_postal_tree(null, false, null);
             Util.con_type("Need more letters for post office. See list:");
             return true;
         }
@@ -1028,14 +967,11 @@ public class Cmdexecutor implements CommandExecutor {
         }
 
 
-        if ((VA_postal.using_towny()) && (!P_Towny.set_local_ok(player))) {
-            return true;
-        }
+        if ((VA_postal.using_towny()) && (!P_Towny.set_local_ok(player))) return true;
 
         String stown = args[0].toLowerCase().trim();
-        if (!C_Postoffice.is_local_po_name_defined(stown)) {
-            stown = Util.name_validate(stown);
-        } else {
+        if (!C_Postoffice.is_local_po_name_defined(stown)) stown = Util.name_validate(stown);
+        else {
             Util.pinform(player, "&7&oPost office name &f&r" + Util.df(stown) + " &7&oalready being used.");
             return true;
         }
@@ -1056,7 +992,7 @@ public class Cmdexecutor implements CommandExecutor {
         Block block = ChestManip.getNearestGenericChest_to_player(player, 2);
         if ((addr_list != null) && (addr_list.length > 0)) {
             Util.pinform(player, "&7&oAddresses serviced by &f&r" + Util.df(stown));
-            for (String anAddr_list : addr_list) {
+            for (String anAddr_list : addr_list)
                 if ((C_Address.is_address_defined(stown, anAddr_list)) &&
                         (C_Route.is_waypoint_defined(stown, anAddr_list, 0))) {
                     stlocation = C_Route.get_waypoint_location(stown, anAddr_list, 0);
@@ -1069,7 +1005,6 @@ public class Cmdexecutor implements CommandExecutor {
                     display = fixed_len(anAddr_list, 20, " ");
                     Util.pinform(player, "  &f&r" + display + distance);
                 }
-            }
 
             Util.pinform(player, "&7&oDistance from each beginning waypoint.");
             if (max_dist > 5L) {
@@ -1104,9 +1039,7 @@ public class Cmdexecutor implements CommandExecutor {
                     Util.pinform(player, "&c&oRan out of NPC slots for postmen.");
                     Util.pinform(player, "&c&oRestart the server to allocate more.");
                 }
-            } else {
-                Util.pinform(player, "&7&oLocal post office set: &f&r" + Util.df(stown) + ", " + slocation);
-            }
+            } else Util.pinform(player, "&7&oLocal post office set: &f&r" + Util.df(stown) + ", " + slocation);
 
             if ((VA_postal.using_towny()) &&
                     (P_Towny.is_towny_admin_by_loc(player))) {
@@ -1139,11 +1072,9 @@ public class Cmdexecutor implements CommandExecutor {
         }
         String stown = C_Postoffice.town_complete(args[0]);
         if ("null".equals(stown)) {
-            if ((VA_postal.using_towny()) && (P_Towny.is_this_a_town_by_loc(player))) {
+            if ((VA_postal.using_towny()) && (P_Towny.is_this_a_town_by_loc(player)))
                 P_Towny.list_towny_tree(player, false, null, false);
-            } else {
-                Util.list_postal_tree(player, false, null);
-            }
+            else Util.list_postal_tree(player, false, null);
             Util.pinform(player, "&7&oNeed more letters for post office. See list:");
             return true;
         }
@@ -1194,27 +1125,21 @@ public class Cmdexecutor implements CommandExecutor {
                     Util.pinform(player, "&7&oCould not find nearest address.");
                     return true;
                 }
-            } else {
-                Util.pinform(player, "&7&oCould not obtain geo list.");
-            }
+            } else Util.pinform(player, "&7&oCould not obtain geo list.");
         } else {
             stown = C_Postoffice.town_complete(args[0]);
             if ("null".equals(stown)) {
-                if ((VA_postal.using_towny()) && (P_Towny.is_this_a_town_by_loc(player))) {
+                if ((VA_postal.using_towny()) && (P_Towny.is_this_a_town_by_loc(player)))
                     P_Towny.list_towny_tree(player, false, null, false);
-                } else {
-                    Util.list_postal_tree(player, false, null);
-                }
+                else Util.list_postal_tree(player, false, null);
                 Util.pinform(player, "&7&oPost office does not exist. See list:");
                 return true;
             }
             saddress = C_Address.addresses_complete(stown, args[1]);
             if ("null".equals(saddress)) {
-                if ((VA_postal.using_towny()) && (P_Towny.is_this_a_town_by_loc(player))) {
+                if ((VA_postal.using_towny()) && (P_Towny.is_this_a_town_by_loc(player)))
                     P_Towny.list_towny_tree(player, true, stown, false);
-                } else {
-                    Util.list_postal_tree(player, true, stown);
-                }
+                else Util.list_postal_tree(player, true, stown);
                 Util.pinform(player, "&7&oPostal address: " + Util.df(stown) + "/" + Util.df(args[1]) + " does not exist.");
                 Util.pinform(player, "&7&oUse /setaddress to define it.");
                 return true;
@@ -1282,11 +1207,9 @@ public class Cmdexecutor implements CommandExecutor {
             input_addr = args[1];
             stown = C_Postoffice.town_complete(args[0]);
             if ("null".equals(stown)) {
-                if ((VA_postal.using_towny()) && (P_Towny.is_this_a_town_by_loc(player))) {
+                if ((VA_postal.using_towny()) && (P_Towny.is_this_a_town_by_loc(player)))
                     P_Towny.list_towny_tree(player, false, null, false);
-                } else {
-                    Util.list_postal_tree(player, false, null);
-                }
+                else Util.list_postal_tree(player, false, null);
                 Util.pinform(player, "&7&oPost office does not exist. See list:");
                 return true;
             }
@@ -1298,9 +1221,7 @@ public class Cmdexecutor implements CommandExecutor {
         }
 
 
-        if ((VA_postal.using_towny()) && (!P_Towny.set_addr_ok(player, stown))) {
-            return true;
-        }
+        if ((VA_postal.using_towny()) && (!P_Towny.set_addr_ok(player, stown))) return true;
 
         boolean new_addr = false;
         String saddress = C_Address.addresses_complete(stown, input_addr);
@@ -1355,18 +1276,16 @@ public class Cmdexecutor implements CommandExecutor {
             Util.pinform(player, "&7&oUsage: &f&r/addr <PostOffice> <Address> [player] &7&oto address book in your hand");
             return true;
         }
-        ItemStack stack = player.getItemOnCursor();
+        ItemStack stack = player.getItemInHand();
         if ((stack == null) || (stack.getType() != Material.WRITTEN_BOOK)) {
             Util.pinform(player, "&7&oYou must have a signed book in your hand.");
             return true;
         }
         String stown = C_Postoffice.town_complete(args[0]);
         if ("null".equals(stown)) {
-            if ((VA_postal.using_towny()) && (P_Towny.is_this_a_town_by_loc(player))) {
+            if ((VA_postal.using_towny()) && (P_Towny.is_this_a_town_by_loc(player)))
                 P_Towny.list_towny_tree(player, false, null, false);
-            } else {
-                Util.list_postal_tree(player, false, null);
-            }
+            else Util.list_postal_tree(player, false, null);
             Util.pinform(player, "&7&oNeed more letters for post office. See list:");
             return true;
         }
@@ -1380,11 +1299,9 @@ public class Cmdexecutor implements CommandExecutor {
         }
         String saddress = C_Address.addresses_complete(stown, args[1]);
         if ("null".equals(saddress)) {
-            if ((VA_postal.using_towny()) && (P_Towny.is_this_a_town_by_loc(player))) {
+            if ((VA_postal.using_towny()) && (P_Towny.is_this_a_town_by_loc(player)))
                 P_Towny.list_towny_tree(player, true, stown, false);
-            } else {
-                Util.list_postal_tree(player, true, stown);
-            }
+            else Util.list_postal_tree(player, true, stown);
             Util.pinform(player, "&7&oNeed more letters for address. See list:");
             return true;
         }
@@ -1405,9 +1322,7 @@ public class Cmdexecutor implements CommandExecutor {
             deregister_player_comfirmation(player);
         } else {
             Util.pinform(player, "&7&oReady to address to: &9&o" + Util.df(stown) + ", " + Util.df(saddress) + ", " + Util.df(attention));
-            if (price > 0.0D) {
-                Util.pinform(player, "&fYou will be charged " + ef(price) + " for postage.");
-            }
+            if (price > 0.0D) Util.pinform(player, "&fYou will be charged " + ef(price) + " for postage.");
 
             String scommand = "/addr " + stown + " " + saddress + " " + attention;
             register_player_comfirmation(player, scommand);
@@ -1434,9 +1349,8 @@ public class Cmdexecutor implements CommandExecutor {
 
 
         String sdistribution = "owners";
-        if (("all".equals(args[0].toLowerCase().trim())) || ("[all]".equals(args[0].toLowerCase().trim()))) {
+        if (("all".equals(args[0].toLowerCase().trim())) || ("[all]".equals(args[0].toLowerCase().trim())))
             sdistribution = "[all]";
-        }
 
         String stown = "[all]";
         int iexpiration = GetConfig.distr_exp_days();
@@ -1449,9 +1363,7 @@ public class Cmdexecutor implements CommandExecutor {
                 String result = C_Postoffice.town_complete(args[1]);
                 if (!"null".equals(result)) {
                     stown = result;
-                    if (args.length == 2) {
-                        done = true;
-                    }
+                    if (args.length == 2) done = true;
                 }
             }
 
@@ -1463,9 +1375,7 @@ public class Cmdexecutor implements CommandExecutor {
                     iresult = -1;
                 }
 
-                if ((iresult > 0) && (iresult < 30)) {
-                    iexpiration = iresult;
-                }
+                if ((iresult > 0) && (iresult < 30)) iexpiration = iresult;
             }
         }
 
@@ -1486,9 +1396,7 @@ public class Cmdexecutor implements CommandExecutor {
             deregister_player_comfirmation(player);
         } else {
             Util.pinform(player, "&7&oReady to distribute to: &9&o" + Util.df(sdistribution) + ", " + Util.df(stown) + ", " + Util.df(s_expiration));
-            if (price > 0.0D) {
-                Util.pinform(player, "&fYou will be charged " + ef(price) + " for postage.");
-            }
+            if (price > 0.0D) Util.pinform(player, "&fYou will be charged " + ef(price) + " for postage.");
 
             String scommand = "/distr " + sdistribution + " " + stown + " " + s_expiration;
             register_player_comfirmation(player, scommand);
@@ -1530,16 +1438,13 @@ public class Cmdexecutor implements CommandExecutor {
         }
 
         if (is_player_comfirmation_registered(player)) {
-            if (Cmd_static.accept_worker(player, stack, price)) {
+            if (Cmd_static.accept_worker(player, stack, price))
                 Util.pinform(player, "&7&oShipment successfully received.");
-            }
             deregister_player_comfirmation(player);
         } else {
             Util.pinform(player, "&f&rReady accept shipment.");
             Util.pinform(player, "&7&oShipment will be placed directly in front of you.");
-            if (price > 0.0D) {
-                Util.pinform(player, "&7&oThis is COD and you will be charged $" + ef(price));
-            }
+            if (price > 0.0D) Util.pinform(player, "&7&oThis is COD and you will be charged $" + ef(price));
             String scommand = "/postal accept";
             register_player_comfirmation(player, scommand);
         }
@@ -1614,11 +1519,9 @@ public class Cmdexecutor implements CommandExecutor {
 
         String stown = C_Postoffice.town_complete(args[0]);
         if ("null".equals(stown)) {
-            if ((VA_postal.using_towny()) && (P_Towny.is_this_a_town_by_loc(player))) {
+            if ((VA_postal.using_towny()) && (P_Towny.is_this_a_town_by_loc(player)))
                 P_Towny.list_towny_tree(player, false, null, false);
-            } else {
-                Util.list_postal_tree(player, false, null);
-            }
+            else Util.list_postal_tree(player, false, null);
             Util.pinform(player, "&7&oNeed more letters for post office. See list:");
             return true;
         }
@@ -1632,11 +1535,9 @@ public class Cmdexecutor implements CommandExecutor {
         }
         String saddress = C_Address.addresses_complete(stown, args[1]);
         if ("null".equals(saddress)) {
-            if ((VA_postal.using_towny()) && (P_Towny.is_this_a_town_by_loc(player))) {
+            if ((VA_postal.using_towny()) && (P_Towny.is_this_a_town_by_loc(player)))
                 P_Towny.list_towny_tree(player, true, stown, false);
-            } else {
-                Util.list_postal_tree(player, true, stown);
-            }
+            else Util.list_postal_tree(player, true, stown);
             Util.pinform(player, "&7&oNeed more letters for address. See list:");
             return true;
         }
@@ -1645,9 +1546,7 @@ public class Cmdexecutor implements CommandExecutor {
         Player Attention = null;
         if (args.length == 3) {
             Attention = Util.player_complete(args[2]);
-            if (Attention != null) {
-                attention = Attention.getDisplayName();
-            }
+            if (Attention != null) attention = Attention.getDisplayName();
         }
 
         if (is_player_comfirmation_registered(player)) {
@@ -1659,11 +1558,9 @@ public class Cmdexecutor implements CommandExecutor {
         } else {
             Util.pinform(player, "&7&oReady create shipping label");
             Util.pinform(player, "&7&oAddressed to: &9&o" + Util.df(stown) + ", " + Util.df(saddress) + ", " + Util.df(attention));
-            if (price > 0.0D) {
-                Util.pinform(player, "&fYou will be charged " + ef(price) + " for shipping.");
-            }
+            if (price > 0.0D) Util.pinform(player, "&fYou will be charged " + ef(price) + " for shipping.");
 
-            String scommand = "/postal package " + stown + " " + saddress + " " + attention;
+            String scommand = "/package " + stown + " " + saddress + " " + attention;
             register_player_comfirmation(player, scommand);
         }
         return true;
@@ -1737,9 +1634,7 @@ public class Cmdexecutor implements CommandExecutor {
             }
         }
 
-        if (!Cmd_static.att_worker(false, player, stack, attention, original)) {
-            return true;
-        }
+        if (!Cmd_static.att_worker(false, player, stack, attention, original)) return true;
 
         if (is_player_comfirmation_registered(player)) {
             Cmd_static.att_worker(true, player, stack, attention, original);
@@ -1760,21 +1655,17 @@ public class Cmdexecutor implements CommandExecutor {
         }
         String stown = C_Postoffice.town_complete(args[0]);
         if ("null".equals(stown)) {
-            if ((VA_postal.using_towny()) && (P_Towny.is_this_a_town_by_loc(player))) {
+            if ((VA_postal.using_towny()) && (P_Towny.is_this_a_town_by_loc(player)))
                 P_Towny.list_towny_tree(player, false, null, false);
-            } else {
-                Util.list_postal_tree(player, false, null);
-            }
+            else Util.list_postal_tree(player, false, null);
             Util.pinform(player, "&7&oNeed more letters for post office. See list:");
             return true;
         }
         String saddress = C_Address.addresses_complete(stown, args[1]);
         if ("null".equals(saddress)) {
-            if ((VA_postal.using_towny()) && (P_Towny.is_this_a_town_by_loc(player))) {
+            if ((VA_postal.using_towny()) && (P_Towny.is_this_a_town_by_loc(player)))
                 P_Towny.list_towny_tree(player, true, stown, false);
-            } else {
-                Util.list_postal_tree(player, true, stown);
-            }
+            else Util.list_postal_tree(player, true, stown);
             Util.pinform(player, "&7&oNeed more letters for address. See list:");
             return true;
         }
@@ -1819,12 +1710,10 @@ public class Cmdexecutor implements CommandExecutor {
                     boolean is_po = false;
                     if (saddr.equalsIgnoreCase("post_office")) {
                         is_po = true;
-                        if (C_Owner.is_local_po_owner_defined(stown)) {
+                        if (C_Owner.is_local_po_owner_defined(stown))
                             sownr = Util.df(C_Owner.get_owner_local_po(stown).getDisplayName());
-                        }
-                    } else if (C_Owner.is_address_owner_defined(stown, saddr)) {
+                    } else if (C_Owner.is_address_owner_defined(stown, saddr))
                         sownr = Util.df(C_Owner.get_owner_address(stown, saddr).getDisplayName());
-                    }
 
                     sownr = fixed_len(Util.df(sownr), 14, "-");
                     String hding = parts[3];
@@ -1833,14 +1722,11 @@ public class Cmdexecutor implements CommandExecutor {
                     saddr = fixed_len(Util.df(saddr), 14, "-");
                     int dist = Util.str2int(sdist);
                     sdist = Util.int2fstr_leading_zeros(dist, 3);
-                    if (is_po) {
+                    if (is_po)
                         Util.pinform(player, "&f" + sdist + "  &e&l" + hding + "  &6" + stown + " " + saddr + " &o" + sownr);
-                    } else {
+                    else
                         Util.pinform(player, "&f" + sdist + "  &e&l" + hding + "  &a" + stown + " " + saddr + " &o" + sownr);
-                    }
-                    if (i == 8) {
-                        break;
-                    }
+                    if (i == 8) break;
                 }
             }
             return true;
@@ -1850,11 +1736,9 @@ public class Cmdexecutor implements CommandExecutor {
         if (!args[0].equals("null")) {
             stown = C_Postoffice.town_complete(args[0]);
             if ("null".equals(stown)) {
-                if ((VA_postal.using_towny()) && (P_Towny.is_this_a_town_by_loc(player))) {
+                if ((VA_postal.using_towny()) && (P_Towny.is_this_a_town_by_loc(player)))
                     P_Towny.list_towny_tree(player, false, null, false);
-                } else {
-                    Util.list_postal_tree(player, false, null);
-                }
+                else Util.list_postal_tree(player, false, null);
                 Util.pinform(player, "&7&oNeed more letters for post office. See list:");
                 return true;
             }
@@ -1863,11 +1747,9 @@ public class Cmdexecutor implements CommandExecutor {
         if ((args.length > 1) && (!args[1].equals("null"))) {
             saddress = C_Address.addresses_complete(stown, args[1]);
             if ("null".equals(saddress)) {
-                if ((VA_postal.using_towny()) && (P_Towny.is_this_a_town_by_loc(player))) {
+                if ((VA_postal.using_towny()) && (P_Towny.is_this_a_town_by_loc(player)))
                     P_Towny.list_towny_tree(player, true, stown, false);
-                } else {
-                    Util.list_postal_tree(player, true, stown);
-                }
+                else Util.list_postal_tree(player, true, stown);
                 Util.pinform(player, "&7&oNeed more letters for address. See list:");
                 return true;
             }
@@ -1883,26 +1765,20 @@ public class Cmdexecutor implements CommandExecutor {
                 if (player.getWorld() == location.getWorld()) {
                     player.setCompassTarget(location);
                     Util.pinform(player, "&7&oYour compass has been set to: &r" + Util.df(stown));
-                } else {
-                    Util.pinform(player, Util.df(stown) + " is in a different world");
-                }
+                } else Util.pinform(player, Util.df(stown) + " is in a different world");
             } else {
                 String slocation = C_Address.get_address_location(stown, saddress);
                 Location location = Util.str2location(slocation);
                 if (player.getWorld() == location.getWorld()) {
                     player.setCompassTarget(location);
                     Util.pinform(player, "&7&oYour compass has been set to: &r" + Util.df(stown) + ", " + Util.df(saddress));
-                } else {
-                    Util.pinform(player, Util.df(stown) + " is in a different world");
-                }
+                } else Util.pinform(player, Util.df(stown) + " is in a different world");
             }
             deregister_player_comfirmation(player);
         } else {
-            if (saddress.equals("null")) {
-                Util.pinform(player, "&7&oReady to set your compass to: &r" + Util.df(stown));
-            } else {
+            if (saddress.equals("null")) Util.pinform(player, "&7&oReady to set your compass to: &r" + Util.df(stown));
+            else
                 Util.pinform(player, "&7&oReady to set your compass to: &r" + Util.df(stown) + ", " + Util.df(saddress));
-            }
 
             String scommand = "/gpsp " + stown + " " + saddress;
             register_player_comfirmation(player, scommand);
@@ -1919,22 +1795,18 @@ public class Cmdexecutor implements CommandExecutor {
 
         String stown = C_Postoffice.town_complete(args[0]);
         if ("null".equals(stown)) {
-            if ((VA_postal.using_towny()) && (P_Towny.is_this_a_town_by_loc(player))) {
+            if ((VA_postal.using_towny()) && (P_Towny.is_this_a_town_by_loc(player)))
                 P_Towny.list_towny_tree(player, false, null, false);
-            } else {
-                Util.list_postal_tree(player, false, null);
-            }
+            else Util.list_postal_tree(player, false, null);
             Util.pinform(player, "&7&oNeed more letters for post office. See list:");
             return true;
         }
 
         String saddress = C_Address.addresses_complete(stown, args[1]);
         if ("null".equals(saddress)) {
-            if ((VA_postal.using_towny()) && (P_Towny.is_this_a_town_by_loc(player))) {
+            if ((VA_postal.using_towny()) && (P_Towny.is_this_a_town_by_loc(player)))
                 P_Towny.list_towny_tree(player, true, stown, false);
-            } else {
-                Util.list_postal_tree(player, true, stown);
-            }
+            else Util.list_postal_tree(player, true, stown);
             Util.pinform(player, "&7&oNeed more letters for address. See list:");
             return true;
         }
@@ -1960,13 +1832,11 @@ public class Cmdexecutor implements CommandExecutor {
         }
 
         double price = 0.0D;
-        if (psubject != null) {
-            if (VA_postal.economy_configured) {
-                price = P_Economy.has_price_of_address(psubject);
-                if (price < 0.0D) {
-                    Util.pinform(player, "&f&o" + Util.df(subject) + "&7&o does not have enough money to cover the purchase price.");
-                    return true;
-                }
+        if (psubject != null) if (VA_postal.economy_configured) {
+            price = P_Economy.has_price_of_address(psubject);
+            if (price < 0.0D) {
+                Util.pinform(player, "&f&o" + Util.df(subject) + "&7&o does not have enough money to cover the purchase price.");
+                return true;
             }
         } else if ((VA_postal.economy_configured) &&
                 (!P_Economy.can_central_buy_addr())) {
@@ -1982,12 +1852,10 @@ public class Cmdexecutor implements CommandExecutor {
         } else {
             Util.pinform(player, "Ready to make " + Util.df(subject) + " the address owner of " + Util.df(stown) + ", " + Util.df(saddress));
             if ((!subject.equalsIgnoreCase("none")) &&
-                    (price > 0.0D)) {
+                    (price > 0.0D))
                 Util.pinform(player, "&f&o" + Util.df(subject) + "&7&o will be charged &f&o" + ef(price));
-            }
 
-
-            String scommand = "/owneraddr " + stown + " " + saddress + " " + subject;
+            String scommand = "/owneraddr " + stown + " " + saddress + " " + psubject.getName();
             register_player_comfirmation(player, scommand);
         }
 
@@ -2001,21 +1869,17 @@ public class Cmdexecutor implements CommandExecutor {
         }
         String stown = C_Postoffice.town_complete(args[0]);
         if ("null".equals(stown)) {
-            if ((VA_postal.using_towny()) && (P_Towny.is_this_a_town_by_loc(player))) {
+            if ((VA_postal.using_towny()) && (P_Towny.is_this_a_town_by_loc(player)))
                 P_Towny.list_towny_tree(null, false, null, false);
-            } else {
-                Util.list_postal_tree(null, false, null);
-            }
+            else Util.list_postal_tree(null, false, null);
             Util.con_type("Need more letters for post office. See list:");
             return true;
         }
         String saddress = C_Address.addresses_complete(stown, args[1]);
         if ("null".equals(saddress)) {
-            if ((VA_postal.using_towny()) && (P_Towny.is_this_a_town_by_loc(player))) {
+            if ((VA_postal.using_towny()) && (P_Towny.is_this_a_town_by_loc(player)))
                 P_Towny.list_towny_tree(player, true, stown, false);
-            } else {
-                Util.list_postal_tree(player, true, stown);
-            }
+            else Util.list_postal_tree(player, true, stown);
             Util.con_type("Need more letters for address. See list:");
             return true;
         }
@@ -2030,13 +1894,11 @@ public class Cmdexecutor implements CommandExecutor {
         }
 
         double price = 0.0D;
-        if (subject != null) {
-            if (VA_postal.economy_configured) {
-                price = P_Economy.has_price_of_address(subject);
-                if (price < 0.0D) {
-                    Util.con_type(subject + " does not have enough money to cover the purchase price.");
-                    return true;
-                }
+        if (subject != null) if (VA_postal.economy_configured) {
+            price = P_Economy.has_price_of_address(subject);
+            if (price < 0.0D) {
+                Util.con_type(subject + " does not have enough money to cover the purchase price.");
+                return true;
             }
         } else if ((VA_postal.economy_configured) &&
                 (!P_Economy.can_central_buy_addr())) {
@@ -2053,8 +1915,7 @@ public class Cmdexecutor implements CommandExecutor {
             Util.con_type("Ready to make " + subject + " the address owner of " + Util.df(stown) + ", " + Util.df(saddress));
             if ((subject != null) && (price > 0.0D))
                 Util.con_type(subject + " will be charged " + ef(price));
-
-            String scommand = "owneraddr " + stown + " " + saddress + " " + subject;
+            String scommand = "owneraddr " + stown + " " + saddress + " " + subject.getName();
             register_player_comfirmation(null, scommand);
         }
 
@@ -2068,11 +1929,9 @@ public class Cmdexecutor implements CommandExecutor {
         }
         String stown = C_Postoffice.town_complete(args[0]);
         if ("null".equals(stown)) {
-            if ((VA_postal.using_towny()) && (P_Towny.is_this_a_town_by_loc(player))) {
+            if ((VA_postal.using_towny()) && (P_Towny.is_this_a_town_by_loc(player)))
                 P_Towny.list_towny_tree(player, false, null, false);
-            } else {
-                Util.list_postal_tree(player, false, null);
-            }
+            else Util.list_postal_tree(player, false, null);
             Util.pinform(player, "&7&oNeed more letters for post office. See list:");
             return true;
         }
@@ -2095,13 +1954,11 @@ public class Cmdexecutor implements CommandExecutor {
         }
 
         double price = 0.0D;
-        if (subject != null) {
-            if (VA_postal.economy_configured) {
-                price = P_Economy.has_price_of_postoffice(subject);
-                if (price < 0.0D) {
-                    Util.pinform(player, "&f&o" + subject + "&7&o does not have enough money to cover the purchase price.");
-                    return true;
-                }
+        if (subject != null) if (VA_postal.economy_configured) {
+            price = P_Economy.has_price_of_postoffice(subject);
+            if (price < 0.0D) {
+                Util.pinform(player, "&f&o" + subject + "&7&o does not have enough money to cover the purchase price.");
+                return true;
             }
         } else if ((VA_postal.economy_configured) &&
                 (!P_Economy.can_central_buy_po())) {
@@ -2117,9 +1974,7 @@ public class Cmdexecutor implements CommandExecutor {
         } else {
             Util.pinform(player, "Ready to make " + (subject != null ? subject.getDisplayName() : "the Server") + " the post office owner of " + Util.df(stown));
             if ((subject != null) &&
-                    (price > 0.0D)) {
-                Util.pinform(player, "&f&o" + subject + "&7&o will be charged &f&o" + ef(price));
-            }
+                    (price > 0.0D)) Util.pinform(player, "&f&o" + subject + "&7&o will be charged &f&o" + ef(price));
 
 
             String scommand = "/ownerlocal " + stown + " " + (subject != null ? subject.getDisplayName() : "server");
@@ -2135,11 +1990,8 @@ public class Cmdexecutor implements CommandExecutor {
         }
         String stown = C_Postoffice.town_complete(args[0]);
         if ("null".equals(stown)) {
-            if (VA_postal.using_towny()) {
-                P_Towny.list_towny_tree(null, false, null, false);
-            } else {
-                Util.list_postal_tree(null, false, null);
-            }
+            if (VA_postal.using_towny()) P_Towny.list_towny_tree(null, false, null, false);
+            else Util.list_postal_tree(null, false, null);
             Util.con_type("Need more letters for post office. See list:");
             return true;
         }
@@ -2154,13 +2006,11 @@ public class Cmdexecutor implements CommandExecutor {
             }
         }
         double price = 0.0D;
-        if (subject != null) {
-            if (VA_postal.economy_configured) {
-                price = P_Economy.has_price_of_postoffice(subject);
-                if (price < 0.0D) {
-                    Util.con_type(subject + " does not have enough money to cover the purchase price.");
-                    return true;
-                }
+        if (subject != null) if (VA_postal.economy_configured) {
+            price = P_Economy.has_price_of_postoffice(subject);
+            if (price < 0.0D) {
+                Util.con_type(subject + " does not have enough money to cover the purchase price.");
+                return true;
             }
         } else if ((VA_postal.economy_configured) &&
                 (!P_Economy.can_central_buy_po())) {
@@ -2175,9 +2025,7 @@ public class Cmdexecutor implements CommandExecutor {
             deregister_player_comfirmation(null);
         } else {
             Util.con_type("Ready to make " + subject + " the post office owner of " + Util.df(stown));
-            if ((subject != null) && (price > 0.0D)) {
-                Util.con_type(subject + " will be charged " + ef(price));
-            }
+            if ((subject != null) && (price > 0.0D)) Util.con_type(subject + " will be charged " + ef(price));
 
 
             String scommand = "ownerlocal " + stown + " " + subject;
@@ -2199,11 +2047,9 @@ public class Cmdexecutor implements CommandExecutor {
         }
         String stown = C_Postoffice.town_complete(args[0]);
         if ("null".equals(stown)) {
-            if ((VA_postal.using_towny()) && (P_Towny.is_this_a_town_by_loc(player))) {
+            if ((VA_postal.using_towny()) && (P_Towny.is_this_a_town_by_loc(player)))
                 P_Towny.list_towny_tree(player, false, null, false);
-            } else {
-                Util.list_postal_tree(player, false, null);
-            }
+            else Util.list_postal_tree(player, false, null);
             Util.pinform(player, "&7&oNeed more letters for post office. See list:");
             return true;
         }
@@ -2229,11 +2075,8 @@ public class Cmdexecutor implements CommandExecutor {
         }
         String stown = C_Postoffice.town_complete(args[0]);
         if ("null".equals(stown)) {
-            if (VA_postal.using_towny()) {
-                P_Towny.list_towny_tree(null, false, null, false);
-            } else {
-                Util.list_postal_tree(null, false, null);
-            }
+            if (VA_postal.using_towny()) P_Towny.list_towny_tree(null, false, null, false);
+            else Util.list_postal_tree(null, false, null);
             Util.cinform("Need more letters for post office. See list:");
             return true;
         }
@@ -2263,21 +2106,17 @@ public class Cmdexecutor implements CommandExecutor {
 
         String stown = C_Postoffice.town_complete(args[0]);
         if ("null".equals(stown)) {
-            if ((VA_postal.using_towny()) && (P_Towny.is_this_a_town_by_loc(player))) {
+            if ((VA_postal.using_towny()) && (P_Towny.is_this_a_town_by_loc(player)))
                 P_Towny.list_towny_tree(player, false, null, false);
-            } else {
-                Util.list_postal_tree(player, false, null);
-            }
+            else Util.list_postal_tree(player, false, null);
             Util.pinform(player, "&7&oNeed more letters for post office. See list:");
             return true;
         }
         String saddress = C_Address.addresses_complete(stown, args[1]);
         if ("null".equals(saddress)) {
-            if ((VA_postal.using_towny()) && (P_Towny.is_this_a_town_by_loc(player))) {
+            if ((VA_postal.using_towny()) && (P_Towny.is_this_a_town_by_loc(player)))
                 P_Towny.list_towny_tree(player, true, stown, false);
-            } else {
-                Util.list_postal_tree(player, true, stown);
-            }
+            else Util.list_postal_tree(player, true, stown);
             Util.pinform(player, "&7&oNeed more letters for address. See list:");
             return true;
         }
@@ -2305,22 +2144,16 @@ public class Cmdexecutor implements CommandExecutor {
 
         String stown = C_Postoffice.town_complete(args[0]);
         if ("null".equals(stown)) {
-            if (VA_postal.using_towny()) {
-                P_Towny.list_towny_tree(null, false, null, false);
-            } else {
-                Util.list_postal_tree(null, false, null);
-            }
+            if (VA_postal.using_towny()) P_Towny.list_towny_tree(null, false, null, false);
+            else Util.list_postal_tree(null, false, null);
             Util.cinform("Need more letters for post office. See list:");
             return true;
         }
 
         String saddress = C_Address.addresses_complete(stown, args[1]);
         if ("null".equals(saddress)) {
-            if (VA_postal.using_towny()) {
-                P_Towny.list_towny_tree(null, true, stown, false);
-            } else {
-                Util.list_postal_tree(null, true, stown);
-            }
+            if (VA_postal.using_towny()) P_Towny.list_towny_tree(null, true, stown, false);
+            else Util.list_postal_tree(null, true, stown);
             Util.con_type("Need more letters for address. See list:");
             return true;
         }
@@ -2350,11 +2183,9 @@ public class Cmdexecutor implements CommandExecutor {
             return true;
         }
         if (args.length == 0) {
-            if ((VA_postal.using_towny()) && (P_Towny.is_this_a_town_by_loc(player))) {
+            if ((VA_postal.using_towny()) && (P_Towny.is_this_a_town_by_loc(player)))
                 P_Towny.list_towny_tree(player, false, null, false);
-            } else {
-                Util.list_postal_tree(player, false, null);
-            }
+            else Util.list_postal_tree(player, false, null);
             Util.pinform(player, "");
             Util.pinform(player, "&7&oUse a search string for town details.");
             return true;
@@ -2379,11 +2210,8 @@ public class Cmdexecutor implements CommandExecutor {
             return true;
         }
         if (args.length == 0) {
-            if (VA_postal.using_towny()) {
-                P_Towny.list_towny_tree(null, false, null, false);
-            } else {
-                Util.list_postal_tree(null, false, null);
-            }
+            if (VA_postal.using_towny()) P_Towny.list_towny_tree(null, false, null, false);
+            else Util.list_postal_tree(null, false, null);
             Util.con_type("");
             Util.con_type("Use a search string for town details.");
             return true;
@@ -2407,29 +2235,23 @@ public class Cmdexecutor implements CommandExecutor {
         }
         String stown;
         String heading = "";
-        if (args.length == 1) {
-            stown = C_Postoffice.town_complete(args[0]);
-        } else {
+        if (args.length == 1) stown = C_Postoffice.town_complete(args[0]);
+        else {
             String[] list = C_Arrays.geo_po_list_sorted(player);
-            if (list == null) {
-                stown = "null";
-            } else {
+            if (list == null) stown = "null";
+            else {
                 String[] parts = list[0].split(",");
                 if (parts.length == 3) {
                     stown = parts[1].toLowerCase().trim();
                     String blocks = Util.int2str(Util.str2int(parts[0]));
                     heading = "&f&r" + Util.df(stown) + "&7&o is &f&r" + blocks + "&7&o blocks away, heading: &f&r" + parts[2];
-                } else {
-                    stown = "null";
-                }
+                } else stown = "null";
             }
         }
         if ("null".equals(stown)) {
-            if ((VA_postal.using_towny()) && (P_Towny.is_this_a_town_by_loc(player))) {
+            if ((VA_postal.using_towny()) && (P_Towny.is_this_a_town_by_loc(player)))
                 P_Towny.list_towny_tree(player, false, null, false);
-            } else {
-                Util.list_postal_tree(player, false, null);
-            }
+            else Util.list_postal_tree(player, false, null);
             Util.pinform(player, "&7&oNeed more letters for post office. See list:");
             return true;
         }
@@ -2451,11 +2273,8 @@ public class Cmdexecutor implements CommandExecutor {
         }
         String stown = C_Postoffice.town_complete(args[0]);
         if ("null".equals(stown)) {
-            if (VA_postal.using_towny()) {
-                P_Towny.list_towny_tree(null, false, null, false);
-            } else {
-                Util.list_postal_tree(null, false, null);
-            }
+            if (VA_postal.using_towny()) P_Towny.list_towny_tree(null, false, null, false);
+            else Util.list_postal_tree(null, false, null);
             Util.con_type(" Need more letters for post office. See list:");
             return true;
         }
@@ -2489,9 +2308,7 @@ public class Cmdexecutor implements CommandExecutor {
                         String saddr = parts[4];
                         if (!splayer.equalsIgnoreCase(subject)) {
                             boolean is_po = false;
-                            if (saddr.equalsIgnoreCase("post_office")) {
-                                is_po = true;
-                            }
+                            if (saddr.equalsIgnoreCase("post_office")) is_po = true;
                             stown = fixed_len(Util.df(parts[3]), 14, "-");
                             saddr = fixed_len(Util.df(parts[4]), 14, "-");
                             String hding = parts[2];
@@ -2499,20 +2316,15 @@ public class Cmdexecutor implements CommandExecutor {
                             subject = fixed_len(Util.df(subject), 14, "-");
                             int dist = Util.str2int(sdist);
                             sdist = Util.int2fstr_leading_zeros(dist, 3);
-                            if (is_po) {
+                            if (is_po)
                                 Util.pinform(player, "&f" + sdist + "  &e&l" + hding + "  &f" + subject + " &6" + stown + " " + saddr);
-                            } else {
+                            else
                                 Util.pinform(player, "&f" + sdist + "  &e&l" + hding + "  &f" + subject + " &a" + stown + " " + saddr);
-                            }
-                            if (i == 8) {
-                                break;
-                            }
+                            if (i == 8) break;
                         }
                     }
                 }
-            } else {
-                Util.pinform(player, "&7&oNo players to locate.");
-            }
+            } else Util.pinform(player, "&7&oNo players to locate.");
             return true;
         }
 
@@ -2534,9 +2346,7 @@ public class Cmdexecutor implements CommandExecutor {
         Util.pinform(player, "");
         Util.pinform(player, "&f&l" + arg_player);
         String[] town_list = C_Arrays.town_list();
-        if (town_list == null) {
-            return true;
-        }
+        if (town_list == null) return true;
         for (String stown : town_list) {
             String sworld = C_List.get_world(C_Postoffice.get_local_po_location_by_name(stown));
             String dstown = fixed_len(Util.df(stown), 15, "-");
@@ -2551,17 +2361,14 @@ public class Cmdexecutor implements CommandExecutor {
                 }
             }
             String[] addr_list = C_Arrays.addresses_list(stown);
-            if (addr_list != null) {
-
-                for (String anAddr_list : addr_list) {
-                    saddress = anAddr_list;
-                    if (C_Owner.is_address_owner_defined(stown, saddress)) {
-                        Player addr_owner = C_Owner.get_owner_address(stown, saddress);
-                        if (addr_owner == srch_param) {
-                            saddress = fixed_len(Util.df(saddress), 15, "-");
-                            Util.pinform(player, "    &a&o" + dstown + "  &a&o" + saddress + "  &f&o" + sworld);
-                            a_hits++;
-                        }
+            if (addr_list != null) for (String anAddr_list : addr_list) {
+                saddress = anAddr_list;
+                if (C_Owner.is_address_owner_defined(stown, saddress)) {
+                    Player addr_owner = C_Owner.get_owner_address(stown, saddress);
+                    if (addr_owner == srch_param) {
+                        saddress = fixed_len(Util.df(saddress), 15, "-");
+                        Util.pinform(player, "    &a&o" + dstown + "  &a&o" + saddress + "  &f&o" + sworld);
+                        a_hits++;
                     }
                 }
             }
@@ -2591,9 +2398,7 @@ public class Cmdexecutor implements CommandExecutor {
         Util.con_type("");
         Util.con_type(arg_player.toString());
         String[] town_list = C_Arrays.town_list();
-        if (town_list == null) {
-            return true;
-        }
+        if (town_list == null) return true;
         for (String stown : town_list) {
             String sworld = C_List.get_world(C_Postoffice.get_local_po_location_by_name(stown));
             String dstown = fixed_len(Util.df(stown), 15, "-");
@@ -2608,17 +2413,14 @@ public class Cmdexecutor implements CommandExecutor {
                 }
             }
             String[] addr_list = C_Arrays.addresses_list(stown);
-            if (addr_list != null) {
-
-                for (String anAddr_list : addr_list) {
-                    saddress = anAddr_list;
-                    if (C_Owner.is_address_owner_defined(stown, saddress)) {
-                        Player addr_owner = C_Owner.get_owner_address(stown, saddress);
-                        if (addr_owner == srch_param) {
-                            saddress = fixed_len(Util.df(saddress), 15, "-");
-                            Util.con_type("\033[0;32m    " + dstown + "  " + saddress + "  " + sworld);
-                            a_hits++;
-                        }
+            if (addr_list != null) for (String anAddr_list : addr_list) {
+                saddress = anAddr_list;
+                if (C_Owner.is_address_owner_defined(stown, saddress)) {
+                    Player addr_owner = C_Owner.get_owner_address(stown, saddress);
+                    if (addr_owner == srch_param) {
+                        saddress = fixed_len(Util.df(saddress), 15, "-");
+                        Util.con_type("\033[0;32m    " + dstown + "  " + saddress + "  " + sworld);
+                        a_hits++;
                     }
                 }
             }
@@ -2657,27 +2459,21 @@ public class Cmdexecutor implements CommandExecutor {
                     Util.pinform(player, "&7&oCould not find nearest address.");
                     return true;
                 }
-            } else {
-                Util.pinform(player, "&7&oCould not obtain geo list.");
-            }
+            } else Util.pinform(player, "&7&oCould not obtain geo list.");
         } else {
             stown = C_Postoffice.town_complete(args[0]);
             if ("null".equals(stown)) {
-                if ((VA_postal.using_towny()) && (P_Towny.is_this_a_town_by_loc(player))) {
+                if ((VA_postal.using_towny()) && (P_Towny.is_this_a_town_by_loc(player)))
                     P_Towny.list_towny_tree(player, false, null, false);
-                } else {
-                    Util.list_postal_tree(player, false, null);
-                }
+                else Util.list_postal_tree(player, false, null);
                 Util.pinform(player, "&7&oPost office does not exist. See list:");
                 return true;
             }
             saddress = C_Address.addresses_complete(stown, args[1]);
             if ("null".equals(saddress)) {
-                if ((VA_postal.using_towny()) && (P_Towny.is_this_a_town_by_loc(player))) {
+                if ((VA_postal.using_towny()) && (P_Towny.is_this_a_town_by_loc(player)))
                     P_Towny.list_towny_tree(player, true, stown, false);
-                } else {
-                    Util.list_postal_tree(player, true, stown);
-                }
+                else Util.list_postal_tree(player, true, stown);
                 Util.pinform(player, "&7&oPostal address: " + Util.df(stown) + "/" + Util.df(args[1]) + " does not exist.");
                 Util.pinform(player, "&7&oUse /setaddress to define it.");
                 return true;
@@ -2706,21 +2502,15 @@ public class Cmdexecutor implements CommandExecutor {
         }
         String stown = C_Postoffice.town_complete(args[0]);
         if ("null".equals(stown)) {
-            if (VA_postal.using_towny()) {
-                P_Towny.list_towny_tree(null, false, null, false);
-            } else {
-                Util.list_postal_tree(null, false, null);
-            }
+            if (VA_postal.using_towny()) P_Towny.list_towny_tree(null, false, null, false);
+            else Util.list_postal_tree(null, false, null);
             Util.con_type("Need more letters for post office. See list:");
             return true;
         }
         String saddress = C_Address.addresses_complete(stown, args[1]);
         if ("null".equals(saddress)) {
-            if (VA_postal.using_towny()) {
-                P_Towny.list_towny_tree(null, true, stown, false);
-            } else {
-                Util.list_postal_tree(null, true, stown);
-            }
+            if (VA_postal.using_towny()) P_Towny.list_towny_tree(null, true, stown, false);
+            else Util.list_postal_tree(null, true, stown);
             Util.con_type("Need more letters for address. See list:");
             return true;
         }
@@ -2743,74 +2533,51 @@ public class Cmdexecutor implements CommandExecutor {
 
     public static boolean is_player_comfirmation_registered(Player player) {
         String splayer;
-        if (player != null) {
-            splayer = player.getName();
-        } else {
-            splayer = "console";
-        }
-        for (String[] aCommand_confirm : command_confirm) {
-            if (splayer.equals(aCommand_confirm[0])) {
-
-
-                return true;
-            }
-        }
+        if (player != null) splayer = player.getName();
+        else splayer = "console";
+        for (String[] aCommand_confirm : command_confirm) if (splayer.equals(aCommand_confirm[0])) return true;
 
         return false;
     }
 
     public static String get_registered_comfirmation_cmd(Player player) {
         String splayer;
-        if (player != null) {
-            splayer = player.getName();
-        } else {
-            splayer = "console";
-        }
-        for (String[] aCommand_confirm : command_confirm) {
-            if (splayer.equals(aCommand_confirm[0])) {
-                return aCommand_confirm[1];
-            }
-        }
+        if (player != null) splayer = player.getName();
+        else splayer = "console";
+        for (String[] aCommand_confirm : command_confirm)
+            if (splayer.equals(aCommand_confirm[0])) return aCommand_confirm[1];
 
         return "null";
     }
 
     public static void deregister_player_comfirmation(Player player) {
         String splayer;
-        if (player != null) {
-            splayer = player.getName();
-        } else {
-            splayer = "console";
-        }
-        for (int i = 0; i < command_confirm.length; i++) {
+        if (player != null) splayer = player.getName();
+        else splayer = "console";
+        for (int i = 0; i < command_confirm.length; i++)
             if (splayer.equals(command_confirm[i][0])) {
                 clear_row(i);
                 break;
             }
-        }
     }
 
     public static void register_player_comfirmation(Player player, String scommand) {
         String splayer;
-        if (player != null) {
-            splayer = player.getName();
-        } else {
-            splayer = "console";
-        }
-        for (int i = 0; i < command_confirm.length; i++) {
+        if (player != null) splayer = player.getName();
+        else splayer = "console";
+        for (int i = 0; i < command_confirm.length; i++)
             if (command_confirm[i][0].equals("null")) {
                 command_confirm[i][0] = splayer;
                 command_confirm[i][1] = scommand;
                 command_confirm[i][2] = stime_stamp();
+                Util.dinform("Registered player " + splayer + " with command \"" + scommand + "\"");
                 if (!"console".equals(splayer)) {
                     Util.pinform(player, "&e&oEnter &f&r'/' &e&oto confirm. ");
                     break;
                 }
                 Util.cinform("\033[0;33mEnter \033[0;37m'/'\033[0;33m to confirm. ");
-
                 break;
             }
-        }
         confirm_queue_dirty = true;
     }
 
@@ -2818,29 +2585,23 @@ public class Cmdexecutor implements CommandExecutor {
         int elapsed;
         String splayer;
         String scommand;
-        if (confirm_queue_dirty) {
-            for (int i = 0; i < command_confirm.length; i++) {
-                splayer = command_confirm[i][0];
-                if (!"null".equals(splayer)) {
-                    elapsed = elapse_seconds(command_confirm[i][2]);
-                    if (elapsed > 30) {
-                        scommand = command_confirm[i][1];
-                        clear_row(i);
-                        if (!"console".equals(splayer)) {
-                            Util.spinform(Util.str2player(splayer), "&e&oConfirm timeout: &r&o" + scommand);
-                        } else {
-                            Util.cinform("\033[0;33mConfirm timeout: \033[0;37m" + scommand);
-                        }
-                    }
+        if (confirm_queue_dirty) for (int i = 0; i < command_confirm.length; i++) {
+            splayer = command_confirm[i][0];
+            if (!"null".equals(splayer)) {
+                elapsed = elapse_seconds(command_confirm[i][2]);
+                if (elapsed > 30) {
+                    scommand = command_confirm[i][1];
+                    clear_row(i);
+                    if (!"console".equals(splayer))
+                        Util.spinform(Util.str2player(splayer), "&e&oConfirm timeout: &r&o" + scommand);
+                    else Util.cinform("\033[0;33mConfirm timeout: \033[0;37m" + scommand);
                 }
             }
         }
     }
 
     public static void init_confirm_queue() {
-        for (int i = 0; i < command_confirm.length; i++) {
-            clear_row(i);
-        }
+        for (int i = 0; i < command_confirm.length; i++) clear_row(i);
         confirm_queue_dirty = false;
     }
 
@@ -2877,9 +2638,8 @@ public class Cmdexecutor implements CommandExecutor {
 
     public static String proper(String string) {
         try {
-            if (string.length() > 0) {
+            if (string.length() > 0)
                 return string.substring(0, 1).toUpperCase() + string.substring(1).toLowerCase().trim();
-            }
         } catch (Exception e) {
             return "";
         }
@@ -2887,9 +2647,7 @@ public class Cmdexecutor implements CommandExecutor {
     }
 
     public static String ef(double value) {
-        if (VA_postal.economy_configured) {
-            return VA_postal.econ.format(value);
-        }
+        if (VA_postal.economy_configured) return VA_postal.econ.format(value);
         return "-1";
     }
 
@@ -2897,214 +2655,120 @@ public class Cmdexecutor implements CommandExecutor {
         try {
             input = input.trim();
 
-            if (input.length() >= len) {
-                return input.substring(0, len);
-            }
+            if (input.length() >= len) return input.substring(0, len);
 
             StringBuilder inputBuilder = new StringBuilder(input);
-            while (inputBuilder.length() < len) {
-                inputBuilder.append(filler);
-            }
+            while (inputBuilder.length() < len) inputBuilder.append(filler);
             input = inputBuilder.toString();
             return input;
         } catch (Exception e) {
             StringBuilder blank = new StringBuilder();
-            for (int i = 0; i < len; i++) {
-                blank.append(filler);
-            }
+            for (int i = 0; i < len; i++) blank.append(filler);
             return blank.toString();
         }
     }
 
     public boolean onCommand(CommandSender sender, Command cmd, String commandLabel, String[] args) {
         if ("CONSOLE".equals(sender.getName())) {
-            if (cmd.getName().equalsIgnoreCase("postal")) {
-                result = postal_con(true, sender, cmd.getName(), args);
-            }
+            if (cmd.getName().equalsIgnoreCase("postal")) result = postal_con(true, sender, cmd.getName(), args);
 
-            if (cmd.getName().equalsIgnoreCase("alist")) {
-                result = alist_con(true, sender, cmd.getName(), args);
-            }
+            if (cmd.getName().equalsIgnoreCase("alist")) result = alist_con(true, sender, cmd.getName(), args);
 
-            if (cmd.getName().equalsIgnoreCase("tlist")) {
-                result = tlist_con(true, sender, cmd.getName(), args);
-            }
+            if (cmd.getName().equalsIgnoreCase("tlist")) result = tlist_con(true, sender, cmd.getName(), args);
 
-            if (cmd.getName().equalsIgnoreCase("plist")) {
-                result = plist_con(true, sender, cmd.getName(), args);
-            }
+            if (cmd.getName().equalsIgnoreCase("plist")) result = plist_con(true, sender, cmd.getName(), args);
 
-            if (cmd.getName().equalsIgnoreCase("showroute")) {
-                result = showroute_con(true, sender, cmd.getName(), args);
-            }
+            if (cmd.getName().equalsIgnoreCase("showroute")) result = showroute_con(true, sender, cmd.getName(), args);
 
-            if (cmd.getName().equalsIgnoreCase("expedite")) {
-                result = expedite_con(true, sender, cmd.getName(), args);
-            }
+            if (cmd.getName().equalsIgnoreCase("expedite")) result = expedite_con(true, sender, cmd.getName(), args);
 
-            if (cmd.getName().equalsIgnoreCase("owneraddr")) {
-                result = owneraddr_con(false, sender, cmd.getName(), args);
-            }
+            if (cmd.getName().equalsIgnoreCase("owneraddr")) result = owneraddr_con(false, sender, cmd.getName(), args);
 
-            if (cmd.getName().equalsIgnoreCase("ownerlocal")) {
+            if (cmd.getName().equalsIgnoreCase("ownerlocal"))
                 result = ownerlocal_con(false, sender, cmd.getName(), args);
-            }
 
-            if (cmd.getName().equalsIgnoreCase("deletelocal")) {
+            if (cmd.getName().equalsIgnoreCase("deletelocal"))
                 result = deletelocal_con(true, sender, cmd.getName(), args);
-            }
 
-            if (cmd.getName().equalsIgnoreCase("deleteaddr")) {
+            if (cmd.getName().equalsIgnoreCase("deleteaddr"))
                 result = deleteaddr_con(true, sender, cmd.getName(), args);
-            }
 
-            if (cmd.getName().equalsIgnoreCase("openlocal")) {
-                result = openlocal_con(true, sender, cmd.getName(), args);
-            }
+            if (cmd.getName().equalsIgnoreCase("openlocal")) result = openlocal_con(true, sender, cmd.getName(), args);
 
-            if (cmd.getName().equalsIgnoreCase("openaddr")) {
-                result = openaddr_con(true, sender, cmd.getName(), args);
-            }
+            if (cmd.getName().equalsIgnoreCase("openaddr")) result = openaddr_con(true, sender, cmd.getName(), args);
 
-            if (cmd.getName().equalsIgnoreCase("closelocal")) {
+            if (cmd.getName().equalsIgnoreCase("closelocal"))
                 result = closelocal_con(true, sender, cmd.getName(), args);
-            }
 
-            if (cmd.getName().equalsIgnoreCase("closeaddr")) {
-                result = closeaddr_con(true, sender, cmd.getName(), args);
-            }
+            if (cmd.getName().equalsIgnoreCase("closeaddr")) result = closeaddr_con(true, sender, cmd.getName(), args);
 
         } else {
 
             player = (Player) sender;
 
-            if (cmd.getName().equalsIgnoreCase("postal")) {
-                result = postal(false, sender, cmd.getName(), args);
-            }
+            if (cmd.getName().equalsIgnoreCase("postal")) result = postal(false, sender, cmd.getName(), args);
 
-            if (cmd.getName().equalsIgnoreCase("go")) {
-                result = go(false, sender, cmd.getName(), args);
-            }
+            if (cmd.getName().equalsIgnoreCase("go")) result = go(false, sender, cmd.getName(), args);
 
-            if (cmd.getName().equalsIgnoreCase("setowner")) {
-                result = setowner(false, sender, cmd.getName(), args);
-            }
+            if (cmd.getName().equalsIgnoreCase("setowner")) result = setowner(false, sender, cmd.getName(), args);
 
-            if (cmd.getName().equalsIgnoreCase("addr")) {
-                result = address(false, sender, cmd.getName(), args);
-            }
+            if (cmd.getName().equalsIgnoreCase("addr")) result = address(false, sender, cmd.getName(), args);
 
-            if (cmd.getName().equalsIgnoreCase("distr")) {
-                result = distr(false, sender, cmd.getName(), args);
-            }
+            if (cmd.getName().equalsIgnoreCase("distr")) result = distr(false, sender, cmd.getName(), args);
 
-            if (cmd.getName().equalsIgnoreCase("att")) {
-                result = attention(false, sender, cmd.getName(), args);
-            }
+            if (cmd.getName().equalsIgnoreCase("att")) result = attention(false, sender, cmd.getName(), args);
 
-            if (cmd.getName().equalsIgnoreCase("tlist")) {
-                result = tlist(false, sender, cmd.getName(), args);
-            }
+            if (cmd.getName().equalsIgnoreCase("tlist")) result = tlist(false, sender, cmd.getName(), args);
 
-            if (cmd.getName().equalsIgnoreCase("alist")) {
-                result = alist(false, sender, cmd.getName(), args);
-            }
+            if (cmd.getName().equalsIgnoreCase("alist")) result = alist(false, sender, cmd.getName(), args);
 
-            if (cmd.getName().equalsIgnoreCase("plist")) {
-                result = plist(false, sender, cmd.getName(), args);
-            }
+            if (cmd.getName().equalsIgnoreCase("plist")) result = plist(false, sender, cmd.getName(), args);
 
-            if (cmd.getName().equalsIgnoreCase("gps")) {
-                result = gps(false, sender, cmd.getName(), args);
-            }
+            if (cmd.getName().equalsIgnoreCase("gps")) result = gps(false, sender, cmd.getName(), args);
 
-            if (cmd.getName().equalsIgnoreCase("gpsp")) {
-                result = gps(false, sender, cmd.getName(), args);
-            }
+            if (cmd.getName().equalsIgnoreCase("gpsp")) result = gps(false, sender, cmd.getName(), args);
 
-            if (cmd.getName().equalsIgnoreCase("expedite")) {
-                result = expedite(false, sender, cmd.getName(), args);
-            }
+            if (cmd.getName().equalsIgnoreCase("expedite")) result = expedite(false, sender, cmd.getName(), args);
 
-            if (cmd.getName().equalsIgnoreCase("setcentral")) {
-                result = setcentral(false, sender, cmd.getName(), args);
-            }
+            if (cmd.getName().equalsIgnoreCase("setcentral")) result = setcentral(false, sender, cmd.getName(), args);
 
-            if (cmd.getName().equalsIgnoreCase("gotocentral")) {
-                result = gotocentral(false, sender, cmd.getName(), args);
-            }
+            if (cmd.getName().equalsIgnoreCase("gotocentral")) result = gotocentral(false, sender, cmd.getName(), args);
 
-            if (cmd.getName().equalsIgnoreCase("setlocal")) {
-                result = setlocal(false, sender, cmd.getName(), args);
-            }
+            if (cmd.getName().equalsIgnoreCase("setlocal")) result = setlocal(false, sender, cmd.getName(), args);
 
-            if (cmd.getName().equalsIgnoreCase("gotolocal")) {
-                result = gotolocal(false, sender, cmd.getName(), args);
-            }
+            if (cmd.getName().equalsIgnoreCase("gotolocal")) result = gotolocal(false, sender, cmd.getName(), args);
 
-            if (cmd.getName().equalsIgnoreCase("setaddr")) {
-                result = setaddress(false, sender, cmd.getName(), args);
-            }
+            if (cmd.getName().equalsIgnoreCase("setaddr")) result = setaddress(false, sender, cmd.getName(), args);
 
-            if (cmd.getName().equalsIgnoreCase("gotoaddr")) {
-                result = gotoaddress(false, sender, cmd.getName(), args);
-            }
+            if (cmd.getName().equalsIgnoreCase("gotoaddr")) result = gotoaddress(false, sender, cmd.getName(), args);
 
-            if (cmd.getName().equalsIgnoreCase("owneraddr")) {
-                result = owneraddr(false, sender, cmd.getName(), args);
-            }
+            if (cmd.getName().equalsIgnoreCase("owneraddr")) result = owneraddr(false, sender, cmd.getName(), args);
 
-            if (cmd.getName().equalsIgnoreCase("ownerlocal")) {
-                result = ownerlocal(false, sender, cmd.getName(), args);
-            }
+            if (cmd.getName().equalsIgnoreCase("ownerlocal")) result = ownerlocal(false, sender, cmd.getName(), args);
 
-            if (cmd.getName().equalsIgnoreCase("setroute")) {
-                result = setroute(false, sender, cmd.getName(), args);
-            }
+            if (cmd.getName().equalsIgnoreCase("setroute")) result = setroute(false, sender, cmd.getName(), args);
 
-            if (cmd.getName().equalsIgnoreCase("showroute")) {
-                result = showroute(false, sender, cmd.getName(), args);
-            }
+            if (cmd.getName().equalsIgnoreCase("showroute")) result = showroute(false, sender, cmd.getName(), args);
 
-            if (cmd.getName().equalsIgnoreCase("deletelocal")) {
-                result = deletelocal(false, sender, cmd.getName(), args);
-            }
+            if (cmd.getName().equalsIgnoreCase("deletelocal")) result = deletelocal(false, sender, cmd.getName(), args);
 
-            if (cmd.getName().equalsIgnoreCase("deleteaddr")) {
-                result = deleteaddr(false, sender, cmd.getName(), args);
-            }
+            if (cmd.getName().equalsIgnoreCase("deleteaddr")) result = deleteaddr(false, sender, cmd.getName(), args);
 
-            if (cmd.getName().equalsIgnoreCase("openlocal")) {
-                result = openlocal(false, sender, cmd.getName(), args);
-            }
+            if (cmd.getName().equalsIgnoreCase("openlocal")) result = openlocal(false, sender, cmd.getName(), args);
 
-            if (cmd.getName().equalsIgnoreCase("openaddr")) {
-                result = openaddr(false, sender, cmd.getName(), args);
-            }
+            if (cmd.getName().equalsIgnoreCase("openaddr")) result = openaddr(false, sender, cmd.getName(), args);
 
-            if (cmd.getName().equalsIgnoreCase("closelocal")) {
-                result = closelocal(false, sender, cmd.getName(), args);
-            }
+            if (cmd.getName().equalsIgnoreCase("closelocal")) result = closelocal(false, sender, cmd.getName(), args);
 
-            if (cmd.getName().equalsIgnoreCase("closeaddr")) {
-                result = closeaddr(false, sender, cmd.getName(), args);
-            }
+            if (cmd.getName().equalsIgnoreCase("closeaddr")) result = closeaddr(false, sender, cmd.getName(), args);
 
-            if (cmd.getName().equalsIgnoreCase("package")) {
-                result = parcel(false, sender, cmd.getName(), args);
-            }
+            if (cmd.getName().equalsIgnoreCase("package")) result = parcel(false, sender, cmd.getName(), args);
 
-            if (cmd.getName().equalsIgnoreCase("cod")) {
-                result = cod(false, sender, cmd.getName(), args);
-            }
+            if (cmd.getName().equalsIgnoreCase("cod")) result = cod(false, sender, cmd.getName(), args);
 
-            if (cmd.getName().equalsIgnoreCase("accept")) {
-                result = accept(false, sender, cmd.getName(), args);
-            }
+            if (cmd.getName().equalsIgnoreCase("accept")) result = accept(false, sender, cmd.getName(), args);
 
-            if (cmd.getName().equalsIgnoreCase("refuse")) {
-                result = refuse(false, sender, cmd.getName(), args);
-            }
+            if (cmd.getName().equalsIgnoreCase("refuse")) result = refuse(false, sender, cmd.getName(), args);
         }
 
         return result;

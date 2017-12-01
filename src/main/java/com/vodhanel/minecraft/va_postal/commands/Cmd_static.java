@@ -168,8 +168,8 @@ public class Cmd_static {
             VA_postal.plistener_newroute = false;
             Location player_loc = Util.simplified_copy(player.getLocation());
             int wypnt_count = C_Route.route_waypoint_count(stown, saddress);
-            String test_loc = "";
-            double test_dist = -1.0D;
+            String test_loc;
+            double test_dist;
             double saved_dist = 1000.0D;
             int saved_pos = -1;
             String saved_loc = "";
@@ -207,9 +207,7 @@ public class Cmd_static {
         player.setCompassTarget(Util.str2location(saddr_location));
         Util.pinform(player, "&7&oYour compass has been set to the address.");
 
-        if (VA_postal.plistener_quickbar == null) {
-            VA_postal.plistener_quickbar = new ItemStack[9];
-        }
+        if (VA_postal.plistener_quickbar == null) VA_postal.plistener_quickbar = new ItemStack[9];
         for (int i = 0; i < 9; i++) {
             VA_postal.plistener_quickbar[i] = player.getInventory().getItem(i);
             player.getInventory().setItem(i, null);
@@ -243,9 +241,7 @@ public class Cmd_static {
             if (sender != null) {
                 P_Economy.charge_player(player, price);
                 P_Economy.pay_player(sender, price);
-            } else {
-                Util.cinform("[Postal] Unable charge for COD.");
-            }
+            } else Util.cinform("[Postal] Unable charge for COD.");
         }
 
         Inventory inventory = BookManip.parcel_fill_chest(block, stack);
@@ -266,60 +262,40 @@ public class Cmd_static {
             Util.pinform(player, "&7&oThere is no charge to change COD amount..");
         }
         ItemStack stamped = stamp_cod(stack, cod_price);
-        if (stamped == null) {
-            return;
-        }
+        if (stamped == null) return;
         stack = null;
         player.setItemInHand(stamped);
-        if (!no_charge) {
-            P_Economy.charge_cod_surcharge(player);
-        }
+        if (!no_charge) P_Economy.charge_cod_surcharge(player);
     }
 
     public static ItemStack stamp_cod(ItemStack ind_item, double price) {
         Book book = new Book(ind_item);
-        if (!book.is_valid()) {
-            return null;
-        }
+        if (!book.is_valid()) return null;
         String title = book.getTitle();
         String author = book.getAuthor();
         String[] pages = book.getPages();
-        if ((pages == null) || (pages.length < 1)) {
-            return null;
-        }
+        if ((pages == null) || (pages.length < 1)) return null;
         String[] parts = pages[0].split("\n");
-        if ((parts == null) || (parts.length < 12)) {
-            return null;
-        }
+        if ((parts == null) || (parts.length < 12)) return null;
         parts[11] = (cod_prepend + ef(price));
         pages[0] = "";
-        for (String part : parts) {
-            pages[0] = (pages[0] + part + "\n");
-        }
+        for (String part : parts) pages[0] = (pages[0] + part + "\n");
         Book stamped_book = new Book(title, author, pages);
         return stamped_book.generateItemStack();
     }
 
     public static double cod_amount(ItemStack ind_item) {
         Book book = new Book(ind_item);
-        if (!book.is_valid()) {
-            return 0.0D;
-        }
+        if (!book.is_valid()) return 0.0D;
         String title = book.getTitle();
         String author = book.getAuthor();
         String[] pages = book.getPages();
         book = null;
-        if ((pages == null) || (pages.length < 1)) {
-            return 0.0D;
-        }
+        if ((pages == null) || (pages.length < 1)) return 0.0D;
         String[] parts = pages[0].split("\n");
-        if ((parts == null) || (parts.length < 12)) {
-            return 0.0D;
-        }
+        if ((parts == null) || (parts.length < 12)) return 0.0D;
         String sraw = parts[11].trim();
-        if (sraw.contains("§7.")) {
-            return 0.0D;
-        }
+        if (sraw.contains("§7.")) return 0.0D;
         if (sraw.contains(cod_prepend)) {
             String sprice = sraw.replace(cod_prepend, "");
             sprice = sprice.replace(",", "").trim();
@@ -330,15 +306,11 @@ public class Cmd_static {
 
     public static Player cod_sender(ItemStack ind_item) {
         Book book = new Book(ind_item);
-        if (!book.is_valid()) {
-            return null;
-        }
+        if (!book.is_valid()) return null;
         String title = book.getTitle();
         String author = book.getAuthor();
         String[] pages = book.getPages();
-        if ((pages == null) || (pages.length < 1)) {
-            return null;
-        }
+        if ((pages == null) || (pages.length < 1)) return null;
         return book.extractEmbeddedAuthor();
     }
 
@@ -351,9 +323,7 @@ public class Cmd_static {
         String scoords = parts[1].trim() + "," + parts[2].trim() + "," + parts[3].trim();
         String chest_dir = "";
         Chest chest = (Chest) block.getState();
-        if (chest == null) {
-            return false;
-        }
+        if (chest == null) return false;
         byte c_data = block.getData();
         Inventory inventory = chest.getInventory();
 
@@ -374,17 +344,13 @@ public class Cmd_static {
         int page = 0;
 
         for (String anItem_list : item_list) {
-            if (anItem_list == null) {
-                break;
-            }
+            if (anItem_list == null) break;
             pages[page] = (pages[page] + anItem_list + "\n");
             if (line > 8) {
                 page++;
                 pages[page] = "";
                 line = 0;
-            } else {
-                line++;
-            }
+            } else line++;
         }
 
         if (line > 6) {
@@ -396,14 +362,10 @@ public class Cmd_static {
         page++;
 
         String[] message_pages = BookManip.parcel_pages(player, inventory);
-        if (message_pages != null) {
-            for (String message_page : message_pages) {
-                pages[page] = message_page;
-                page++;
-                if (page >= 9) {
-                    break;
-                }
-            }
+        if (message_pages != null) for (String message_page : message_pages) {
+            pages[page] = message_page;
+            page++;
+            if (page >= 9) break;
         }
 
         while (page < pages.length) {
@@ -415,9 +377,7 @@ public class Cmd_static {
 
 
         String splayer = player.getName().trim();
-        if (splayer.length() > 15) {
-            splayer = splayer.substring(0, 15);
-        }
+        if (splayer.length() > 15) splayer = splayer.substring(0, 15);
         Book new_book = new Book("[shipping label]", splayer, pages);
         ItemStack new_stack = new_book.generateItemStack();
         addr_worker(player, inventory, new_stack, attention, Attention, stown, saddress);
@@ -472,29 +432,18 @@ public class Cmd_static {
         }
 
         player.setItemOnCursor(new_stack);
-        if (VA_postal.economy_configured) {
-            if (inventory == null) {
-                if (!re_address) {
-                    P_Economy.charge_postage(player, stown);
-                } else {
-                    Util.pinform(player, "&6There is no charge for re-addressing.");
-                }
-            } else {
-                P_Economy.charge_shipping(player, stown);
-            }
-        }
+        if (VA_postal.economy_configured)
+            if (inventory == null) if (!re_address) P_Economy.charge_postage(player, stown);
+            else Util.pinform(player, "&6There is no charge for re-addressing.");
+            else P_Economy.charge_shipping(player, stown);
         Util.pinform(player, "&7&oTitle &9&o" + title + " &7&oAuthor &9&o" + author);
         Util.pinform(player, "&7&oAddressed to &9&o" + Util.df(saddress) + " &7&otown of &9&o" + Util.df(stown));
         Util.pinform(player, "&7&oAttention: &9&o" + attention);
     }
 
     public static void distr_worker(Player player, ItemStack stack, String sdistribution, String srch_stown, int iexpiration) {
-        if ("[all]".equals(sdistribution)) {
-            sdistribution = "all_addresses";
-        }
-        if ("[all]".equals(srch_stown)) {
-            srch_stown = "all_towns";
-        }
+        if ("[all]".equals(sdistribution)) sdistribution = "all_addresses";
+        if ("[all]".equals(srch_stown)) srch_stown = "all_towns";
 
         Book book = new Book(stack);
         String title = proper(book.getTitle());
@@ -533,28 +482,23 @@ public class Cmd_static {
         Util.pinform(player, "Distribution: " + s_expiration);
         for (String stown : town_list) {
             String[] addr_list = C_Arrays.addresses_list(stown);
-            if (addr_list == null) {
-                Util.cinform("Problem getting address array.");
-            } else
+            if (addr_list == null) Util.cinform("Problem getting address array.");
+            else
                 for (String saddress : addr_list) {
                     Player owner = VA_postal.SERVER;
                     if (("all_addresses".equalsIgnoreCase(sdistribution)) ||
-                            (C_Owner.is_address_owner_defined(stown, saddress))) {
-
-
+                            (C_Owner.is_address_owner_defined(stown, saddress)))
                         if (("all_towns".equalsIgnoreCase(srch_stown)) ||
                                 (stown.equalsIgnoreCase(srch_stown))) {
 
 
-                            if (C_Owner.is_address_owner_defined(stown, saddress)) {
+                            if (C_Owner.is_address_owner_defined(stown, saddress))
                                 owner = C_Owner.get_owner_address(stown, saddress);
-                            }
 
 
                             String search_location = Util.put_point_on_ground(C_Address.get_address_location(stown, saddress), false);
-                            if ("null".equals(search_location)) {
-                                Util.cinform("Problem getting search location.");
-                            } else {
+                            if ("null".equals(search_location)) Util.cinform("Problem getting search location.");
+                            else {
                                 Location p_search_location = Util.str2location(search_location);
                                 p_search_location.subtract(0.0D, 1.0D, 0.0D);
                                 Block b_sign_search = SignManip.LookForSignChest(p_search_location, 10, "[Postal_Mail]", stown, saddress, null);
@@ -562,42 +506,30 @@ public class Cmd_static {
                                 details = " " + fixed_len(details, 45, "-");
                                 if (b_sign_search != null) {
                                     Chest chest = (Chest) b_sign_search.getState();
-                                    if ((chest == null) || (!ChestManip.is_chest(chest.getType()))) {
+                                    if ((chest == null) || (!ChestManip.is_chest(chest.getType())))
                                         Util.cinform("Problem with chest definition");
-
-                                    } else if (add_to_mailbox(chest, dist_stack)) {
+                                    else if (add_to_mailbox(chest, dist_stack))
                                         Util.pinform(player, details + " Delivered");
-                                    } else {
-                                        Util.pinform(player, details + " No Room");
-                                    }
-                                } else {
-                                    Util.pinform(player, details + " No Mailbox");
-                                }
+                                    else Util.pinform(player, details + " No Room");
+                                } else Util.pinform(player, details + " No Mailbox");
                             }
                         }
-                    }
                 }
         }
-        if (VA_postal.economy_configured) {
-            P_Economy.charge_distr(player, sdistribution, srch_stown);
-        }
+        if (VA_postal.economy_configured) P_Economy.charge_distr(player, sdistribution, srch_stown);
     }
 
     public static void place_new_mail_marker(Location location) {
         World w = location.getWorld();
         Block block = w.getBlockAt(location);
-        if (block == null) {
-            return;
-        }
+        if (block == null) return;
         String stitle = "§c[Postal_Mail]";
 
         SignManip.edit_sign_id_chest(block, stitle, null, null, null);
     }
 
     public static boolean add_to_mailbox(Chest chest, ItemStack book_item) {
-        if ((book_item == null) || (chest == null)) {
-            return false;
-        }
+        if ((book_item == null) || (chest == null)) return false;
         Inventory inventory = chest.getInventory();
 
         if (inventory.firstEmpty() != -1) {
@@ -738,66 +670,40 @@ public class Cmd_static {
         if (VA_postal.economy_configured) {
             double cost;
             cost = P_Economy.charge_addr_purchase(player, subject, stown, saddress);
-            if (cost > 0.0D) {
-                if (player == null) {
-                    Util.con_type(subject + " charged " + ef(cost));
-                } else {
-                    Util.pinform(player, subject + " charged " + ef(cost));
-                }
-            }
+            if (cost > 0.0D) if (player == null) Util.con_type(subject + " charged " + ef(cost));
+            else Util.pinform(player, subject + " charged " + ef(cost));
         }
         if (subject != null) {
             C_Owner.set_owner_address(stown, saddress, subject);
-            if (player == null) {
-                Util.con_type(Util.df(stown) + ", " + Util.df(saddress) + " now owned by " + subject);
-            } else {
-                Util.pinform(player, Util.df(stown) + ", " + Util.df(saddress) + " now owned by " + subject);
-            }
+            if (player == null) Util.con_type(Util.df(stown) + ", " + Util.df(saddress) + " now owned by " + subject);
+            else Util.pinform(player, Util.df(stown) + ", " + Util.df(saddress) + " now owned by " + subject);
         } else {
             C_Owner.del_owner_address(stown, saddress);
-            if (player == null) {
-                Util.con_type("Owner removed from: " + Util.df(stown) + ", " + Util.df(saddress));
-            } else {
-                Util.pinform(player, "Owner removed from: " + Util.df(stown) + ", " + Util.df(saddress));
-            }
+            if (player == null) Util.con_type("Owner removed from: " + Util.df(stown) + ", " + Util.df(saddress));
+            else Util.pinform(player, "Owner removed from: " + Util.df(stown) + ", " + Util.df(saddress));
         }
     }
 
     public static void ownerlocal_worker(Player player, String stown, Player subject) {
         if (VA_postal.economy_configured) {
-            double cost = 0.0D;
+            double cost;
 
             cost = P_Economy.charge_po_purchase(player, subject, stown);
-            if (cost > 0.0D) {
-                if (player == null) {
-                    Util.con_type(subject + " charged " + ef(cost));
-                } else {
-                    Util.pinform(player, subject + " charged " + ef(cost));
-                }
-            }
+            if (cost > 0.0D) if (player == null) Util.con_type(subject + " charged " + ef(cost));
+            else Util.pinform(player, subject.getDisplayName() + " charged " + ef(cost));
         } else if (subject != null) {
             C_Owner.set_owner_local_po(stown, subject);
-            if (player == null) {
-                Util.con_type(Util.df(stown) + " is now owned by " + subject);
-            } else {
-                Util.pinform(player, Util.df(stown) + " is now owned by " + subject);
-            }
+            if (player == null) Util.con_type(Util.df(stown) + " is now owned by " + subject.getDisplayName());
+            else Util.pinform(player, Util.df(stown) + " is now owned by " + subject.getDisplayName());
         } else {
-            if (C_Owner.is_local_po_owner_defined(stown)) {
-                C_Owner.del_owner_local_po(stown);
-            }
-            if (player == null) {
-                Util.con_type("Owner removed from: " + Util.df(stown));
-            } else {
-                Util.pinform(player, "Owner removed from: " + Util.df(stown));
-            }
+            if (C_Owner.is_local_po_owner_defined(stown)) C_Owner.del_owner_local_po(stown);
+            if (player == null) Util.con_type("Owner removed from: " + Util.df(stown));
+            else Util.pinform(player, "Owner removed from: " + Util.df(stown));
         }
     }
 
     public static String ef(double value) {
-        if (VA_postal.economy_configured) {
-            return VA_postal.econ.format(value);
-        }
+        if (VA_postal.economy_configured) return VA_postal.econ.format(value);
         return "-1";
     }
 
@@ -811,8 +717,8 @@ public class Cmd_static {
     }
 
     public static int elapse_seconds(String stime) {
-        long current_time = -1L;
-        long saved_time = -1L;
+        long current_time;
+        long saved_time;
         try {
             saved_time = Long.parseLong(stime);
         } catch (NumberFormatException numberFormatException) {
@@ -828,9 +734,8 @@ public class Cmd_static {
 
     public static String proper(String string) {
         try {
-            if (string.length() > 0) {
+            if (string.length() > 0)
                 return string.substring(0, 1).toUpperCase() + string.substring(1).toLowerCase().trim();
-            }
         } catch (Exception e) {
             return "";
         }
@@ -841,19 +746,13 @@ public class Cmd_static {
         try {
             input = input.trim();
 
-            if (input.length() >= len) {
-                return input.substring(0, len);
-            }
+            if (input.length() >= len) return input.substring(0, len);
 
-            while (input.length() < len) {
-                input = input + filler;
-            }
+            while (input.length() < len) input = input + filler;
             return input;
         } catch (Exception e) {
             String blank = "";
-            for (int i = 0; i < len; i++) {
-                blank = blank + filler;
-            }
+            for (int i = 0; i < len; i++) blank = blank + filler;
             return blank;
         }
     }

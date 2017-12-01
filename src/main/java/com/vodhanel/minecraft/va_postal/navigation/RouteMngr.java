@@ -35,25 +35,21 @@ public class RouteMngr {
 
     public static synchronized int npc_create(String slocation, boolean local, String label) {
         int id = -1;
-        String name = "PostMan";
-        if (local) {
-            name = GetConfig.get_local_pman_name();
-        } else {
-            name = GetConfig.get_central_pman_name();
-        }
+        String name;
+        if (local) name = GetConfig.get_local_pman_name();
+        else name = GetConfig.get_central_pman_name();
         Util.dinform("\033[1;34mnpc_create: " + slocation + "," + name);
         Location location = Util.str2location(slocation);
         boolean used_deleted_slot = false;
         if (local) {
             try {
                 id = VA_postal.wtr_count;
-                for (int i = 0; i < VA_postal.wtr_count; i++) {
+                for (int i = 0; i < VA_postal.wtr_count; i++)
                     if (VA_postal.wtr_npc[i] == null) {
                         id = i;
                         used_deleted_slot = true;
                         break;
                     }
-                }
                 EntityType buk_entity_type = EntityType.PLAYER;
                 VA_postal.wtr_npc[id] = VA_postal.npcRegistry.createNPC(buk_entity_type, name);
                 VA_postal.wtr_slocation_local_po_spawn[id] = slocation;
@@ -67,12 +63,8 @@ public class RouteMngr {
                 Util.cinform("\033[0;33mException creating NPC: \033[0;37m" + id + ", retrying...");
                 return -1;
             }
-            if (VA_postal.dynmap_configured) {
-                P_Dynmap.create_marker_postman(id, slocation, label);
-            }
-            if (!used_deleted_slot) {
-                VA_postal.wtr_count += 1;
-            }
+            if (VA_postal.dynmap_configured) P_Dynmap.create_marker_postman(id, slocation, label);
+            if (!used_deleted_slot) VA_postal.wtr_count += 1;
         } else {
             try {
                 id = 1000;
@@ -88,9 +80,7 @@ public class RouteMngr {
                 Util.cinform("\033[0;33mException creating Central NPC:, retrying... ");
                 return -1;
             }
-            if (VA_postal.dynmap_configured) {
-                P_Dynmap.create_marker_postmaster(slocation, label);
-            }
+            if (VA_postal.dynmap_configured) P_Dynmap.create_marker_postmaster(slocation, label);
         }
         return id;
     }
@@ -98,9 +88,7 @@ public class RouteMngr {
     public static synchronized void initialize_npc(int id) {
         EntityType buk_entity_type = EntityType.PLAYER;
         if (id == 1000) {
-            if ((VA_postal.central_route_npc == null) || (VA_postal.central_route_npc.getEntity() == null)) {
-                return;
-            }
+            if ((VA_postal.central_route_npc == null) || (VA_postal.central_route_npc.getEntity() == null)) return;
 
             if (!VA_postal.central_route_npc.isSpawned()) {
                 Location target = VA_postal.central_route_npc.getEntity().getLocation();
@@ -112,25 +100,15 @@ public class RouteMngr {
             VA_postal.central_route_npc.getTrait(LookClose.class).lookClose(true);
             Equipment trait = VA_postal.central_route_npc.getTrait(Equipment.class);
             ItemStack uniform = uniform_part(1, false);
-            if ((uniform != null) && (trait != null)) {
-                trait.set(1, uniform);
-            }
+            if ((uniform != null) && (trait != null)) trait.set(1, uniform);
             uniform = uniform_part(2, false);
-            if ((uniform != null) && (trait != null)) {
-                trait.set(2, uniform);
-            }
+            if ((uniform != null) && (trait != null)) trait.set(2, uniform);
             uniform = uniform_part(3, false);
-            if ((uniform != null) && (trait != null)) {
-                trait.set(3, uniform);
-            }
+            if ((uniform != null) && (trait != null)) trait.set(3, uniform);
             uniform = uniform_part(4, false);
-            if ((uniform != null) && (trait != null)) {
-                trait.set(4, uniform);
-            }
+            if ((uniform != null) && (trait != null)) trait.set(4, uniform);
         } else {
-            if ((VA_postal.wtr_npc[id] == null) || (VA_postal.wtr_npc[id].getEntity() == null)) {
-                return;
-            }
+            if ((VA_postal.wtr_npc[id] == null) || (VA_postal.wtr_npc[id].getEntity() == null)) return;
 
             if (!VA_postal.wtr_npc[id].getEntity().isValid()) {
                 Location target = Util.str2location(VA_postal.wtr_slocation_local_po_spawn[id]);
@@ -152,60 +130,38 @@ public class RouteMngr {
             VA_postal.wtr_npc[id].getTrait(LookClose.class).lookClose(true);
             Equipment trait = VA_postal.wtr_npc[id].getTrait(Equipment.class);
             ItemStack uniform = uniform_part(1, true);
-            if ((uniform != null) && (trait != null)) {
-                trait.set(1, uniform);
-            }
+            if ((uniform != null) && (trait != null)) trait.set(1, uniform);
             uniform = uniform_part(2, true);
-            if ((uniform != null) && (trait != null)) {
-                trait.set(2, uniform);
-            }
+            if ((uniform != null) && (trait != null)) trait.set(2, uniform);
             uniform = uniform_part(3, true);
-            if ((uniform != null) && (trait != null)) {
-                trait.set(3, uniform);
-            }
+            if ((uniform != null) && (trait != null)) trait.set(3, uniform);
             uniform = uniform_part(4, true);
-            if ((uniform != null) && (trait != null)) {
-                trait.set(4, uniform);
-            }
+            if ((uniform != null) && (trait != null)) trait.set(4, uniform);
         }
     }
 
     public static synchronized void lookclose_on_route(int id, boolean route_start) {
-        if (route_start) {
-            if (VA_postal.lookclose_on_route) {
-                VA_postal.wtr_npc[id].getTrait(LookClose.class).lookClose(true);
-            } else {
-                VA_postal.wtr_npc[id].getTrait(LookClose.class).lookClose(false);
-            }
-        } else {
-            VA_postal.wtr_npc[id].getTrait(LookClose.class).lookClose(true);
-        }
+        if (route_start)
+            if (VA_postal.lookclose_on_route) VA_postal.wtr_npc[id].getTrait(LookClose.class).lookClose(true);
+            else VA_postal.wtr_npc[id].getTrait(LookClose.class).lookClose(false);
+        else VA_postal.wtr_npc[id].getTrait(LookClose.class).lookClose(true);
     }
 
     public static synchronized void npc_delete_all(boolean quiet) {
 
-        for (int i = 0; i < VA_postal.wtr_count; i++) {
-            if (VA_postal.wtr_npc[i] != null) {
-                delete_npc(i);
-            }
-        }
+        for (int i = 0; i < VA_postal.wtr_count; i++) if (VA_postal.wtr_npc[i] != null) delete_npc(i);
 
         String postman = GetConfig.get_local_pman_name();
         String pmaster = GetConfig.get_central_pman_name();
-        for (NPC npc : VA_postal.npcRegistry.sorted()) {
+        for (NPC npc : VA_postal.npcRegistry.sorted())
             try {
                 if (npc != null) {
-                    if (npc.getName().equals(postman)) {
-                        npc.destroy();
-                    }
-                    if (npc.getName().equals(pmaster)) {
-                        npc.destroy();
-                    }
+                    if (npc.getName().equals(postman)) npc.destroy();
+                    if (npc.getName().equals(pmaster)) npc.destroy();
                 }
             } catch (Exception e) {
                 Util.dinform("ERROR IN DELETING ALL NPCS: " + e.getMessage());
             }
-        }
         VA_postal.central_route_npc = null;
         VA_postal.central_route_player = null;
         VA_postal.wtr_npc = null;
@@ -216,21 +172,11 @@ public class RouteMngr {
     }
 
     public static synchronized void delete_npc(int id) {
-        if (VA_postal.wtr_nav[id] != null) {
-            VA_postal.wtr_nav[id] = null;
-        }
-        if (VA_postal.wtr_goal[id] != null) {
-            VA_postal.wtr_goal[id] = null;
-        }
-        if (VA_postal.wtr_goalselector[id] != null) {
-            VA_postal.wtr_goalselector[id] = null;
-        }
-        if (VA_postal.wtr_controller[id] != null) {
-            VA_postal.wtr_controller[id] = null;
-        }
-        if (VA_postal.wtr_npc_player[id] != null) {
-            VA_postal.wtr_npc_player[id] = null;
-        }
+        if (VA_postal.wtr_nav[id] != null) VA_postal.wtr_nav[id] = null;
+        if (VA_postal.wtr_goal[id] != null) VA_postal.wtr_goal[id] = null;
+        if (VA_postal.wtr_goalselector[id] != null) VA_postal.wtr_goalselector[id] = null;
+        if (VA_postal.wtr_controller[id] != null) VA_postal.wtr_controller[id] = null;
+        if (VA_postal.wtr_npc_player[id] != null) VA_postal.wtr_npc_player[id] = null;
         if (VA_postal.wtr_npc[id] != null) {
             try {
                 VA_postal.wtr_npc[id].destroy();
@@ -238,18 +184,12 @@ public class RouteMngr {
             }
             VA_postal.wtr_npc[id] = null;
         }
-        if (VA_postal.wtr_poffice[id] != null) {
-            VA_postal.wtr_poffice[id] = null;
-        }
-        if (VA_postal.wtr_address[id] != null) {
-            VA_postal.wtr_address[id] = null;
-        }
+        if (VA_postal.wtr_poffice[id] != null) VA_postal.wtr_poffice[id] = null;
+        if (VA_postal.wtr_address[id] != null) VA_postal.wtr_address[id] = null;
     }
 
     public static synchronized void npc_start_route(int id, String local_po, String address, String queue_pair) {
-        if ((!VA_Dispatcher.dispatcher_running) || (!C_Queue.is_queue_open(queue_pair))) {
-            return;
-        }
+        if ((!VA_Dispatcher.dispatcher_running) || (!C_Queue.is_queue_open(queue_pair))) return;
 
         if (!C_Route.is_waypoint_defined(local_po, address, 1)) {
             C_Dispatcher.open_address(local_po, address, false);
@@ -302,9 +242,7 @@ public class RouteMngr {
         VA_postal.wtr_speed_factor[id] = 0.5F;
 
         VA_Timers.run_goal(id, 1L);
-        if (VA_postal.dynmap_configured) {
-            P_Dynmap.show_route(id);
-        }
+        if (VA_postal.dynmap_configured) P_Dynmap.show_route(id);
         lookclose_on_route(id, true);
 
         C_Queue.queue_pair_activity_flag(queue_pair, true, true, false);
@@ -312,9 +250,7 @@ public class RouteMngr {
     }
 
     public static synchronized void npc_next_waypoint(int id) {
-        if (!ID_WTR.npc_should_run(id)) {
-            return;
-        }
+        if (!ID_WTR.npc_should_run(id)) return;
         VA_postal.wtr_watchdog_ext_npc_stamp[id] = Util.time_stamp();
         VA_postal.wtr_watchdog_ext_last_location[id] = VA_postal.wtr_npc_player[id].getLocation();
         VA_postal.wtr_watchdog_stuck_stamp[id] = System.currentTimeMillis();
@@ -333,9 +269,7 @@ public class RouteMngr {
                 ID_WTR.door_navigator(id, true);
                 VA_postal.wtr_speed_factor[id] = 0.5F;
                 VA_Timers.run_goal(id, 50L);
-                if (VA_postal.dynmap_configured) {
-                    P_Dynmap.update_pos(id, true, false, false);
-                }
+                if (VA_postal.dynmap_configured) P_Dynmap.update_pos(id, true, false, false);
             } else if ((VA_postal.wtr_door_nav[id]) && (VA_postal.wtr_door_nav_enter[id])) {
                 ID_WTR.door_navigator(id, false);
                 VA_postal.wtr_speed_factor[id] = 0.5F;
@@ -346,34 +280,26 @@ public class RouteMngr {
                 VA_postal.wtr_speed_factor[id] = 0.5F;
                 VA_Timers.run_goal(id, pause);
 
-                if (VA_postal.dynmap_configured) {
-                    P_Dynmap.update_pos(id, false, true, false);
-                }
+                if (VA_postal.dynmap_configured) P_Dynmap.update_pos(id, false, true, false);
 
                 C_Dispatcher.reset_pro_de_motion(VA_postal.wtr_qpair[id]);
             } else {
                 Util.dinform("\033[1;34mProceeding to next waypoint...." + VA_postal.wtr_poffice[id] + " " + VA_postal.wtr_swaypoint[id]);
 
                 VA_Timers.run_goal(id, 1L);
-                if (VA_postal.dynmap_configured) {
-                    P_Dynmap.update_pos(id, false, false, false);
-                }
+                if (VA_postal.dynmap_configured) P_Dynmap.update_pos(id, false, false, false);
             }
         } else {
             lookclose_on_route(id, false);
             VA_postal.wtr_goal_active[id] = false;
             C_Dispatcher.reset_pro_de_motion(VA_postal.wtr_qpair[id]);
             C_Queue.queue_pair_activity_flag(VA_postal.wtr_qpair[id], false, true, true);
-            if (VA_postal.dynmap_configured) {
-                P_Dynmap.update_pos(id, false, false, true);
-            }
+            if (VA_postal.dynmap_configured) P_Dynmap.update_pos(id, false, false, true);
         }
     }
 
     public static synchronized void cancel_route(int id) {
-        if ((!VA_Dispatcher.dispatcher_running) || (!VA_postal.wtr_goal_active[id])) {
-            return;
-        }
+        if ((!VA_Dispatcher.dispatcher_running) || (!VA_postal.wtr_goal_active[id])) return;
         VA_postal.wtr_done[id] = true;
 
         String slocation = VA_postal.wtr_slocation_local_po_spawn[id];
@@ -389,36 +315,23 @@ public class RouteMngr {
     }
 
     public static void npc_scheduler(String queue_pair) {
-        if ((!VA_Dispatcher.dispatcher_running) || (!C_Queue.is_queue_open(queue_pair))) {
-            return;
-        }
-        if (VA_Dispatcher.dispatcher_async) {
-            VA_postal.plugin.getServer().getScheduler().scheduleSyncDelayedTask(VA_postal.plugin, new Runnable() {
-                public void run() {
-                    if (!VA_Dispatcher.dispatcher_running) {
-                        return;
-                    }
-                    if (C_Queue.is_queue_open(queue_pair))
-                        RouteMngr.npc_scheduler_worker(queue_pair);
-                }
+        if ((!VA_Dispatcher.dispatcher_running) || (!C_Queue.is_queue_open(queue_pair))) return;
+        if (VA_Dispatcher.dispatcher_async)
+            VA_postal.plugin.getServer().getScheduler().scheduleSyncDelayedTask(VA_postal.plugin, () -> {
+                if (!VA_Dispatcher.dispatcher_running) return;
+                if (C_Queue.is_queue_open(queue_pair)) RouteMngr.npc_scheduler_worker(queue_pair);
             }, 10L);
-
-        } else {
-            npc_scheduler_worker(queue_pair);
-        }
+        else npc_scheduler_worker(queue_pair);
     }
 
     public static synchronized void npc_scheduler_worker(String queue_pair) {
-        if ((!VA_Dispatcher.dispatcher_running) || (!C_Queue.is_queue_open(queue_pair))) {
-            return;
-        }
+        if ((!VA_Dispatcher.dispatcher_running) || (!C_Queue.is_queue_open(queue_pair))) return;
 
         if (VA_postal.plistener_player != null) {
             String stown = VA_postal.plistener_local_po;
             String saddress = VA_postal.plistener_address;
             String e_qp = C_Queue.get_queue_pair(stown, saddress);
             if (e_qp.equals(queue_pair)) {
-
                 C_Dispatcher.demote_schedule(stown, saddress, 3000);
                 return;
             }
@@ -437,12 +350,10 @@ public class RouteMngr {
         }
 
 
-        if (VA_Dispatcher.dispatcher_auto_cal) {
-            calibrate(cooldown, elapsed);
-        }
+        if (VA_Dispatcher.dispatcher_auto_cal) calibrate(cooldown, elapsed);
 
 
-        int id = -1;
+        int id;
         String spostoffice = C_Queue.queue_pair_get_town(queue_pair);
         String address = C_Queue.queue_pair_get_address(queue_pair);
 
@@ -455,20 +366,15 @@ public class RouteMngr {
             }
 
             C_Queue.update_npc_id_for_queue_pair(queue_pair, id);
-        } else {
-            id = C_Queue.npc_id_for_queue_pair(queue_pair);
-        }
+        } else id = C_Queue.npc_id_for_queue_pair(queue_pair);
 
         npc_start_route(id, spostoffice, address, queue_pair);
     }
 
     public static synchronized void calibrate(int cooldown, int actual_sec) {
-        if (!VA_Dispatcher.dispatcher_running) {
-            return;
-        }
-        if (cal_cos_threshold == 100) {
-            return;
-        }
+        if (!VA_Dispatcher.dispatcher_running) return;
+        if (cal_cos_threshold == 100) return;
+
         if (cal_history_pos < cal_history.length) {
             cal_history[cal_history_pos] = actual_sec;
             cal_history_pos += 1;
@@ -476,9 +382,7 @@ public class RouteMngr {
         }
 
         int average = 0;
-        for (int aCal_history : cal_history) {
-            average += aCal_history;
-        }
+        for (int aCal_history : cal_history) average += aCal_history;
         average /= cal_history.length;
         int comp = cooldown + 5;
 
@@ -489,24 +393,22 @@ public class RouteMngr {
             cal_stability = 0;
             reset = true;
         }
+
         if (cal_cosecutive > 5) {
             double adjuster = VA_Dispatcher.dispatcher_heartbeat;
             VA_Dispatcher.dispatcher_heartbeat = (long) (adjuster * 1.05D);
             reset = true;
         }
 
-        if (VA_Dispatcher.dispatcher_heartbeat > 200L) {
-            VA_Dispatcher.dispatcher_heartbeat = 200L;
-        }
-        if (VA_Dispatcher.dispatcher_heartbeat < 30L) {
-            VA_Dispatcher.dispatcher_heartbeat = 305L;
-        }
+        if (VA_Dispatcher.dispatcher_heartbeat > 200L) VA_Dispatcher.dispatcher_heartbeat = 200L;
+        if (VA_Dispatcher.dispatcher_heartbeat < 30L) VA_Dispatcher.dispatcher_heartbeat = 305L;
 
         if (reset) {
             VA_postal.plugin.getServer().getScheduler().cancelTask(VA_Dispatcher.dispatcher_id);
             VA_Dispatcher.dispatcher(VA_Dispatcher.dispatcher_heartbeat, VA_Dispatcher.dispatcher_heartbeat, false);
             cal_cosecutive = 0;
         }
+
         if (cal_stability > cal_cos_threshold) {
             if (cal_last_save != VA_Dispatcher.dispatcher_heartbeat) {
                 GetConfig.set_heartbeat_ticks(VA_Dispatcher.dispatcher_heartbeat);
@@ -646,22 +548,16 @@ public class RouteMngr {
 
     public static synchronized void set_range_and_speed(int id) {
         if (cit_range < 0.0F) {
-            if (VA_postal.wtr_range[id] < 25.0F) {
-                VA_postal.wtr_range[id] = 25.0F;
-            }
+            if (VA_postal.wtr_range[id] < 25.0F) VA_postal.wtr_range[id] = 25.0F;
             VA_postal.wtr_nav[id].getDefaultParameters().range(VA_postal.wtr_range[id]);
         }
 
-        if (VA_postal.wtr_speed_factor[id] < 0.5F) {
-            VA_postal.wtr_speed_factor[id] = 0.5F;
-        }
+        if (VA_postal.wtr_speed_factor[id] < 0.5F) VA_postal.wtr_speed_factor[id] = 0.5F;
         VA_postal.wtr_nav[id].getDefaultParameters().speedModifier(VA_postal.wtr_speed_factor[id]);
     }
 
     public static synchronized void dynamic_navigation(int id) {
-        if ((!VA_Dispatcher.dispatcher_running) || (!VA_postal.wtr_goal_active[id])) {
-            return;
-        }
+        if ((!VA_Dispatcher.dispatcher_running) || (!VA_postal.wtr_goal_active[id])) return;
         if (VA_postal.wtr_nav[id] == null) {
             VA_postal.wtr_nav[id] = VA_postal.wtr_npc[id].getNavigator();
             cit_new_nav = C_Citizens.alt_local_nav();
@@ -680,9 +576,8 @@ public class RouteMngr {
             VA_postal.wtr_nav[id].getDefaultParameters().distanceMargin(cit_distanceMargin);
             VA_postal.wtr_nav[id].getDefaultParameters().stationaryTicks(cit_stationaryTicks);
 
-            for (BlockExaminer examiner : VA_postal.wtr_nav[id].getDefaultParameters().examiners()) {
+            for (BlockExaminer examiner : VA_postal.wtr_nav[id].getDefaultParameters().examiners())
                 Util.dinform("EXAMINER: " + examiner);
-            }
 
         }
         // else Util.dinform("NAV IS NOT NULL FOR "+id);
@@ -695,7 +590,7 @@ public class RouteMngr {
         float speed_scale = VA_postal.wtr_speed;
 
 
-        float speed_factor = 0.0F;
+        float speed_factor;
         int distance = (int) VA_postal.wtr_dist_next[id];
 
         switch (distance) {
@@ -742,12 +637,8 @@ public class RouteMngr {
                 speed_factor = 1.109F;
         }
         double watchdog_calc = distance * (1.0F / speed_factor) * 1500.0F;
-        if (watchdog_calc <= 1000.0D) {
-            watchdog_calc = 1000.0D;
-        }
-        if (watchdog_calc >= 15000.0D) {
-            watchdog_calc = 15000.0D;
-        }
+        if (watchdog_calc <= 1000.0D) watchdog_calc = 1000.0D;
+        if (watchdog_calc >= 15000.0D) watchdog_calc = 15000.0D;
         float av_speed_factor = (VA_postal.wtr_speed_factor[id] + speed_factor) / 2.0F * speed_scale;
         VA_postal.wtr_watchdog_stuck_ms[id] = ((int) watchdog_calc * 2);
         VA_postal.wtr_speed_factor[id] = av_speed_factor;
@@ -768,19 +659,13 @@ public class RouteMngr {
         try {
             input = input.trim();
 
-            if (input.length() >= len) {
-                return input.substring(0, len);
-            }
+            if (input.length() >= len) return input.substring(0, len);
 
-            while (input.length() < len) {
-                input = input + filler;
-            }
+            while (input.length() < len) input = input + filler;
             return input;
         } catch (Exception e) {
             String blank = "";
-            for (int i = 0; i < len; i++) {
-                blank = blank + filler;
-            }
+            for (int i = 0; i < len; i++) blank = blank + filler;
             return blank;
         }
     }
